@@ -1,0 +1,36 @@
+{
+  "passed": true,
+  "viewports": [
+    [
+      1440,
+      900
+    ],
+    [
+      390,
+      844
+    ]
+  ],
+  "thresholdSeconds": 10,
+  "phases": {
+    "duration": 2000,
+    "low": {
+      "shadow": "oklab(0.54768 0.065148 0.111227 / 0.25) 0px 0px 0px 1px inset",
+      "color": "rgb(78, 89, 104)",
+      "background": "rgb(242, 244, 246)"
+    },
+    "high": {
+      "shadow": "oklab(0.54768 0.065148 0.111227 / 0.8) 0px 0px 0px 1px inset",
+      "color": "rgb(78, 89, 104)",
+      "background": "rgb(242, 244, 246)"
+    }
+  },
+  "noLayoutShift": true,
+  "activityClearsWarning": true,
+  "reducedMotion": {
+    "animation": "none",
+    "staticShadow": "color(srgb 0.941177 0.662745 0.294118 / 0.7) 0px 0px 0px 1px inset"
+  },
+  "automaticLock": true,
+  "pageErrors": [],
+  "externalRequests": []
+}

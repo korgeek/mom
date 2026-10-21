@@ -1,0 +1,14 @@
+MoM test-build recipient permission
+
+Recipients of this MoM test build are permitted to modify the delivered work
+for their own use and to reverse engineer it for debugging such modifications.
+
+This permission does not publish MoM preferred-form application source,
+change repository visibility, or select a general open-source application
+license. Third-party components retain their respective license terms and
+recipient rights; this statement does not restrict those upstream rights.
+
+The two dedicated helpers relink-decoder.mjs and REBUILD-MP3.sh are separately
+licensed under the accompanying MoM-CODEC-HELPERS-MIT.txt. Corresponding codec
+source, build materials and delivered-object replacement instructions accompany
+this test build. No source/compiler rebuild or live AI verification is claimed.

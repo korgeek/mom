@@ -1,0 +1,21 @@
+Modernizr 3.0.0pre (Custom Build), embedded in React DOM 19.2.1.
+
+Preserved attribution from react-dom/cjs/react-dom-client.production.js:
+Modernizr 3.0.0pre (Custom Build) | MIT
+
+The complete upstream LICENSE file at Modernizr's v3.0.0 tag is:
+/*! Modernizr 3.0.0pre (Custom Build) | MIT  */
+
+Source:
+https://raw.githubusercontent.com/Modernizr/Modernizr/v3.0.0/LICENSE
+
+The tag's readme.md identifies the MIT license:
+https://github.com/Modernizr/Modernizr/blob/v3.0.0/readme.md#license
+
+React DOM's versioned source identifies the borrowed event-support code:
+https://github.com/react/react/blob/v19.2.1/packages/react-dom-bindings/src/events/isEventSupported.js
+
+The full MIT text supplied by the React DOM publisher is preserved in
+runtime-react-dom-19.2.1-LICENSE.txt. The exact Modernizr custom-build commit
+is not identified by the React DOM package; no standalone modernizr npm
+package is installed or imported by MoM.

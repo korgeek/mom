@@ -1,0 +1,26 @@
+{
+  "selectors": [
+    ".step-bar",
+    ".preparation-metadata",
+    ".title-input",
+    ".preparation-metadata [role=group]",
+    ".preparation-work",
+    ".audio-input",
+    ".preparation-actions"
+  ],
+  "comparedProperties": [
+    "x",
+    "y",
+    "width",
+    "height",
+    "display",
+    "color",
+    "fontSize",
+    "background"
+  ],
+  "differences": [],
+  "screenshotHashes": [
+    "82481446043fa7efe355e2f0e8c9b35a6a6be00a2abf43ec8f93e2033877cbf9",
+    "82481446043fa7efe355e2f0e8c9b35a6a6be00a2abf43ec8f93e2033877cbf9"
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "backup": "/Users/korgeek/Workspace/mom-archives/2026-10-18/053817-UTC",
+  "bundle_bytes": 25814000,
+  "bundle_sha256": "8d7249f8f481d5f1aeaf351012e1e24597cc6e262b1b53d52dcc89c7a5a172fb",
+  "bundle_refs": 7,
+  "results": [
+    {
+      "branch": "feat/mom-local",
+      "head": "cf939d4ae397445adee922e0f0503a4e9a43daad",
+      "status": "removed_after_archive",
+      "worktree": "/Users/korgeek/Workspace/mom/.worktrees/mom-implementation",
+      "ignored_entries_preserved": 5
+    },
+    {
+      "branch": "fix/mom-m4a",
+      "head": "ef52038822ffc7559109e746a0965c4c600631db",
+      "status": "removed_after_archive",
+      "worktree": "/Users/korgeek/Workspace/mom/.worktrees/mom-m4a",
+      "ignored_entries_preserved": 5
+    },
+    {
+      "branch": "feat/mom-source",
+      "head": "b932c1818994f4cc17d746aee5cb91eb9420d359",
+      "status": "removed_after_archive",
+      "worktree": "/Users/korgeek/Workspace/mom/.worktrees/mom-source",
+      "ignored_entries_preserved": 2
+    },
+    {
+      "branch": "feat/mom-writer",
+      "head": "39c73654fd9e8f6a444bab1cb65f204c18e5ed03",
+      "status": "removed_after_archive",
+      "worktree": "/Users/korgeek/Workspace/mom/.worktrees/mom-writer",
+      "ignored_entries_preserved": 2
+    },
+    {
+      "branch": "archive/mom-before-update-20261017",
+      "head": "c003d0f28729384d84208ebc84172ab8ff62dc20",
+      "status": "removed_after_archive",
+      "worktree": null,
+      "ignored_entries_preserved": 0
+    }
+  ],
+  "kept": [
+    "main",
+    "feat/screen-lock-responsive-20261018"
+  ],
+  "remote_branches_deleted": 0,
+  "force_rm_gc_prune": false
+}

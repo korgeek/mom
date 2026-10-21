@@ -1,0 +1,70 @@
+import { expect, test } from '@playwright/test';
+import { mkdirSync } from 'node:fs';
+import { createModelPreset, exportModelProfiles } from '../../src/react-app/providers/model-profiles';
+import { clickAppAction, createVault, passphrase, toneWav } from './helpers';
+
+test('partial transcripts can skip completed chunks, rerun all, and explicitly choose a saved result', async ({ page, baseURL }) => {
+  test.setTimeout(60000);
+  const evidence = process.env.MOM_SCOPE_EVIDENCE ?? '/private/tmp/mom-stt-scope'; mkdirSync(evidence, { recursive: true });
+  const errors: string[] = [], external: string[] = [], calls: string[] = [];
+  page.on('pageerror', error => errors.push(error.message));
+  await page.route('https://**/*', route => {
+    if (new URL(route.request().url()).origin === new URL(baseURL!).origin) return route.continue();
+    external.push(route.request().url()); return route.abort();
+  });
+  await page.route('http://localhost:8000/**', async route => {
+    const headers = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': '*', 'Access-Control-Allow-Methods': 'POST, OPTIONS' };
+    if (route.request().method() === 'OPTIONS') { await route.fulfill({ status: 204, headers }); return; }
+    calls.push(route.request().postData() ?? '');
+    if (calls.length === 2) { await route.abort('failed'); return; }
+    await route.fulfill({ headers, contentType: 'application/json', body: JSON.stringify({ text: `TEST_ONLY_SCOPE_SPEECH_${calls.length}` }) });
+  });
+  await createVault(page); await clickAppAction(page, '설정');
+  const manager = page.getByRole('region', { name: '모델 관리', exact: true });
+  await manager.getByRole('button', { name: 'JSON 가져오기', exact: true }).click();
+  const model = { ...createModelPreset('compatible-stt'), name: 'TEST_ONLY_SCOPE_MODEL' };
+  const importer = page.getByRole('region', { name: '모델 가져오기', exact: true });
+  await importer.getByLabel('모델 JSON', { exact: true }).fill(exportModelProfiles([model]));
+  await importer.getByRole('button', { name: '미리보기', exact: true }).click(); await importer.getByRole('button', { name: '가져오기', exact: true }).click();
+  await manager.getByRole('listitem').getByRole('button', { name: '수정', exact: true }).click();
+  const editor = page.getByRole('dialog', { name: '모델 수정', exact: true });
+  await editor.getByRole('checkbox', { name: '이 모델 활성화', exact: true }).check(); await editor.getByRole('button', { name: '저장', exact: true }).click();
+  await page.getByRole('button', { name: 'Minutes of Meeting', exact: true }).click();
+  await page.getByRole('main').getByRole('button', { name: '+ 새 음성 메모', exact: true }).click();
+  await page.getByLabel('음성 파일 선택', { exact: true }).setInputFiles({ name: 'TEST_ONLY_SCOPE.wav', mimeType: 'audio/wav', buffer: toneWav(601) });
+  await page.getByRole('button', { name: '전사 준비', exact: true }).click(); await page.getByRole('button', { name: '전사하기 →', exact: true }).click();
+  await page.getByRole('combobox', { name: '전사 모델', exact: true }).selectOption({ label: model.name });
+  await page.getByRole('checkbox', { name: '위 내용을 확인했어요', exact: true }).check(); await page.getByRole('button', { name: '전사 실행', exact: true }).click();
+  await expect(page.locator('.saved-count')).toHaveText('전사 결과 1 / 3'); await expect(page.locator('.chunk-row').nth(1)).toContainText('결과 불명');
+  const all = page.getByRole('button', { name: '전체 전사', exact: true }); await expect(all).toBeEnabled(); await all.click();
+  const modal = page.getByRole('dialog', { name: '전체 전사', exact: true }), ack = modal.getByRole('checkbox');
+  const remaining = modal.getByRole('radio', { name: '완료된 청크 건너뛰기 · 2개 전송', exact: true });
+  const every = modal.getByRole('radio', { name: '전체 다시 전사 · 3개 전송', exact: true });
+  await expect(remaining).toBeChecked(); await ack.check(); await every.check(); await expect(ack).not.toBeChecked();
+  await remaining.check(); await ack.check(); await page.screenshot({ path: `${evidence}/1440-scope.png` });
+  await modal.getByRole('button', { name: '전사 실행', exact: true }).click();
+  await expect(page.locator('.saved-count')).toHaveText('전사 결과 3 / 3'); expect(calls).toHaveLength(4);
+  const second = page.locator('.chunk-row').nth(1); await expect(second.getByRole('button', { name: '다시 전사', exact: true })).toBeEnabled();
+  await second.getByRole('button', { name: '다시 전사', exact: true }).click();
+  await page.getByRole('dialog').getByRole('button', { name: '취소', exact: true }).click(); expect(calls).toHaveLength(4);
+  await all.click(); await expect(modal.getByRole('radio', { name: /완료된 청크 건너뛰기/ })).toBeDisabled();
+  await expect(every).toBeChecked(); await ack.check(); await modal.getByRole('button', { name: '전사 실행', exact: true }).click();
+  await expect.poll(() => calls.length).toBe(7); await expect(page.locator('.chunk-row').last().locator('.badge')).toHaveText('저장됨');
+  const first = page.locator('.chunk-row').first(); await first.getByRole('button', { name: '전사 내용 확인', exact: true }).click();
+  const chunk = page.getByRole('dialog', { name: '청크 #1 전사 내용', exact: true }), originals = chunk.getByRole('combobox', { name: '원본 결과', exact: true });
+  await expect(originals.getByRole('option')).toHaveCount(2);
+  await originals.selectOption({ index: 1 }); await expect(chunk).toContainText('TEST_ONLY_SCOPE_SPEECH_5');
+  await chunk.getByRole('button', { name: '이 결과 사용', exact: true }).click(); await expect(chunk.getByRole('button', { name: '현재 사용 중', exact: true })).toBeDisabled();
+  expect(calls).toHaveLength(7); await page.screenshot({ path: `${evidence}/1440-result-choice.png` });
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(await chunk.evaluate(node => node.scrollWidth <= node.clientWidth)).toBe(true); await page.screenshot({ path: `${evidence}/390-result-choice.png` });
+  await chunk.getByRole('button', { name: '닫기', exact: true }).click(); await all.click();
+  expect(await modal.evaluate(node => node.scrollWidth <= node.clientWidth)).toBe(true); await page.screenshot({ path: `${evidence}/390-scope.png` });
+  await modal.getByRole('button', { name: '취소', exact: true }).click();
+  await page.reload(); await page.getByLabel('암호', { exact: true }).fill(passphrase); await page.getByRole('button', { name: /^(화면 )?잠금 해제$/ }).click();
+  await page.getByRole('button', { name: /^열기 / }).first().click();
+  await page.getByRole('navigation', { name: '음성 메모 단계' }).getByRole('button').nth(1).click();
+  await first.getByRole('button', { name: '전사 내용 확인', exact: true }).click();
+  await expect(chunk).toContainText('TEST_ONLY_SCOPE_SPEECH_5'); await expect(chunk.getByRole('button', { name: '현재 사용 중', exact: true })).toBeDisabled();
+  expect(calls).toHaveLength(7); expect(errors).toEqual([]); expect(external).toEqual([]);
+});

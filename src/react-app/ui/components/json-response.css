@@ -1,0 +1,28 @@
+.json-response { min-width: 0; font-size: 13px; line-height: 1.65; }
+.json-response-header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-block: 16px 12px; }
+.json-response-header > div { display: grid; gap: 2px; }
+.json-response-header strong { font-size: 14px; font-weight: 600; }
+.json-response-header button { color: var(--accent); }
+.json-response-data, .json-response-raw { background: var(--fill2); border: 1px solid var(--line); border-radius: 8px; overflow-wrap: anywhere; }
+.json-response-data { padding: 4px 12px; }
+.json-response code { color: var(--accentInk); font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; }
+.json-response-row { display: grid; grid-template-columns: minmax(100px, 130px) minmax(0, 1fr); align-items: start; gap: 12px; padding: 10px 0; margin: 0; font-size: 13px; }
+.json-response-row dt, .json-response-row dd { margin: 0; min-width: 0; }
+.json-response-value { white-space: pre-wrap; }
+.json-response-value[data-type="number"], .json-response-value[data-type="boolean"] { color: var(--warn); font-variant-numeric: tabular-nums; }
+.json-response-value[data-type="null"], .json-response-value[data-type="undefined"] { color: var(--ink4); }
+.json-response-fields > * + * { border-top: 1px solid var(--line); }
+.json-response-node > summary { padding: 10px 0; cursor: pointer; font-size: 13px; }
+.json-response-node > summary::before { margin-inline-end: 6px; vertical-align: middle; }
+.json-response-kind { float: right; margin-left: 8px; color: var(--ink4); font-size: 12px; }
+.json-response-preview { display: block; margin: 6px 0 0 16px; color: var(--ink4); font-size: 12px; }
+.json-response-children { border-left: 1px solid var(--lineS); padding-left: 14px; margin: 0 0 12px 12px; }
+.json-response-long { padding: 0 0 14px 16px; white-space: pre-wrap; font-size: 13px; line-height: 1.7; }
+.json-response-fields > .json-response-more { margin-block: 8px; }
+.json-response-raw { padding: 14px; margin: 0; white-space: pre-wrap; font-family: 'IBM Plex Mono', monospace; font-size: 12px; line-height: 1.7; max-height: 400px; overflow: auto; }
+@media (max-width: 650px) {
+  .json-response-row { grid-template-columns: minmax(70px, 90px) minmax(0, 1fr); gap: 8px; }
+  .json-response-children .json-response-row { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+  .json-response-kind { float: none; display: inline-block; }
+  .json-response-children { margin-left: 6px; padding-left: 10px; }
+}

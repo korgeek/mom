@@ -1,0 +1,93 @@
+import { afterEach, expect, it, vi } from 'vitest';
+import { IDBFactory } from 'fake-indexeddb';
+import { createMeetingController, type MeetingController } from '../src/react-app/controller';
+import { createVaultSession } from '../src/react-app/vault/session';
+import { cancelJobs } from '../src/react-app/domain/jobs';
+import { validateRegistration } from '../src/react-app/providers/model-registrations';
+const phrase = 'synthetic screen lock cedar river', cores: MeetingController[] = [];
+afterEach(async () => { for (const core of cores.splice(0)) await core.dispose(); cancelJobs(); vi.restoreAllMocks(); });
+async function fixture(fetch: typeof globalThis.fetch = vi.fn()) {
+  const core = createMeetingController({ indexedDB: new IDBFactory(), databaseName: crypto.randomUUID(), fetch, sessionFactory: options => createVaultSession({ ...options, testOnlyOwnership: { acquire: async () => () => {} } }) });
+  cores.push(core); await core.initialize(); await core.createVault(phrase); return core;
+}
+it('screens a live approved request, rejects bad reauthentication without cancellation, and releases keys after its saved completion', async () => {
+  let finish!: (response: Response) => void;
+  const fetch = vi.fn((_url: RequestInfo | URL, init?: RequestInit) => new Promise<Response>(resolve => { expect(init?.signal?.aborted).toBe(false); finish = resolve; }));
+  const core = await fixture(fetch);
+  const memo = await core.createMeeting();
+  const model = validateRegistration({ id: 'synthetic', stage: 'llm', name: 'PRIVATE_SCREEN_MODEL', baseUrl: 'https://api.openai.com/v1', modelId: 'synthetic-model', auth: 'none', credentialVersion: 0, credentialOrigin: null });
+  await core.getSnapshot().onSaveRegistration!(model);
+  const saved = core.getSnapshot().modelRegistrations!.entries[0];
+  const operation = core.getSnapshot().onTestRegistration!(saved, { stage: 'llm', transcript: 'SYNTHETIC_PRIVATE_TRANSCRIPT', outputLanguage: 'ko', sections: ['summary'], instructions: '' });
+  void operation.catch(() => {});
+  await vi.waitFor(() => expect(fetch).toHaveBeenCalledOnce());
+  const signal = fetch.mock.calls[0][1]!.signal!;
+  core.getSnapshot().onNavigate!('settings', memo);
+  await vi.waitFor(() => expect(core.getSnapshot().screen).toBe('settings'));
+  expect(signal.aborted).toBe(false);
+  expect(core.getSnapshot().workReturnScreen).toBe('import');
+  await core.screenLock();
+  expect(core.getSnapshot().screenAccess).toBe('locked'); expect(core.getSnapshot().session).toBe('unlocked');
+  expect(signal.aborted).toBe(false);
+  core.getSnapshot().onScreenUnlock!('a wrong synthetic password');
+  await vi.waitFor(() => expect(core.getSnapshot().screenUnlockError).toBe(true));
+  expect(core.getSnapshot().error).toBeNull();
+  expect(signal.aborted).toBe(false); expect(core.getSnapshot().screenAccess).toBe('locked');
+  await expect(core.createMeeting()).rejects.toThrow();
+  finish(new Response(JSON.stringify({ choices: [{ message: { content: 'SYNTHETIC_PRIVATE_RESULT' }, finish_reason: 'stop' }] })));
+  await operation;
+  await vi.waitFor(() => expect(core.getSnapshot().session).toBe('locked'));
+  expect(core.getSnapshot().modelRegistrations).toBeNull();
+  await core.unlockScreen(phrase);
+  expect(core.getSnapshot().modelRegistrations?.entries[0].lastTest?.text).toBe('SYNTHETIC_PRIVATE_RESULT');
+  expect(fetch).toHaveBeenCalledOnce();
+});
+it('keeps explicit vault recovery available from a fully locked gate', async () => {
+  const core = await fixture();
+  await core.lock();
+  await core.resetVault();
+  expect(core.getSnapshot().session).toBe('new');
+});
+it('restores an interactive locked gate after a cold unlock failure so a corrected passphrase can be entered', async () => {
+  const core = await fixture();
+  await core.lock();
+  await expect(core.unlock('a different synthetic password')).rejects.toThrow();
+  expect(core.getSnapshot().session).toBe('locked');
+  expect(core.getSnapshot().screenAccess).toBe('open');
+  await core.unlock(phrase);
+  expect(core.getSnapshot().session).toBe('unlocked');
+});
+it('encrypts UI drafts and the selected screen before an idle vault releases keys, and restores without a new request', async () => {
+  const core = await fixture(); const id = await core.createMeeting();
+  core.getSnapshot().onUIDraft!(`minutes:${id}`, { text: 'PRIVATE_UNSAVED_MARKDOWN' });
+  await core.screenLock();
+  await vi.waitFor(() => expect(core.getSnapshot().session).toBe('locked'));
+  expect(JSON.stringify(core.getSnapshot())).not.toContain('PRIVATE_UNSAVED_MARKDOWN');
+  await core.unlockScreen(phrase);
+  expect(core.getSnapshot().selectedProjectId).toBe(id);
+  expect(core.getSnapshot().screen).toBe('import');
+  expect(core.getSnapshot().uiDrafts?.[`minutes:${id}`]).toEqual({ text: 'PRIVATE_UNSAVED_MARKDOWN' });
+});
+it('applies a work policy change at the next boundary without restarting a stopped request', async () => {
+  const fetch = vi.fn((_url: RequestInfo | URL, init?: RequestInit) => new Promise<Response>((_resolve, reject) => {
+    init?.signal?.addEventListener('abort', () => reject(new DOMException('Stopped synthetic request', 'AbortError')), { once: true });
+  }));
+  const core = await fixture(fetch);
+  const model = validateRegistration({ id: 'policy', stage: 'llm', name: 'SYNTHETIC_POLICY_MODEL', baseUrl: 'https://api.openai.com/v1', modelId: 'synthetic-model', auth: 'none', credentialVersion: 0, credentialOrigin: null });
+  await core.getSnapshot().onSaveRegistration!(model);
+  const operation = core.getSnapshot().onTestRegistration!(core.getSnapshot().modelRegistrations!.entries[0], { stage: 'llm', transcript: 'SYNTHETIC_POLICY_TEXT', outputLanguage: 'ko', sections: ['summary'], instructions: '' });
+  void operation.catch(() => {});
+  await vi.waitFor(() => expect(fetch).toHaveBeenCalledOnce());
+  await core.noteBackground();
+  expect(core.getSnapshot().screenAccess).toBe('open');
+  core.getSnapshot().onPreferences!({ ...core.getSnapshot().preferences, lockWorkPolicy: 'strict' });
+  expect(fetch.mock.calls[0][1]!.signal!.aborted).toBe(false);
+  await core.noteBackground();
+  await operation.catch(() => {});
+  expect(fetch.mock.calls[0][1]!.signal!.aborted).toBe(true);
+  expect(core.getSnapshot().session).toBe('locked');
+  await core.unlockScreen(phrase);
+  expect(core.getSnapshot().preferences.lockWorkPolicy).toBe('strict');
+  core.getSnapshot().onPreferences!({ ...core.getSnapshot().preferences, lockWorkPolicy: 'standard' });
+  expect(fetch).toHaveBeenCalledOnce();
+});

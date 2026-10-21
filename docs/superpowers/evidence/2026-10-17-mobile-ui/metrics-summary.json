@@ -1,0 +1,54 @@
+[
+  {
+    "width": 360,
+    "headerHeight": {
+      "before": 157,
+      "after": 61
+    },
+    "settingsTabHeight": {
+      "before": 91,
+      "after": 51
+    },
+    "desktopHomeGeometryEqual": null,
+    "securityCopyEqual": true
+  },
+  {
+    "width": 390,
+    "headerHeight": {
+      "before": 157,
+      "after": 61
+    },
+    "settingsTabHeight": {
+      "before": 91,
+      "after": 51
+    },
+    "desktopHomeGeometryEqual": null,
+    "securityCopyEqual": true
+  },
+  {
+    "width": 430,
+    "headerHeight": {
+      "before": 157,
+      "after": 61
+    },
+    "settingsTabHeight": {
+      "before": 91,
+      "after": 51
+    },
+    "desktopHomeGeometryEqual": null,
+    "securityCopyEqual": true
+  },
+  {
+    "width": 1440,
+    "headerHeight": {
+      "before": 900,
+      "after": 900
+    },
+    "settingsTabHeight": {
+      "before": 41,
+      "after": 41
+    },
+    "desktopHomeGeometryEqual": true,
+    "securityCopyEqual": true
+  }
+]

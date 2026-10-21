@@ -1,0 +1,122 @@
+{
+  "results": [
+    {
+      "screen": "minutes",
+      "width": 1440,
+      "reference": {
+        "x": 653.828125,
+        "y": 32,
+        "width": 726.671875,
+        "height": 239.96875
+      },
+      "actual": {
+        "x": 280.5,
+        "y": 1305.109375,
+        "width": 1100,
+        "height": 526.5625
+      },
+      "overflow": false
+    },
+    {
+      "screen": "settings",
+      "width": 1440,
+      "reference": {
+        "x": 350.5,
+        "y": 143,
+        "width": 628,
+        "height": 126.59375
+      },
+      "actual": {
+        "x": 350.5,
+        "y": 820.375,
+        "width": 960,
+        "height": 311.1875
+      },
+      "font": "20px",
+      "referenceFont": "14px",
+      "weight": "700",
+      "referenceWeight": "600",
+      "inPanel": false,
+      "overflow": false
+    },
+    {
+      "screen": "minutes",
+      "width": 1100,
+      "reference": {
+        "x": 20,
+        "y": 146.59375,
+        "width": 1060,
+        "height": 263.96875
+      },
+      "actual": {
+        "x": 20,
+        "y": 426.5625,
+        "width": 1060,
+        "height": 82
+      },
+      "overflow": false
+    },
+    {
+      "screen": "settings",
+      "width": 1100,
+      "reference": {
+        "x": 62.5,
+        "y": 177,
+        "width": 960,
+        "height": 148.59375
+      },
+      "actual": {
+        "x": 62.5,
+        "y": 1256.375,
+        "width": 960,
+        "height": 353.1875
+      },
+      "font": "20px",
+      "referenceFont": "14px",
+      "weight": "700",
+      "referenceWeight": "600",
+      "inPanel": false,
+      "overflow": false
+    },
+    {
+      "screen": "minutes",
+      "width": 360,
+      "reference": {
+        "x": 16,
+        "y": 146.59375,
+        "width": 328,
+        "height": 340.96875
+      },
+      "actual": {
+        "x": 16,
+        "y": 503.5625,
+        "width": 328,
+        "height": 82
+      },
+      "overflow": false
+    },
+    {
+      "screen": "settings",
+      "width": 360,
+      "reference": {
+        "x": 16,
+        "y": 187,
+        "width": 313,
+        "height": 167.1875
+      },
+      "actual": {
+        "x": 16,
+        "y": 1440.96875,
+        "width": 313,
+        "height": 502.96875
+      },
+      "font": "20px",
+      "referenceFont": "14px",
+      "weight": "700",
+      "referenceWeight": "600",
+      "inPanel": false,
+      "overflow": false
+    }
+  ],
+  "errors": []
+}

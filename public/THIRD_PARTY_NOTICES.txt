@@ -1,0 +1,130 @@
+MoM — third-party browser distribution notices
+
+Reviewed application source: 20d2602591b6cad61b24871fc3e9fce4b1257fee.
+The full license texts, copyright notices and disclaimers below accompany this
+build under /licenses/. Corresponding codec source and object-replacement
+materials are under /sources/. Package wrapper licenses do not replace the
+upstream codec licenses. Original design-reference and font bytes are preserved.
+This inventory covers actual shipped browser code/assets, not every installed
+npm development tool. MoM-owned software is separately licensed under the
+MoM Source Available License 1.0 at /licenses/MoM-SOURCE-AVAILABLE-LICENSE.txt.
+That license preserves the third-party and existing recipient rights below.
+
+Browser-runtime JavaScript
+--------------------------
+Lucide React 1.61.0: ISC; listed Feather-derived icons retain their MIT terms.
+Verbatim copyright, permissions and disclaimers:
+/licenses/lucide-react-1.61.0-LICENSE.txt
+Source: https://github.com/lucide-icons/lucide
+
+Complete inventory, embedded attribution and exact license filenames:
+/licenses/runtime-JS-NOTICES.txt
+
+React19.2.1, ReactDOM19.2.1, scheduler0.27.0, markdown-it15.0.2,
+linkify-it6.1.0, mdurl2.1.0, punycode.js2.3.1, uc.micro3.0.0 and
+simple-yenc1.0.4: MIT; entities8.1.0: BSD-2-Clause.
+@swc/helpers0.5.23 and @eshaz/web-worker1.2.2: Apache-2.0.
+DOMPurify3.4.16: MoM selects the Apache-2.0 alternative offered by its
+MPL-2.0 OR Apache-2.0 license. Both complete texts are retained; this does not
+select both branches. Preserve Cure53/contributors' original attribution.
+Generated Vite7.3.3/Rollup preload/CommonJS helpers and publisher-embedded
+Rolldown, Babel/regenerator and Modernizr code: attribution and available full
+MIT terms are retained in the runtime notice and associated files.
+Original license whitespace and copyright strings are preserved verbatim where
+files are identified as verbatim; do not normalize the upstream texts.
+
+M4A demultiplexer
+-----------------
+MP4Box.js (mp4box)2.4.1: BSD-3-Clause. Copyright(c)2012 Telecom
+ParisTech/TSI/MM/GPAC Cyril Concolato; all rights reserved.
+Verbatim full text: /licenses/runtime-mp4box-2.4.1-LICENSE.txt
+Source: https://github.com/gpac/mp4box.js
+Native browser WebCodecs provides AAC decoding; no AAC decoder binary is bundled.
+
+MP3 encoder
+-----------
+wasm-media-encoders0.7.0 wrapper: MIT, copyright2020-2024 arseneyr.
+Full text: /licenses/wasm-media-encoders-LICENSE.txt
+Source pin: https://github.com/arseneyr/wasm-media-encoders/tree/4a45333baadbab312d1cc0911151dfad23157c51
+
+The shipped132,999-byte MP3 WASM statically links LAME3.100 from the exact fork:
+https://github.com/arseneyr/lame/tree/98db548e8e851defbba3184125ce10725355c332
+LAME is free software under GNU Library General Public License version2;
+source headers permit version2 or later. LAME project: https://lame.sourceforge.io/
+Full license and upstream usage notice:
+/licenses/lame-3.100-COPYING.txt and /licenses/lame-3.100-LICENSE.txt
+Source/relink package: /sources/codecs/wasm-media-encoders-0.7.0-mp3-source.tar.gz
+No Ogg Vorbis encoder is shipped or used by MoM's production import.
+
+MP3 decoder
+-----------
+mpg123-decoder1.0.3 and @wasm-audio-decoders/common9.0.7 wrappers declare MIT.
+Copyright2021-2025 Ethan Halsall; exact original notice:
+/licenses/mpg123-decoder-NOTICE.txt
+/licenses/wasm-audio-decoders-MIT.txt materializes the standard MIT terms paired
+with that exact distribution copyright. Upstream declares MIT but has no
+standalone LICENSE file; this is not claimed as a verbatim upstream LICENSE.
+Source pin: https://github.com/eshaz/wasm-audio-decoders/tree/8f2428c1cd96b54dab74836c8471ff75fe35cbee
+
+The exact generated decoder module embeds99,479-byte mpg1231.29.0 WASM.
+Copyright(c)1995-2020 Michael Hipp and others; LGPL version2.1.
+Source pin: https://github.com/madebr/mpg123/tree/08247b317163175e62035893af3ff9e71a5dfefd
+Project: https://www.mpg123.de/
+Full text/authors: /licenses/mpg123-1.29.0-COPYING.txt and
+/licenses/mpg123-1.29.0-AUTHORS.txt
+Source/relink package: /sources/codecs/mpg123-decoder-1.0.3-source.tar.gz
+Common wrapper's puff2.3 decompression copyright/license notice is retained:
+/licenses/puff-2.3-NOTICE.txt
+
+WebAssembly support notices
+---------------------------
+Exact upstream build pins declare Emscripten2.0.8 for the encoder and4.0.7 for
+the decoder; /licenses/emscripten-2.0.8-LICENSE.txt and
+/licenses/emscripten-4.0.7-LICENSE.txt preserve the offered MIT/NCSA terms.
+Relevant musl/libc copyright/license texts are retained at
+/licenses/musl-emscripten-2.0.8-COPYRIGHT.txt and
+/licenses/musl-emscripten-4.0.7-COPYRIGHT.txt.
+The ordinary GPL2 text referenced by LGPL2.1 is also retained:
+/licenses/GPL-2.0.txt. Its inclusion does not change MoM's app license to GPL.
+
+Codec source and replacement
+----------------------------
+/sources/codecs/SOURCE_MANIFEST.json records npm integrity, exact source/git
+pins, binary/source archive hashes, included build scripts and limitations.
+/sources/codecs/REBUILD.md describes the exact upstream build commands.
+/sources/REBUILD.md describes the third-party source scope and the demonstrated
+compiled-Worker replacement tool and its approved limited recipient/helper terms.
+The new relink utility and MP3-only recipe are dedicated distribution helpers;
+they are MIT under /licenses/MoM-CODEC-HELPERS-MIT.txt. Pinned Acorn and
+simple-yenc utility vendors retain their adjacent MIT license texts in
+/sources/codecs/vendor/. No private MoM application preferred-
+form source, design references or internal documents are publicly included.
+The LGPL source/relink requirements and recipient modification/debugging-rights
+condition apply to distribution of this combined build. Source availability is
+not itself a claim of a successful compiler rebuild. The user-approved limited
+recipient grant is /licenses/MoM-OBJECT-PERMISSION.txt and remains unchanged.
+The MoM Source Available License preserves that grant and the LGPL exceptions;
+it is not an application open-source license or a repository-publication action.
+No upstream codec source or production binary was modified for this review.
+
+Reference fonts
+---------------
+The sixteen WOFF2 files in /fonts/ were copied byte-for-byte from the approved
+user reference and verified against official published font bytes: Pretendard
+v1.3.9 (one variable font) and IBM Plex Mono Google Fonts v20 (15 weight/language
+subsets; weights400/500/600). MoM made no font subset/name/data changes.
+
+Pretendard: SIL Open Font License1.1. License copyright(c)2021 Kil Hyung-jin;
+shipped binary copyright2023; Reserved Font Name: Pretendard.
+Full text: /licenses/Pretendard-OFL.txt
+Source: https://github.com/orioncactus/pretendard/tree/v1.3.9
+
+IBM Plex Mono: SIL Open Font License1.1. Copyright2017 IBM Corp.;
+Reserved Font Name: Plex. Binary metadata Version2.3.
+Full text: /licenses/IBM-Plex-OFL.txt
+License pin: https://github.com/googlefonts/plex/blob/9ab3b5b3b96325fb20f365ee0804adca92024cbf/LICENSE.txt
+Exact shipped metadata: /licenses/reference-font-NOTICES.txt
+
+Preserve font notices/OFL, do not sell a font alone or relicense font software,
+and observe reserved-name conditions for independently modified versions.
+Bundling these unchanged fonts does not require the MoM app to use OFL.

@@ -1,0 +1,14 @@
+{
+  "language": "ko",
+  "width": 1280,
+  "rowCount": 30,
+  "rowHeights": [
+    55
+  ],
+  "maxRightGap": 0,
+  "maxCenterDifference": 0,
+  "longTitleTruncated": true,
+  "correctMemoConfirmation": true,
+  "cancelledWithoutDeletion": true,
+  "errors": []
+}

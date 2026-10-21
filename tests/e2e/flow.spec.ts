@@ -1,0 +1,57 @@
+import { test,expect } from '@playwright/test';
+import { clickAppAction, configureFixtureMinutes,selectFixtureMinutesRoute,prepareForTranscription,createVault,fixtureTransport,enterFixtureKeys,toneWav,routerModel,routerEndpoint,fixtureText,fixtureMarkdown,inspectVaultSentinels } from './helpers';
+test('real local audio and vault with keyless routed STT/notes, edited Markdown download and copy',async({page,context})=>{
+ const errors:string[]=[];page.on('pageerror',error=>errors.push(error.message));
+ const calls=await fixtureTransport(page);await createVault(page);await enterFixtureKeys(page);await configureFixtureMinutes(page);
+ await page.screenshot({path:'.superpowers/sdd/remaining-work/task-model-settings-fixtures/flow/integrated-home-1440.png',fullPage:true});
+ await page.getByRole('main').getByRole('button',{name:/새 음성 메모/}).click();
+ await page.locator('input[type=file]').setInputFiles({name:'KEYLESS_BROWSER_PRIVATE_SOURCE.wav',mimeType:'audio/wav',buffer:toneWav()});
+ await expect(page.getByRole('region', { name: /^(전사 준비|Prepare transcription)$/ }).getByText('KEYLESS_BROWSER_PRIVATE_SOURCE.wav')).toBeVisible();
+ await page.screenshot({path:'.superpowers/sdd/remaining-work/task-model-settings-fixtures/flow/integrated-import-1440.png',fullPage:true});
+ await prepareForTranscription(page);
+ await page.getByLabel('전사 모델').selectOption('gpt-transcribe');
+ await page.getByRole('checkbox',{name:'위 내용을 확인했어요'}).check();
+ await page.getByRole('button',{name:'전사 실행'}).click();
+ try{await expect(page.getByText(fixtureText).first()).toBeVisible();}
+ catch(error){await test.info().attach('synthetic-worker-diagnostics',{body:JSON.stringify(await page.evaluate(()=>(window as unknown as {workerDiagnostics:unknown[]}).workerDiagnostics)),contentType:'application/json'});throw error;}
+ await expect(page.getByText(fixtureText).first()).toBeVisible();
+ await page.locator('main').evaluate(element=>{element.scrollTop=0;});
+ await page.screenshot({path:'.superpowers/sdd/remaining-work/task-model-settings-fixtures/flow/integrated-review-1440.png',fullPage:true});
+ await page.getByRole('button',{name:/전사$/}).first().click();
+ await expect(page.getByText('1 / 1 저장됨').first()).toBeVisible();
+ await page.screenshot({path:'.superpowers/sdd/remaining-work/task-model-settings-fixtures/flow/integrated-stt-1440.png',fullPage:true});
+ await page.getByRole('button',{name:/전사$/}).first().click();
+ await page.getByRole('button',{name:'문장 수정 1'}).click();
+ await page.getByRole('textbox',{name:'전사 수정'}).fill('TEST_ONLY_PROVIDER_RESULT: 수정된 전사 · 다음 주 결과 공유.');
+ await page.getByRole('button',{name:'전사 수정 저장'}).click();
+ await page.getByRole('button',{name:/정리 노트/,exact:false}).first().click();
+ await selectFixtureMinutesRoute(page,routerModel.id,routerEndpoint.tag);
+ await page.getByRole('checkbox',{name:'선택한 전사문과 설정이 전송되고 요금이 발생할 수 있다는 것을 확인했어요. 음성은 다시 보내지 않아요.'}).check();
+ await page.getByRole('button',{name:'정리 노트 생성',exact:true}).click();
+ await expect(page.getByText('TEST_ONLY_PROVIDER_RESULT',{exact:true}).first()).toBeVisible();
+ await page.getByRole('button',{name:'편집',exact:true}).click();
+ const edited=fixtureMarkdown+'\n## 수정\n정확한 편집본 한글\n';
+ await page.getByRole('textbox',{name:'Markdown 편집기'}).fill(edited);
+ await page.getByRole('button',{name:'정리 노트 수정 저장'}).click();
+ const download=page.waitForEvent('download');await page.getByRole('button',{name:'.md 다운로드'}).click();
+ const artifact=await download;expect(artifact.suggestedFilename()).toMatch(/\.md$/);
+ const path=await artifact.path();expect(path).not.toBeNull();
+ const {readFile}=await import('node:fs/promises');expect(await readFile(path!,'utf8')).toBe(edited);
+ // Read clipboard only after our own explicit synthetic copy succeeds.
+ await context.grantPermissions(['clipboard-read','clipboard-write'],{origin:new URL(page.url()).origin});
+ await page.getByRole('button',{name:'Markdown 복사'}).click();
+ await expect(page.getByRole('status')).toContainText(/복사/);
+ expect(await page.evaluate(()=>navigator.clipboard.readText())).toBe(edited);
+ expect(calls.filter(call=>call.url.endsWith('/audio/transcriptions'))).toHaveLength(1);
+ expect(calls.filter(call=>call.url.endsWith('/chat/completions'))).toHaveLength(1);
+ const minutesRequest=calls.find(call=>call.url.endsWith('/chat/completions'))!.body!;
+ expect(minutesRequest).toContain('수정된 전사');
+ expect(minutesRequest).not.toContain(fixtureText);
+ const storage=await inspectVaultSentinels(page,['KEYLESS_BROWSER_PRIVATE_SOURCE.wav','KEYLESS_BROWSER_OPENAI_TEST','KEYLESS_BROWSER_ROUTER_TEST',fixtureText,edited]);
+ expect(storage.records).toBeGreaterThan(0);expect(storage.leakedSentinelIndices).toEqual([]);
+ expect(errors).toEqual([]);
+ await page.locator('main').evaluate(element=>{element.scrollTop=0;});
+ await page.screenshot({path:'.superpowers/sdd/remaining-work/task-model-settings-fixtures/flow/integrated-minutes-1440.png',fullPage:true});
+ await clickAppAction(page, '설정');
+ await page.screenshot({path:'.superpowers/sdd/remaining-work/task-model-settings-fixtures/flow/integrated-settings-1440.png',fullPage:true});
+});

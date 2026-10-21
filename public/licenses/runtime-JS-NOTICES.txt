@@ -1,0 +1,133 @@
+MoM browser-runtime JavaScript notices
+
+Inventory baseline: repository HEAD 20d2602591b6cad61b24871fc3e9fce4b1257fee.
+Versions below are the installed package-lock.json versions, except explicitly
+identified code embedded by an upstream publisher. Complete license texts are
+provided as adjacent files. MoM bundles the installed library code with Vite /
+Rollup, including tree shaking and minification of the distribution output.
+
+React 19.2.1 -- MIT
+Copyright (c) Meta Platforms, Inc. and affiliates.
+License: runtime-react-19.2.1-LICENSE.txt
+Source: https://github.com/react/react/tree/v19.2.1/packages/react
+
+React DOM 19.2.1 -- MIT
+Copyright (c) Meta Platforms, Inc. and affiliates.
+License: runtime-react-dom-19.2.1-LICENSE.txt
+Source: https://github.com/react/react/tree/v19.2.1/packages/react-dom
+Its published browser code also preserves this attribution:
+Modernizr 3.0.0pre (Custom Build) | MIT
+Notice and complete available upstream LICENSE banner:
+runtime-modernizr-3.0.0pre-NOTICE.txt
+
+Scheduler 0.27.0 -- MIT
+Copyright (c) Meta Platforms, Inc. and affiliates.
+License: runtime-scheduler-0.27.0-LICENSE.txt
+Source: https://github.com/react/react/tree/v19.2.1/packages/scheduler
+
+DOMPurify 3.4.16 -- publisher declares (MPL-2.0 OR Apache-2.0)
+MoM selects the Apache-2.0 alternative for this distribution.
+Selected license: runtime-dompurify-3.4.16-Apache-2.0-LICENSE.txt
+Alternative full text retained: runtime-dompurify-3.4.16-MPL-2.0-LICENSE.txt
+Source: https://github.com/cure53/DOMPurify/tree/3.4.16
+The published source attribution is preserved verbatim:
+/*! @license DOMPurify 3.4.16 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/3.4.16/LICENSE */
+
+The DOMPurify distribution contains Babel helper code and this notice:
+/*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/babel/babel/blob/main/packages/babel-helpers/LICENSE */
+Full MIT license, including Sebastian McKenzie / contributors and Facebook:
+runtime-babel-helpers-MIT-LICENSE.txt
+The text was copied from installed @babel/helpers 7.29.2 and checked in full
+against the official v7.29.7 license linked below (identical after whitespace
+normalization). DOMPurify's versioned upstream build lock records helpers
+7.29.7; no standalone @babel/helpers package import occurs in MoM's runtime.
+Source: https://github.com/babel/babel/blob/v7.29.7/packages/babel-helpers/LICENSE
+Build provenance: https://github.com/cure53/DOMPurify/blob/3.4.16/package-lock.json
+
+markdown-it 15.0.2 -- MIT
+License: runtime-markdown-it-15.0.2-LICENSE.txt
+Source: https://github.com/markdown-it/markdown-it/tree/15.0.2
+
+entities 8.1.0 -- BSD-2-Clause
+License: runtime-entities-8.1.0-LICENSE.txt
+Source: https://github.com/fb55/entities
+
+linkify-it 6.1.0 -- MIT
+License: runtime-linkify-it-6.1.0-LICENSE.txt
+Source: https://github.com/markdown-it/linkify-it
+
+mdurl 2.1.0 -- MIT
+License: runtime-mdurl-2.1.0-LICENSE.txt
+The complete text includes the attribution and MIT terms for Joyent / Node
+contributors' URL parser code, as well as mdurl's own terms.
+Source: https://github.com/markdown-it/mdurl
+
+punycode.js 2.3.1 -- MIT
+License: runtime-punycode.js-2.3.1-LICENSE.txt
+Source: https://github.com/mathiasbynens/punycode.js
+
+uc.micro 3.0.0 -- MIT
+License: runtime-uc.micro-3.0.0-LICENSE.txt
+Source: https://github.com/markdown-it/uc.micro
+
+@swc/helpers 0.5.23 -- Apache-2.0
+License: swc-helpers-LICENSE.txt
+Source: https://github.com/swc-project/swc/tree/main/packages/helpers
+Rendered helpers: _define_property, _object_spread, _object_spread_props.
+
+@eshaz/web-worker 1.2.2 -- Apache-2.0
+License: eshaz-web-worker-LICENSE.txt
+Source: https://github.com/eshaz/web-worker
+The rendered browser shim's complete copyright/license notice is preserved:
+/**
+ * Copyright 2020 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+simple-yenc 1.0.4 -- MIT
+License: simple-yenc-LICENSE.txt
+Source: https://github.com/eshaz/simple-yenc
+
+Generated Vite 7.3.3 / Rollup plugin runtime helpers -- MIT
+Only the generated module-preload, dynamic-preload and CommonJS helpers were
+identified in MoM's browser bundle. The complete publisher-supplied Vite
+license-and-notices file is retained without asserting that its entire
+development-tool dependency list is part of the browser runtime.
+License and supplied notices: runtime-vite-7.3.3-LICENSE.txt
+Source: https://github.com/vitejs/vite/blob/v7.3.3/packages/vite/LICENSE.md
+The supplied text includes RollupJS Plugin Contributors' copyright / MIT
+terms for @rollup/plugin-commonjs.
+
+Embedded Rolldown module helper in markdown-it's published .mjs -- MIT
+Full copyright / license: runtime-rolldown-embedded-MIT-LICENSE.txt
+It is extracted from Vite's supplied Rolldown notice and checked in full
+against the official v1.2.1 license (identical after whitespace normalization).
+The helper is emitted inside markdown-it, not a standalone MoM runtime import.
+Source: https://github.com/rolldown/rolldown/blob/v1.2.1/LICENSE
+
+Audio codec / WASM and font licenses have separate notices and license files.
+This JavaScript notice does not replace those notices or assess codec source /
+relink obligations. argparse and tslib are installed but absent from the
+observed browser runtime; test and build tools are not listed as runtime
+libraries merely because they are present in node_modules.
+
+MP4Box.js (mp4box) 2.4.1 -- BSD-3-Clause
+Copyright (c) 2012. Telecom ParisTech/TSI/MM/GPAC Cyril Concolato
+All rights reserved.
+License (verbatim published npm package): runtime-mp4box-2.4.1-LICENSE.txt
+Source: https://github.com/gpac/mp4box.js
+Distribution: https://registry.npmjs.org/mp4box/-/mp4box-2.4.1.tgz
+Role: bounded M4A metadata parsing and AAC sample-table demultiplexing.
+AAC is decoded by the browser's native WebCodecs implementation; no AAC codec
+binary, ffmpeg dependency or backend relay is bundled by this change.

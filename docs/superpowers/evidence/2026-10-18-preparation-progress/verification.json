@@ -1,0 +1,473 @@
+{
+  "date": "2026-10-18",
+  "state": "uncommitted local QA handoff; parent QA pending; no push/merge/deploy",
+  "head": "c0838c29c5954a197012d90658725d03c4ad0bb7",
+  "branch": "fix/mobile-preparation-progress-20261018",
+  "primary": {
+    "head": "c0838c29c5954a197012d90658725d03c4ad0bb7",
+    "status": "",
+    "remoteRefs": "origin c0838c29c5954a197012d90658725d03c4ad0bb7\norigin/main c0838c29c5954a197012d90658725d03c4ad0bb7"
+  },
+  "changedFiles": [
+    "README.md",
+    "docs/README.md",
+    "docs/TODO.md",
+    "docs/superpowers/evidence/2026-10-18-preparation-progress/README.md",
+    "docs/superpowers/evidence/2026-10-18-preparation-progress/release/README.md",
+    "docs/superpowers/evidence/2026-10-18-preparation-progress/verification.json",
+    "src/react-app/App.tsx",
+    "src/react-app/controller.tsx",
+    "src/react-app/media/inspect.ts",
+    "src/react-app/media/m4a.ts",
+    "src/react-app/media/mp3.ts",
+    "src/react-app/media/worker.ts",
+    "src/react-app/ui/PreparationStatus.tsx",
+    "src/react-app/ui/compact-work.css",
+    "src/react-app/ui/preparation-diagnostic.ts",
+    "src/react-app/ui/screens/Import.tsx",
+    "src/react-app/ui/styles.css",
+    "tests/audio.spec.ts",
+    "tests/compact-work-priority.spec.tsx",
+    "tests/controller-source-reader.spec.tsx",
+    "tests/controller.spec.tsx",
+    "tests/m4a.spec.ts",
+    "tests/preparation-diagnostic.spec.ts",
+    "tests/preparation-status-ui.spec.tsx",
+    "tests/screen-lock-races.spec.tsx",
+    "tests/source-worker.spec.ts",
+    "vite.config.ts"
+  ],
+  "changedHashes": {
+    "README.md": "4e0bad39984e34ae8b0b71872cc7f97ea55fded6b9972f6dba9fbc9e0f25cef9",
+    "docs/README.md": "ca28509c84e54b7d0f56cf5bf684aeaf507eda39017635764c9e724569f147d3",
+    "docs/TODO.md": "55236755967566fa11a7c8a469df4c4fe3a54888b0bb4ca707782857dd68b874",
+    "docs/superpowers/evidence/2026-10-18-preparation-progress/README.md": "8acc148dfd73bdd824e4ab90dc57011a16c7eea690927eeb6f7577391d7b0a6c",
+    "docs/superpowers/evidence/2026-10-18-preparation-progress/release/README.md": "0176a0f9d16831a24460f65d3d80a728d4d09d78e428b5003e170bfda6c2771e",
+    "src/react-app/App.tsx": "97c4db8a7ecf024a9a2b4a46595f363ca48824538340b38bcf780507e0a98394",
+    "src/react-app/controller.tsx": "e7ce7d02ca0c9a1fbaa66598c1fd9dc1ee2c3121f7bac6a1b015d06a9b5aea97",
+    "src/react-app/media/inspect.ts": "a44fadd05ec4b32278f934160587254ac6694ae32ecb87b939209fe6987741f1",
+    "src/react-app/media/m4a.ts": "b55bda3f2ad0a80cf8c2d804a273d640200ad562943bdb724871deae8be76e4f",
+    "src/react-app/media/mp3.ts": "2458a36952b3bf884cf8245e46da04836910995a3d053063a3992c332638e0d6",
+    "src/react-app/media/worker.ts": "d3ec1d631d2815916200261b427d7feee8c5f4eef9542faf7bd65603df32d0ea",
+    "src/react-app/ui/PreparationStatus.tsx": "e0ce393f3747d42b07a4f824db1eafb691c75194a3de0f52beab1f1cbcd67007",
+    "src/react-app/ui/compact-work.css": "046a4745bee70bd2863fa314f52d117cd689483693027f138259a6264e8eec12",
+    "src/react-app/ui/preparation-diagnostic.ts": "91397b4d07afaff98ea709ef9531c9a9d3e26a22180db39c1ecba633604ac4d2",
+    "src/react-app/ui/screens/Import.tsx": "f9634230be24bbec7fe9655ccc163c48596d742daf937848bde27cb092cf2c2a",
+    "src/react-app/ui/styles.css": "337f293339fa1e94018c2b935d16b34f36a7a9ae168597895b42db3719fbb7e5",
+    "tests/audio.spec.ts": "77f2a14c32beab1b33e8e1c2ff611247a7abaa792d57c9d4cdcf43e001bb4699",
+    "tests/compact-work-priority.spec.tsx": "a8d8822b314a3ffde0f12681c2ba4d09a26dd0bde7ee04fc0ed6ef3f10a71196",
+    "tests/controller-source-reader.spec.tsx": "2adcfdd8c3972672f16437e1a81df91375893f80a55e5cd6d03c8a47fdf0e5ee",
+    "tests/controller.spec.tsx": "2d896c07a77baeb6f5c82a6cd01a1acda6d615bfeb96d754abef205a0bc88364",
+    "tests/m4a.spec.ts": "18ecba6b3ba1e5e1a44b3755c4132c1f9854af0a60d853ed2849af781ea5dd03",
+    "tests/preparation-diagnostic.spec.ts": "498945a5e121fc40144bad9da9e1dac5dd130e826b68b176fb301818fa720970",
+    "tests/preparation-status-ui.spec.tsx": "e876ffe242ff0d117c8d3ac67c0a8e6eb0c3308d9efe7a19cdae973770b0e54e",
+    "tests/screen-lock-races.spec.tsx": "45df909a5afab136008cc782a924e57e2fcfa620bcad158e94b921effe2f62fb",
+    "tests/source-worker.spec.ts": "0bcb47163f1c4384c99e6c45091ed9ff0b80c505a33e4c2515c5bf31f01a090c",
+    "vite.config.ts": "c7f93d45b55125d0f85e6ac9a4b48995e6d8651d9e4a88ed97705d8e2ddeb843"
+  },
+  "vaultFilesChanged": "",
+  "diffCheck": "",
+  "references": [
+    {
+      "file": ".thumbnail",
+      "sha256": "00cb58ceb198103bc8f8691d8825a983af960660b6a39777016036f86004c8f8",
+      "unchanged": true
+    },
+    {
+      "file": "Meeting Minutes App standalone-src.dc.html",
+      "sha256": "b37bc9c13f6dc36fcb311cb4b713e8836fd3bd407eba23ee77eaf57429e9d8f9",
+      "unchanged": true
+    },
+    {
+      "file": "Meeting Minutes App.dc.html",
+      "sha256": "db393f2ade9842a841504dc198323487c22143d4853092dd5944e1a8c6ecd5c7",
+      "unchanged": true
+    },
+    {
+      "file": "Minutes of Meeting (standalone).html",
+      "sha256": "8ce508ad5cc5c3eae9af9ffa4988be3212d12060247c680d3586f579c51c1900",
+      "unchanged": true
+    },
+    {
+      "file": "support.js",
+      "sha256": "8fe7df74405f3c55f49b7249c74ea1397e65d07dea2b1bd3b4a489bec2e28cbe",
+      "unchanged": true
+    },
+    {
+      "file": "uploads/스크린샷 2026-09-30 오후 11.17.28.png",
+      "sha256": "0e4ecdd58a20bbb83720dac3d4a069c60e487cf25e480183e88f09ac35e9e637",
+      "unchanged": true
+    }
+  ],
+  "referenceCountMatches": true,
+  "links": [
+    {
+      "target": "release/README.md",
+      "exists": true
+    },
+    {
+      "target": "../../../TODO.md",
+      "exists": true
+    },
+    {
+      "target": "../../../../src/react-app/media/m4a.ts",
+      "exists": true
+    },
+    {
+      "target": "../../../../src/react-app/media/mp3.ts",
+      "exists": true
+    },
+    {
+      "target": "../../../../src/react-app/media/worker.ts",
+      "exists": true
+    },
+    {
+      "target": "../../../../src/react-app/controller.tsx",
+      "exists": true
+    },
+    {
+      "target": "../../../../src/react-app/ui/preparation-diagnostic.ts",
+      "exists": true
+    },
+    {
+      "target": "../../../TODO.md",
+      "exists": true
+    }
+  ],
+  "assets": {
+    "index-DAySg1Xu.css": "e9650e857fec69b1d9187637280d19913e7206a5e6d777d75301edce000db717",
+    "index-DMKzhr98.js": "46fb1ab4329f256be05d63545fd3d7fa70cdf572ad3ef831966c3f339dde1a89",
+    "mp3-BxzrsqzD.wasm": "85e81719250b9a667b1258143f689dda70e3e57a7e7c29ab0b4cef65c8f6eb9a",
+    "pcm-worklet-Bpzm_RA1.js": "6d997339b00284ab9c5c6af10d72402172fe80e313fce2f043cfda2c72936203",
+    "worker-C2o35iJn.js": "5e7e6fed6ede754088f7c12847e5addc96c2fde7f531b02f2d10b5e3647af094"
+  },
+  "targetedEvidence": {
+    "m4a": {
+      "command": "npm run test:unit -- tests/m4a.spec.ts tests/m4a-compat.spec.ts",
+      "passed": 60
+    },
+    "mediaFinal": {
+      "command": "npm run test:unit -- tests/audio.spec.ts tests/source-worker.spec.ts",
+      "passed": 73
+    },
+    "unchangedSourceMedia": {
+      "passed": 15,
+      "reused": true
+    },
+    "controller": {
+      "command": "npm run test:unit -- tests/controller-source-reader.spec.tsx -t '^(?!.*rejects unsafe/nonpositive source byte metadata)'",
+      "passed": 15,
+      "baselineFailuresExcluded": 2
+    },
+    "lateAndStorage": {
+      "command": "npm run test:unit -- tests/controller.spec.tsx -t 'keeps failed encrypted preparation|clears preparation immediately'",
+      "passed": 3,
+      "skipped": 116
+    },
+    "screenLockController": {
+      "command": "npm run test:unit -- tests/screen-lock-controller.spec.tsx tests/screen-lock-races.spec.tsx",
+      "controllerPassed": 5,
+      "racesCollectionFailed": true,
+      "wholeCommandExitCode": 1,
+      "outputChunk": "bd4a4b"
+    },
+    "diagnosticAndUI": {
+      "initialCombinedPassed": 26,
+      "laterFormatterPassed": 10,
+      "laterUITypeFixPassed": 1,
+      "unchangedEvidenceReused": true
+    },
+    "panelReveal": {
+      "command": "npx vitest run tests/preparation-status-ui.spec.tsx --reporter=dot -t 'reveals the diagnostics panel in its nearest scroll area'",
+      "redThenGreen": true,
+      "passed": 1,
+      "skipped": 17
+    },
+    "preparationResetUI": {
+      "passed": 11
+    },
+    "build": {
+      "command": "npm run build",
+      "passed": true,
+      "log": "/tmp/mom-preparation-diagnostic/ux-review-build.log",
+      "previousBuildLog": "/tmp/mom-preparation-diagnostic/build-final.log"
+    },
+    "publicArtifactScan": {
+      "command": "npm run test:secret",
+      "passed": true
+    },
+    "lint": {
+      "commands": [
+        "npx eslint src/react-app/App.tsx src/react-app/controller.tsx src/react-app/media/inspect.ts src/react-app/media/m4a.ts src/react-app/media/mp3.ts src/react-app/media/worker.ts src/react-app/ui/PreparationStatus.tsx src/react-app/ui/preparation-diagnostic.ts src/react-app/ui/screens/Import.tsx tests/audio.spec.ts tests/controller-source-reader.spec.tsx tests/controller.spec.tsx tests/m4a.spec.ts tests/source-worker.spec.ts tests/preparation-status-ui.spec.tsx tests/preparation-diagnostic.spec.ts vite.config.ts",
+        "npx eslint src/react-app/ui/PreparationStatus.tsx tests/preparation-status-ui.spec.tsx"
+      ],
+      "scope": "changed TS/TSX, tests, vite.config.ts; final panel files rechecked",
+      "errors": 0,
+      "existingAppFastRefreshWarnings": 1
+    },
+    "fullSuiteRun": false,
+    "latestUXReview": {
+      "redThenGreen": 6,
+      "compactRegressionPassed": 11,
+      "compactSkipped": 7,
+      "statusAndResetUIPassed": 30,
+      "nativePreviewPassed": 1,
+      "nativePreviewSkipped": 99,
+      "buildPassed": true,
+      "publicArtifactsPassed": true,
+      "lintPassed": true,
+      "changedProductFiles": [
+        "src/react-app/ui/screens/Import.tsx",
+        "src/react-app/ui/PreparationStatus.tsx",
+        "src/react-app/ui/compact-work.css"
+      ],
+      "audioPerformanceRemeasured": false,
+      "baselineDebt": "docs/TODO.md M09",
+      "commandsAndLogs": "README.md: 부모 픽셀 QA 후 section"
+    },
+    "knownBaselineFailures": [
+      "controller-source-reader unsafe source bytes 0",
+      "controller-source-reader unsafe source bytes 9007199254740992",
+      "controller reports real source time STT-linked invalid-input/timeout",
+      "controller keeps legacy options STT-linked invalid-input/timeout"
+    ],
+    "baselineComparison": {
+      "command": "npm run test:unit -- tests/controller-source-reader.spec.tsx tests/controller.spec.tsx -t 'rejects unsafe/nonpositive source byte metadata|reports real source time before the first encrypted receipt|keeps legacy options and completed data'",
+      "baselineExit": 1,
+      "fixExit": 1,
+      "sameFailures": 4,
+      "sameUnhandledRejections": 1,
+      "logs": [
+        "baseline-known-failures.log",
+        "fix-known-failures.log"
+      ]
+    },
+    "screenLockRaces": {
+      "baselineDefaultPassed": 4,
+      "fixDefaultCollectionBlocked": "Denied ID installed WASM outside worktree root",
+      "notAnExistingProductFailure": true,
+      "temporaryTestConfig": "/tmp/mom-preparation-diagnostic/vitest-worktree.config.mts",
+      "initialWithResetSuite": {
+        "passed": 7,
+        "failed": 1
+      },
+      "fixtureFix": "await screenAccess=open after session=unlocked before onCreateMeeting",
+      "finalPassed": 4,
+      "finalLog": "fix-races-ready-green.log",
+      "productSettingsChanged": false
+    },
+    "checkpointProof": {
+      "controllerPassed": 5,
+      "controllerSkipped": 12,
+      "resetVaultPassed": 7,
+      "resetVaultSkipped": 6,
+      "resetControllerPassed": 4,
+      "uiReadinessPassed": 1,
+      "uiReadinessSkipped": 18,
+      "logs": [
+        "checkpoint-controller-proof.log",
+        "checkpoint-reset-proof.log",
+        "fix-races-reset-test-config.log",
+        "checkpoint-ui-proof.log"
+      ]
+    },
+    "typecheckAfterQATestChanges": {
+      "command": "npm run typecheck",
+      "passed": true
+    },
+    "lintAfterQATestChanges": {
+      "command": "npx eslint tests/screen-lock-races.spec.tsx tests/preparation-status-ui.spec.tsx",
+      "passed": true
+    },
+    "libraryCaptureIDs": [
+      "libfile_d8d9a92fbb208191870afa03d17f899c",
+      "libfile_b9c914b9afb481918bd98ca17e067ed4",
+      "libfile_11f8a5d275948191b94cde0c468f05e5",
+      "libfile_e4a360744708819194c71d43ede760de",
+      "libfile_afecbd2442988191b362e1fd278ce1bf",
+      "libfile_b3e7114d46808191a21e6d98f5530b91",
+      "libfile_25236298bca081918805f04025204a1e"
+    ]
+  },
+  "browser": {
+    "environment": "headed macOS Chrome; mobile viewport/touch plus 4x CPU throttle for timing controlled behavior, not actual Android or OS suspension",
+    "direct": {
+      "complete": true,
+      "importElapsedMs": 3068,
+      "prepareElapsedMs": 10072,
+      "progressEvents": 154,
+      "errors": [],
+      "external": []
+    },
+    "retained": {
+      "complete": true,
+      "prepareElapsedMs": 10089,
+      "reads": 39,
+      "readBytes": 28456782,
+      "decryptions": 524,
+      "decryptBytes": 66902770,
+      "errors": [],
+      "external": []
+    },
+    "workflow": {
+      "passed": true,
+      "build": "c0838c29c595-dirty",
+      "url": "http://127.0.0.1:4192",
+      "checks": [
+        {
+          "check": "390px diagnostics",
+          "triggerBox": {
+            "x": 311,
+            "y": 948.109375,
+            "width": 44,
+            "height": 44
+          },
+          "panelBox": {
+            "x": 13,
+            "y": 555.109375,
+            "width": 342,
+            "height": 288.59375
+          },
+          "explicitCopyMatchesPreview": true,
+          "clipboard": "isolated API test double, no OS clipboard write"
+        },
+        {
+          "check": "Standard screen lock",
+          "privateDOMAbsent": true,
+          "actualWorkerProgressContinues": true
+        },
+        {
+          "check": "Cancel after durable checkpoint",
+          "stoppedCount": 2,
+          "honestRestartCopy": true
+        },
+        {
+          "check": "Cancel, reload, partial checkpoint",
+          "stoppedCount": 2,
+          "durableCountRestored": true,
+          "honestRestartCopy": true
+        },
+        {
+          "check": "1440px retry to completion",
+          "desktopBox": {
+            "x": 1009,
+            "y": 711.125,
+            "width": 360,
+            "height": 288.59375
+          },
+          "completedChunks": 8,
+          "sourceTime": "35:00",
+          "duplicateDurableChunks": false
+        }
+      ],
+      "errors": [],
+      "external": [],
+      "environment": "headed macOS Chrome; mobile viewport/touch plus 4x CPU throttle for timing controlled behavior, not actual Android or OS suspension"
+    },
+    "finalPanel390": {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "panelBounds": {
+        "x": 13,
+        "y": 555.109375,
+        "width": 342,
+        "height": 288.59375
+      },
+      "entirePanelVisible": true,
+      "escapeRestoresTrigger": true
+    },
+    "finalPanel1440": {
+      "passed": true,
+      "url": "http://127.0.0.1:4192",
+      "checks": [
+        {
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "panelBounds": {
+            "x": 1009,
+            "y": 711.125,
+            "width": 360,
+            "height": 288.59375
+          },
+          "entirePanelVisible": true,
+          "escapeRestoresTrigger": true
+        }
+      ],
+      "assets": [
+        "/assets/index-BgOj_UmH.css",
+        "/assets/index-BZevfVdl.js",
+        "/assets/worker-C2o35iJn.js",
+        "/assets/worker-C2o35iJn.js"
+      ],
+      "errors": [],
+      "external": [],
+      "environment": "headed isolated macOS Chrome, mobile viewport/touch, no actual Android OS suspension"
+    },
+    "latestUX": {
+      "passed": true,
+      "url": "http://127.0.0.1:4192",
+      "checks": [
+        {
+          "check": "390px default preparation priority",
+          "cancelBox": {
+            "x": 35,
+            "y": 664.328125,
+            "width": 270,
+            "height": 44
+          },
+          "statusBox": {
+            "x": 35,
+            "y": 380.171875,
+            "width": 320,
+            "height": 164.96875
+          },
+          "applicationScrollCalls": 0
+        },
+        {
+          "check": "390px stopped partial checkpoint",
+          "savedCount": 1,
+          "detailsRemainCollapsed": true,
+          "transcriptionDisabled": true,
+          "explicitRestartCopy": true
+        },
+        {
+          "check": "390px fixed diagnostic snapshot",
+          "capturedAt": "2026-10-18T07:23:16.631Z",
+          "explicitTimestamp": true,
+          "copiedVisiblePreviewExactly": true,
+          "clipboard": "isolated test double; no OS clipboard write"
+        },
+        {
+          "check": "820px explicit open state retained on resize",
+          "passed": true
+        }
+      ],
+      "assets": [
+        "/assets/index-DAySg1Xu.css",
+        "/assets/index-DMKzhr98.js",
+        "/assets/worker-C2o35iJn.js",
+        "/assets/worker-C2o35iJn.js",
+        "/assets/mp3-BxzrsqzD.wasm"
+      ],
+      "errors": [],
+      "external": [],
+      "environment": "headed isolated macOS Chrome, 390x844 mobile/touch and 820x1000; synthetic AAC, no performance measurement or actual Android OS lifecycle"
+    },
+    "rawReceipts": "/tmp/mom-preparation-diagnostic",
+    "actualAndroidOSScreenOffSuspendVerified": false,
+    "authenticatedAIUsed": false,
+    "realUserDataUsed": false,
+    "osClipboardUsed": false
+  },
+  "limits": [
+    "parent latest UX recheck and device QA pending",
+    "same Worker/codec assets retain measured pipeline evidence; changed UI JS/CSS validated in latestUX",
+    "baseline four failures remain unresolved debt in TODO M09",
+    "no actual Android OS lifecycle or paid inference verification"
+  ],
+  "consistencyChecksPassed": true
+}

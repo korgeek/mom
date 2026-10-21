@@ -1,0 +1,86 @@
+{
+  "featureSHA": "25242ab42036b11d591074182656390b469dc9a3",
+  "baseSHA": "c0838c29c5954a197012d90658725d03c4ad0bb7",
+  "checks": [
+    {
+      "name": "Workers Builds: mom",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-10-18T07:33:20Z",
+      "completed_at": "2026-10-18T07:33:20Z"
+    }
+  ],
+  "deployment": {
+    "id": "f0960949-3964-4775-84c5-bfdb13b36ff7",
+    "created_on": "2026-10-18T07:33:17.008882Z",
+    "source": "wrangler",
+    "versions": [
+      {
+        "version_id": "ce94173c-97de-43e4-933d-8c21f5150a23",
+        "percentage": 100
+      }
+    ]
+  },
+  "assetsMatch": true,
+  "productionSmoke": {
+    "passed": true,
+    "checkedAt": "2026-10-18T07:36:48.590Z",
+    "url": "https://mom.korgeek.workers.dev",
+    "featureSHA": "25242ab42036b11d591074182656390b469dc9a3",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "syntheticSeconds": 310,
+    "nativeAACAndMP3Processing": true,
+    "testSeam": "Native second chunk output delivery held after real processing; cancellation terminates it before checkpoint. No fake progress.",
+    "standardLock": {
+      "privateDOMAbsent": true,
+      "actualWorkerProgressContinued": true,
+      "progressAtLock": 6,
+      "progressWhenHeld": 30
+    },
+    "checkpoint": {
+      "ramProcessedMs": 310000,
+      "durableChunks": 1,
+      "plannedChunks": 2,
+      "savedThroughMs": 300000,
+      "partialAfterReload": true,
+      "transcriptionDisabled": true
+    },
+    "stoppedText": "로컬 음성 준비 중지 · 저장 완료분 유지\n처리 위치: 이 기기 · 외부 AI 요청 없음\n분할·압축한 원본 시간: 05:10 / 05:10\n암호화 저장된 음성 청크: 1 / 계획 2\n청크 용량: 1.1 MB\n연속으로 저장된 원본 구간: 05:00 / 05:10\n경과시간: 00:02\n마지막 실제 진행: 오후 02:36:48\n디코딩·압축을 처음부터 다시 계산해요. 저장된 청크는 유지돼요.",
+    "assets": [
+      "/assets/index-DAySg1Xu.css",
+      "/assets/index-DFVtcyKu.js",
+      "/assets/worker-C2o35iJn.js",
+      "/assets/worker-C2o35iJn.js",
+      "/assets/mp3-BxzrsqzD.wasm",
+      "/assets/index-DAySg1Xu.css",
+      "/assets/index-DFVtcyKu.js"
+    ],
+    "errors": [],
+    "external": [],
+    "limits": "Isolated headed macOS Chrome. No real keys/AI/user vault, Android OS suspension or speed benchmark."
+  },
+  "build": {
+    "command": "npm run build",
+    "passed": true,
+    "log": "/tmp/mom-preparation-diagnostic/release/feature-build.log"
+  },
+  "publicArtifacts": {
+    "command": "npm run test:secret",
+    "passed": true
+  },
+  "priorTargetedEvidenceReused": true,
+  "fullSuiteRun": false,
+  "thirtyFiveMinutePerformanceRepeated": false,
+  "baselineFourFailuresFixed": false,
+  "baselineDebt": "docs/TODO.md M09",
+  "productionSmokeInitialFailure": "Harness forwarded EventTarget listeners but omitted Worker.onmessage; fixed only the test observer; preserved first failure logs.",
+  "otherWorktreesModifiedByRelease": false,
+  "limits": [
+    "Actual Galaxy OS suspension/completion not verified",
+    "No real keys, authenticated inference or user vault accessed",
+    "Document-only follow-up changes diagnostic build revision; final matching receipt remains in handoff/Library"
+  ]
+}

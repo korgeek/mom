@@ -1,0 +1,100 @@
+{
+  "feature_commit": "1e23441ebd33234d88827bf676308e8a58737565",
+  "checks": [
+    {
+      "name": "Workers Builds: mom",
+      "status": "completed",
+      "conclusion": "success",
+      "completed_at": "2026-10-18T05:30:50Z"
+    }
+  ],
+  "deployment": {
+    "id": "8f28626f-24a8-415f-894d-8c3a56cb9e25",
+    "source": "wrangler",
+    "strategy": "percentage",
+    "versions": [
+      {
+        "version_id": "7d61176c-5780-4f46-8772-b449bdee8391",
+        "percentage": 100
+      }
+    ],
+    "created_on": "2026-10-18T05:30:46.421497Z"
+  },
+  "production_scenarios": {
+    "recording": {
+      "bounds": {
+        "x": 117.140625,
+        "y": 292.15625,
+        "width": 93.5625,
+        "height": 44
+      },
+      "audit": {
+        "records": 56,
+        "leakedSentinelIndices": []
+      },
+      "capture": {
+        "calls": 1,
+        "live": 0
+      },
+      "errors": [],
+      "external": [],
+      "assets": [
+        "/",
+        "/assets/index-CnThzoZg.js",
+        "/assets/index-DsVIOx9T.css",
+        "/fonts/b0c70943-c6ff-45d1-bafa-4c3c4ba2cd93.woff2",
+        "/fonts/07774ae9-419e-4039-936a-3fcf17a211f9.woff2",
+        "/mom.svg",
+        "/fonts/a9f1438d-547f-4157-9b72-cc25f292f4fe.woff2"
+      ]
+    },
+    "layout": {
+      "steps": [
+        {
+          "x": 288,
+          "right": 641.328125,
+          "width": 353.328125
+        },
+        {
+          "x": 661.328125,
+          "right": 1014.65625,
+          "width": 353.328125
+        },
+        {
+          "x": 1034.65625,
+          "right": 1388,
+          "width": 353.34375
+        }
+      ],
+      "left": {
+        "x": 288,
+        "y": 188,
+        "width": 353.328125,
+        "height": 564.390625
+      },
+      "right": {
+        "x": 661.328125,
+        "y": 188,
+        "width": 726.671875,
+        "height": 735.953125
+      },
+      "errors": [],
+      "external": [],
+      "assets": [
+        "/",
+        "/assets/index-CnThzoZg.js",
+        "/assets/index-DsVIOx9T.css",
+        "/fonts/b0c70943-c6ff-45d1-bafa-4c3c4ba2cd93.woff2",
+        "/fonts/07774ae9-419e-4039-936a-3fcf17a211f9.woff2",
+        "/mom.svg",
+        "/fonts/a9f1438d-547f-4157-9b72-cc25f292f4fe.woff2"
+      ]
+    }
+  },
+  "limits": [
+    "synthetic microphone stream only",
+    "no real keys or paid AI",
+    "no user vault access",
+    "physical OS background behavior unverified"
+  ]
+}

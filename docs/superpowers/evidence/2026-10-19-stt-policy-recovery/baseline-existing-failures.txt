@@ -1,0 +1,40 @@
+
+ RUN  v5.0.3 /private/tmp/mom-policy-baseline.ZO70v6
+
+ ❯ tests/stt-rerun-controller.spec.tsx (18 tests | 2 failed | 16 skipped) 391ms
+   × preserves an initial partial selection on explicit failed-chunk retry and reloads exact frozen lineage 213ms
+   × chooses a new transcript for minutes consent without extra STT and counts each saved run once 177ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/stt-rerun-controller.spec.tsx > preserves an initial partial selection on explicit failed-chunk retry and reloads exact frozen lineage
+AssertionError: expected '5062f738-b491-4669-a3d8-87a71cc05b51' to be '1a2145ff-cf1f-4e3a-b80a-4c150bce83e4' // Object.is equality
+
+Expected: "1a2145ff-cf1f-4e3a-b80a-4c150bce83e4"
+Received: "5062f738-b491-4669-a3d8-87a71cc05b51"
+
+ ❯ tests/stt-rerun-controller.spec.tsx:157:89
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  tests/stt-rerun-controller.spec.tsx > chooses a new transcript for minutes consent without extra STT and counts each saved run once
+Error: 작업을 완료하지 못했어요. 지원 파일, 선택한 설정과 브라우저 저장소를 확인하세요.
+ ❯ src/react-app/controller.tsx:562:131
+    560|                             ? { preparation: { ...state.preparation, s…
+    561|                 }
+    562|                 throw error instanceof ProviderError || error instance…
+       |                                                                                                                                   ^
+    563|             }
+    564|             finally {
+ ❯ Object.generateMinutes src/react-app/controller.tsx:1885:13
+ ❯ tests/stt-rerun-controller.spec.tsx:191:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 16 skipped (18)
+   Start at  19:39:46
+   Duration  958ms (transform 47%, tests 43%, import 10%)
+

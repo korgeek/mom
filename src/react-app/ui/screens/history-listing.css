@@ -1,0 +1,17 @@
+.list-pagination { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 18px; }
+.list-pagination .actions { align-items: center; }
+.history-memo { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; padding: 16px 18px; border-top: 1px solid var(--fill); align-items: center; }
+.history-memo h2 { font-size: 14px; margin: 0; overflow-wrap: anywhere; }
+.history-memo-facts, .history-call-summary { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.history-memo-facts { margin-top: 6px; }
+.history-filters { display: flex; flex-wrap: wrap; gap: 6px; }
+.history-filters button[aria-pressed="true"] { color: var(--accentInk); background: var(--accentSoft); border-color: var(--accent); }
+.history-call { border-top: 1px solid var(--fill); padding: 14px 18px; }
+.history-call summary { cursor: pointer; }
+.history-call-summary { display: inline-flex; vertical-align: middle; max-width: 100%; }
+.history-call-summary strong { font-size: 13px; overflow-wrap: anywhere; }
+.history-call-summary time { font-size: 11px; color: var(--ink3); }
+.history-call-facts { padding-top: 14px; font-size: 12px; overflow-wrap: anywhere; }
+.history-archived { font-size: 11px; color: var(--warn); }
+.home-history-action svg { width: 16px; height: 16px; }
+@media (max-width: 700px) { .history-memo { grid-template-columns: minmax(0, 1fr); } .history-memo > button { justify-self: start; } }

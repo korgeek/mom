@@ -1,0 +1,10 @@
+{
+  "width": 360,
+  "audit": {
+    "nonLucideIcons": [],
+    "decorative": true,
+    "overflow": false
+  },
+  "marker": "url(\"http://127.0.0.1:4174/icons/chevron-right.svg\")",
+  "errors": []
+}

@@ -1,0 +1,14 @@
+.completed-stage, .completed-stage-body { display: contents; }
+.completed-stage-summary { display: none; }
+.step-complete { display: none; }
+@media (max-width: 759px) {
+  .step-bar { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; }
+  .mom .step-bar button { justify-content: center; gap: 5px; padding: 8px 4px; white-space: nowrap; font-size: 12px; }
+  .step-bar button .mono { flex: none; }
+  .step-bar .step-complete { display: inline; font-size: 11px; }
+  .completed-stage { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+  .completed-stage-summary { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+  .completed-stage-summary > .stack { min-width: 0; flex: 1 1 140px; overflow-wrap: anywhere; }
+  .completed-stage-summary > button { min-height: 44px; flex: none; }
+  .completed-stage-body[data-collapsed=true] { display: none; }
+}

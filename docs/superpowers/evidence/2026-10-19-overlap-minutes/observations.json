@@ -1,0 +1,38 @@
+{
+  "viewports": [
+    "1440x900",
+    "360x800"
+  ],
+  "sttCalls": 4,
+  "notesCalls": 3,
+  "intentionalOverlaps": [
+    {
+      "rawIds": [
+        "9fc4d563-b46e-4a91-b432-c26d56c8ddb8",
+        "b8029af8-85e1-4572-9b65-9b9cbbf15d9f"
+      ],
+      "rangeMs": [
+        295000,
+        300000
+      ],
+      "durationMs": 5000
+    },
+    {
+      "rawIds": [
+        "b8029af8-85e1-4572-9b65-9b9cbbf15d9f",
+        "bc126019-e303-4ee3-a4a1-ad662cf6c8aa"
+      ],
+      "rangeMs": [
+        590000,
+        595000
+      ],
+      "durationMs": 5000
+    }
+  ],
+  "missingRequiresConsent": true,
+  "overlapRequiresConsent": false,
+  "playbackPauseStop": true,
+  "editAndOriginalSurviveReload": true,
+  "errors": [],
+  "external": []
+}

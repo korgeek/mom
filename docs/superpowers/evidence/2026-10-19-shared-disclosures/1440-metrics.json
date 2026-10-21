@@ -1,0 +1,132 @@
+[
+  {
+    "state": "security",
+    "values": [
+      {
+        "title": "저장과 보호 범위 자세히",
+        "size": "14px",
+        "weight": "600",
+        "height": 22
+      },
+      {
+        "title": "작업과 데이터는 어떻게 되나요?",
+        "size": "14px",
+        "weight": "600",
+        "height": 22
+      },
+      {
+        "title": "자동 잠금 자세히",
+        "size": "14px",
+        "weight": "600",
+        "height": 22
+      },
+      {
+        "title": "보관함 초기화",
+        "size": "14px",
+        "weight": "600",
+        "height": 22
+      }
+    ]
+  },
+  {
+    "state": "model-editor",
+    "values": [
+      {
+        "title": "고급 설정",
+        "size": "14px",
+        "weight": "600",
+        "height": 22
+      }
+    ]
+  },
+  {
+    "state": "key-storage-options",
+    "values": [
+      {
+        "title": "보관 옵션",
+        "size": "14px",
+        "weight": "600",
+        "height": 22
+      }
+    ]
+  },
+  {
+    "state": "audio-preparation",
+    "values": [
+      {
+        "title": "언어 안내",
+        "size": "14px",
+        "weight": "600",
+        "height": 22
+      },
+      {
+        "title": "청크·압축MP3 · 모노5 분 · 5 초 겹침 · 32 kbps처리 설정 펼치기",
+        "size": "14px",
+        "weight": "600",
+        "height": 66.875
+      }
+    ]
+  },
+  {
+    "state": "transmission",
+    "values": [
+      {
+        "title": "전송 상세 보기",
+        "size": "14px",
+        "weight": "600",
+        "height": 22
+      }
+    ]
+  },
+  {
+    "state": "transcription-history",
+    "values": [
+      {
+        "title": "전송 상세 보기",
+        "size": "14px",
+        "weight": "600",
+        "height": 22
+      }
+    ]
+  },
+  {
+    "state": "transcript-provenance",
+    "values": [
+      {
+        "title": "출처 · 원본 응답",
+        "size": "14px",
+        "weight": "600",
+        "height": 22
+      }
+    ]
+  },
+  {
+    "state": "usage-and-request-details",
+    "values": [
+      {
+        "title": "STT · 토큰·시간·상태 상세",
+        "size": "14px",
+        "weight": "600",
+        "height": 22
+      },
+      {
+        "title": "SYNTHETIC_DISCLOSURE_STT저장됨STT · 응답 보존",
+        "size": "14px",
+        "weight": "600",
+        "height": 24.59375
+      },
+      {
+        "title": "요청 ID·경로 상세",
+        "size": "14px",
+        "weight": "600",
+        "height": 22
+      },
+      {
+        "title": "전사 요청 이력",
+        "size": "14px",
+        "weight": "600",
+        "height": 22
+      }
+    ]
+  }
+]

@@ -1,0 +1,3 @@
+# Keep verbatim upstream license bytes, including their original whitespace.
+# Product source and authored documentation retain normal whitespace checks.
+public/licenses/*.txt -whitespace

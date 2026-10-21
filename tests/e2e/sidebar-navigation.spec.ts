@@ -1,0 +1,44 @@
+import { expect, test } from '@playwright/test';
+import { mkdirSync } from 'node:fs';
+import { createVault, toneWav } from './helpers';
+
+test('sidebar shows measured duration and brand or Recent replaces the separate home menu', async ({ page }) => {
+  const evidence = 'docs/superpowers/evidence/2026-10-17-sidebar-navigation';
+  const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
+  await page.route('https://**/*', route => route.request().url() === 'https://openrouter.ai/api/v1/models'
+    ? route.fulfill({ contentType: 'application/json', body: '{"data":[]}' }) : route.abort());
+  await createVault(page);
+  const sidebar = page.getByRole('complementary', { name: '음성 메모 탐색', exact: true });
+  const brand = sidebar.getByRole('button', { name: 'Minutes of Meeting', exact: true });
+  await expect(sidebar.getByRole('button', { name: '홈 · 음성 메모', exact: true })).toHaveCount(0);
+  await expect(sidebar.getByRole('button', { name: '최근 0', exact: true })).toBeVisible();
+  const title = 'SYNTHETIC_' + 'LONG_MEMO_TITLE_'.repeat(5);
+  await page.getByRole('main').getByRole('button', { name: '+ 새 음성 메모', exact: true }).click();
+  await page.getByRole('textbox', { name: /^메모 제목/ }).fill(title);
+  await page.getByLabel('음성 파일 선택', { exact: true }).setInputFiles({ name: 'SYNTHETIC_65_SECONDS.wav', mimeType: 'audio/wav', buffer: toneWav(65) });
+  const audioMemo = sidebar.getByRole('button', { name: title, exact: true });
+  const duration = audioMemo.getByText('전체 길이 01:05', { exact: true });
+  await expect(duration).toBeVisible();
+  await expect(page.locator('.flow-title > .mono')).toHaveText('01:05');
+  const metrics = await duration.evaluate(element => ({ time: Number.parseFloat(getComputedStyle(element).fontSize), title: Number.parseFloat(getComputedStyle(element.parentElement!.querySelector('.side-meeting-title')!).fontSize), right: element.getBoundingClientRect().right, rowRight: element.parentElement!.getBoundingClientRect().right }));
+  expect(metrics.time).toBeLessThan(metrics.title); expect(metrics.right).toBeLessThanOrEqual(metrics.rowRight);
+  await sidebar.getByRole('button', { name: '최근 1', exact: true }).click();
+  await expect(page.getByRole('heading', { name: '음성 메모', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: `고정 ${title}`, exact: true }).click();
+  await expect(duration).toBeVisible(); await expect(sidebar.getByRole('button', { name: '최근 0', exact: true })).toBeVisible();
+  await page.getByRole('main').getByRole('button', { name: '+ 새 음성 메모', exact: true }).click();
+  await page.getByRole('textbox', { name: /^메모 제목/ }).fill('SYNTHETIC_EMPTY_MEMO');
+  await expect(sidebar.getByRole('button', { name: 'SYNTHETIC_EMPTY_MEMO', exact: true }).locator('.side-meeting-duration')).toHaveCount(0);
+  await expect(brand).toBeEnabled();
+  mkdirSync(evidence, { recursive: true }); await page.screenshot({ path: `${evidence}/1440-ko-sidebar.png`, fullPage: true });
+  await brand.focus(); await page.keyboard.press('Enter');
+  await expect(page.getByRole('heading', { name: '음성 메모', exact: true })).toBeFocused();
+  await page.getByRole('main').getByRole('button', { name: '열기 SYNTHETIC_EMPTY_MEMO', exact: true }).click();
+  await page.setViewportSize({ width: 360, height: 800 });
+  await expect(brand).toBeVisible(); expect((await brand.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+  await page.screenshot({ path: `${evidence}/360-ko-navigation.png`, fullPage: true });
+  await brand.locator('.brand-mark').click();
+  await expect(page.getByRole('heading', { name: '음성 메모', exact: true })).toBeVisible();
+  expect(errors).toEqual([]);
+});

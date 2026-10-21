@@ -1,0 +1,10 @@
+.mom .memo-delete-action { align-self: flex-end; max-width: 100%; white-space: normal; }
+.flow-heading-row { display: flex; align-items: center; gap: 12px; }
+.flow-heading-row .flow-title { flex: 1; min-width: 0; }
+.mom .flow-heading-row .memo-delete-action { flex-shrink: 0; align-self: center; }
+@media (max-width: 650px) {
+  .flow-heading-row { align-items: flex-start; }
+  .flow-heading-row .flow-title { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 8px; }
+  .flow-heading-row .flow-title > .mono { grid-column: 2; }
+  .mom .flow-heading-row .memo-delete-action { align-self: flex-start; }
+}

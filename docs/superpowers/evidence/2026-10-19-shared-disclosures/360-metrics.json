@@ -1,0 +1,132 @@
+[
+  {
+    "state": "security",
+    "values": [
+      {
+        "title": "Storage and protection details",
+        "size": "14px",
+        "weight": "600",
+        "height": 44
+      },
+      {
+        "title": "What happens to work and data?",
+        "size": "14px",
+        "weight": "600",
+        "height": 44
+      },
+      {
+        "title": "More about auto lock",
+        "size": "14px",
+        "weight": "600",
+        "height": 44
+      },
+      {
+        "title": "Vault reset",
+        "size": "14px",
+        "weight": "600",
+        "height": 44
+      }
+    ]
+  },
+  {
+    "state": "model-editor",
+    "values": [
+      {
+        "title": "Advanced settings",
+        "size": "14px",
+        "weight": "600",
+        "height": 44
+      }
+    ]
+  },
+  {
+    "state": "key-storage-options",
+    "values": [
+      {
+        "title": "Storage options",
+        "size": "14px",
+        "weight": "600",
+        "height": 44
+      }
+    ]
+  },
+  {
+    "state": "audio-preparation",
+    "values": [
+      {
+        "title": "Language guidance",
+        "size": "14px",
+        "weight": "600",
+        "height": 44
+      },
+      {
+        "title": "Chunks & compressionMP3 · mono5 min · 5 s overlap · 32 kbpsExpand processing settings",
+        "size": "14px",
+        "weight": "600",
+        "height": 93.46875
+      }
+    ]
+  },
+  {
+    "state": "transmission",
+    "values": [
+      {
+        "title": "Transmission details",
+        "size": "14px",
+        "weight": "600",
+        "height": 44
+      }
+    ]
+  },
+  {
+    "state": "transcription-history",
+    "values": [
+      {
+        "title": "Transmission details",
+        "size": "14px",
+        "weight": "600",
+        "height": 44
+      }
+    ]
+  },
+  {
+    "state": "transcript-provenance",
+    "values": [
+      {
+        "title": "Provenance · original response",
+        "size": "14px",
+        "weight": "600",
+        "height": 44
+      }
+    ]
+  },
+  {
+    "state": "usage-and-request-details",
+    "values": [
+      {
+        "title": "STT · Token, timing and state details",
+        "size": "14px",
+        "weight": "600",
+        "height": 63.375
+      },
+      {
+        "title": "SYNTHETIC_DISCLOSURE_STTSavedSTT · Response preserved",
+        "size": "14px",
+        "weight": "600",
+        "height": 74.28125
+      },
+      {
+        "title": "Request ID & route details",
+        "size": "14px",
+        "weight": "600",
+        "height": 44
+      },
+      {
+        "title": "Transcription batch history",
+        "size": "14px",
+        "weight": "600",
+        "height": 44
+      }
+    ]
+  }
+]

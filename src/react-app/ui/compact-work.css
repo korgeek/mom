@@ -1,0 +1,9 @@
+.compact-work-body[hidden] { display: none; }
+.compact-work-summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-width: 0; }
+.compact-work-summary > .stack, .compact-work-summary > span { min-width: 0; flex: 1; overflow-wrap: anywhere; }
+.mom .compact-work-summary button { min-height: 44px; flex: none; }
+.recording-actions > .recording-cancel { margin-inline-start: auto; }
+@media (max-width: 1100px) {
+  .preparation-metadata:has(> .compact-work-summary), .audio-input:has(> .compact-work-summary), .minutes-setup > .compact-work-summary { padding: 12px 16px; gap: 12px; }
+  .preparation-metadata > .compact-work-summary strong, .preparation-metadata > .compact-work-summary .hint, .audio-input > .compact-work-summary strong { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+}

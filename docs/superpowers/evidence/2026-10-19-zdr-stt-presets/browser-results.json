@@ -1,0 +1,70 @@
+{
+  "passed": true,
+  "viewports": [
+    [
+      1440,
+      900
+    ],
+    [
+      390,
+      844
+    ]
+  ],
+  "presets": [
+    {
+      "id": "mai-transcribe-2",
+      "name": "OpenRouter · MAI-Transcribe2"
+    },
+    {
+      "id": "scribe-v2",
+      "name": "OpenRouter · Scribe v2"
+    },
+    {
+      "id": "whisper-large-v3-turbo",
+      "name": "OpenRouter · Whisper large v3 turbo"
+    },
+    {
+      "id": "router-qwen3-asr-1.7b",
+      "name": "OpenRouter · Qwen3 ASR 1.7B"
+    },
+    {
+      "id": "router-qwen3-asr-0.6b",
+      "name": "OpenRouter · Qwen3 ASR 0.6B"
+    },
+    {
+      "id": "router-whisper-large-v3",
+      "name": "OpenRouter · Whisper Large V3"
+    },
+    {
+      "id": "router-scribe-v2-medical",
+      "name": "OpenRouter · Scribe v2 Medical"
+    },
+    {
+      "id": "router-mai-transcribe-1.5",
+      "name": "OpenRouter · MAI-Transcribe 1.5"
+    },
+    {
+      "id": "router-voxtral-mini-transcribe",
+      "name": "OpenRouter · Voxtral Mini Transcribe"
+    },
+    {
+      "id": "router-voxtral-mini-3b-2507",
+      "name": "OpenRouter · Voxtral Mini 3B 2507"
+    },
+    {
+      "id": "router-voxtral-small-24b-2507-stt",
+      "name": "OpenRouter · Voxtral Small 24B 2507 STT"
+    },
+    {
+      "id": "router-parakeet-tdt-0.6b-v3",
+      "name": "OpenRouter · Parakeet TDT 0.6B v3"
+    },
+    {
+      "id": "router-nemotron-3.5-asr-streaming-multilingual-0.6b",
+      "name": "OpenRouter · Nemotron 3.5 ASR Streaming Multilingual 0.6B"
+    }
+  ],
+  "encryptedSaveReload": true,
+  "externalRequests": [],
+  "pageErrors": []
+}

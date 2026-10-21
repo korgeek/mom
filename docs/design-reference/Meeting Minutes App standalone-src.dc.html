@@ -1,0 +1,1114 @@
+<!DOCTYPE html>
+<html>
+<head>
+<template id="__bundler_thumbnail" data-bg-color="#2B59C3"><svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><rect width="120" height="120" fill="#2B59C3"/><rect x="36" y="32" width="48" height="56" rx="8" fill="none" stroke="#fff" stroke-width="5"/><path d="M47 52h26M47 64h26M47 76h16" stroke="#fff" stroke-width="5" stroke-linecap="round"/></svg></template>
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+<style>:root{--ink:#191F28;--ink2:#333D4B;--ink3:#4E5968;--ink4:#6B7684;--ink5:#8B95A1;--lineS:#D1D6DB;--line:#E5E8EB;--fill:#F2F4F6;--fill2:#F9FAFB;--surface:#FFFFFF;--frame:#DCE0E5;--scrim:rgba(20,24,30,.3);--accent:#2B59C3;--accentInk:#1F46A0;--accentSoft:#EAF0FC;--accentSofter:#F4F7FD;--onAccent:#FFFFFF;--ok:#0B8A55;--okSoft:#E4F6EC;--err:#D9363E;--errSoft:#FDECEC;--errInk:#B4232B;--errMid:#F6C1C4;--warn:#A65B00;--warnSoft:#FEF3E2;--warnSofter:#FFFAF0;--mark:#FFE58A}body{margin:0;background:var(--frame);font-family:'Pretendard Variable',system-ui,sans-serif;color:var(--ink);-webkit-font-smoothing:antialiased}*{box-sizing:border-box}a{color:var(--ink)}a:hover{color:var(--accent)}button,input,textarea,select{font-family:inherit;color:inherit}</style>
+</helmet>
+<div style="min-height:100vh;display:flex;justify-content:center;align-items:{{ outerAlign }};padding:{{ outerPad }}">
+<div style="width:{{ shellW }};height:{{ shellH }};max-width:100%;background:var(--fill);display:flex;overflow:hidden;border-radius:{{ shellR }};box-shadow:{{ shellShadow }};position:relative">
+
+<sc-if value="{{ isDesktop }}" hint-placeholder-val="{{ true }}">
+<aside style="filter:{{ lockBlur }};pointer-events:{{ lockPE }};width:236px;flex:none;border-right:1px solid var(--line);background:var(--surface);display:flex;flex-direction:column;padding:20px 12px 16px;gap:2px;overflow:auto">
+  <div style="display:flex;align-items:center;gap:10px;padding:0 8px 20px">
+    <div style="width:28px;height:28px;border-radius:7px;background:var(--accent);color:var(--onAccent);display:grid;place-items:center;font:600 14px 'IBM Plex Mono',monospace">M</div>
+    <div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:14px;font-weight:700">Minutes of Meeting</span><span style="font:500 10.5px 'IBM Plex Mono',monospace;color:var(--ink4)">LOCAL</span></div>
+  </div>
+  <button onClick="{{ goHome }}" style="text-align:left;height:36px;padding:0 10px;border-radius:8px;border:0;font-size:14px;font-weight:500;cursor:pointer;background:{{ navHomeBg }}">{{ t.k0 }}</button>
+  <sc-if value="{{ hasPinned }}" hint-placeholder-val="{{ true }}">
+  <div style="padding:18px 10px 6px;font-size:11.5px;font-weight:600;color:var(--ink4)">{{ t.k1 }}</div>
+  <sc-for list="{{ pinnedSide }}" as="sm" hint-placeholder-count="3">
+    <div style="display:flex;flex-direction:column">
+      <button onClick="{{ sm.onClick }}" style="display:flex;align-items:center;gap:9px;text-align:left;min-height:34px;padding:6px 10px;border-radius:8px;border:0;font-size:13px;cursor:pointer;background:{{ sm.bg }};font-weight:{{ sm.weight }}">
+        <span style="flex:none;width:16px;height:16px;background:{{ sm.color }};-webkit-mask:{{ sm.mask }};mask:{{ sm.mask }}"></span>
+        <span style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ sm.title }}</span>
+      </button>
+      <sc-if value="{{ sm.open }}">
+        <div style="display:flex;flex-direction:column;gap:1px;padding:2px 0 8px 12px">
+          <sc-for list="{{ steps }}" as="st" hint-placeholder-count="4">
+            <button onClick="{{ st.onClick }}" style="display:flex;align-items:center;gap:9px;text-align:left;height:32px;padding:0 10px;border-radius:7px;border:0;font-size:13px;cursor:pointer;background:{{ st.navBg }};font-weight:{{ st.weight }}">
+              <span style="width:18px;height:18px;border-radius:50%;display:grid;place-items:center;font:600 10px 'IBM Plex Mono',monospace;flex:none;background:{{ st.dotBg }};color:{{ st.dotFg }}">{{ st.mark }}</span>{{ st.label }}
+            </button>
+          </sc-for>
+        </div>
+      </sc-if>
+    </div>
+  </sc-for>
+  </sc-if>
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:18px 10px 6px"><span style="font-size:11.5px;font-weight:600;color:var(--ink4)">{{ t.k2 }}</span><button onClick="{{ newMeeting }}" style="border:0;background:transparent;font-size:12px;color:var(--ink3);cursor:pointer;padding:2px 4px">{{ t.k3 }}</button></div>
+  <sc-for list="{{ recentSide }}" as="sm" hint-placeholder-count="3">
+    <div style="display:flex;flex-direction:column">
+      <button onClick="{{ sm.onClick }}" style="display:flex;align-items:center;gap:9px;text-align:left;min-height:34px;padding:6px 10px;border-radius:8px;border:0;font-size:13px;cursor:pointer;background:{{ sm.bg }};font-weight:{{ sm.weight }}">
+        <span style="flex:none;width:16px;height:16px;background:{{ sm.color }};-webkit-mask:{{ sm.mask }};mask:{{ sm.mask }}"></span>
+        <span style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ sm.title }}</span>
+      </button>
+      <sc-if value="{{ sm.open }}">
+        <div style="display:flex;flex-direction:column;gap:1px;padding:2px 0 8px 12px">
+          <sc-for list="{{ steps }}" as="st" hint-placeholder-count="4">
+            <button onClick="{{ st.onClick }}" style="display:flex;align-items:center;gap:9px;text-align:left;height:32px;padding:0 10px;border-radius:7px;border:0;font-size:13px;cursor:pointer;background:{{ st.navBg }};font-weight:{{ st.weight }}">
+              <span style="width:18px;height:18px;border-radius:50%;display:grid;place-items:center;font:600 10px 'IBM Plex Mono',monospace;flex:none;background:{{ st.dotBg }};color:{{ st.dotFg }}">{{ st.mark }}</span>{{ st.label }}
+            </button>
+          </sc-for>
+        </div>
+      </sc-if>
+    </div>
+  </sc-for>
+  <button onClick="{{ goHome }}" style="display:flex;justify-content:space-between;align-items:center;text-align:left;height:34px;padding:0 10px;border-radius:8px;border:0;background:transparent;font-size:12.5px;color:var(--ink3);cursor:pointer"><span>{{ t.k4 }} {{ allCount }}{{ t.k5 }}</span><span>→</span></button>
+  <div style="height:1px;background:var(--line);margin:14px 6px"></div>
+  <button onClick="{{ goSettings }}" style="text-align:left;height:36px;padding:0 10px;border-radius:8px;border:0;font-size:14px;font-weight:500;cursor:pointer;background:{{ navSetBg }}">{{ t.k6 }}</button>
+  <div style="flex:1"></div>
+  <div style="padding:12px 10px 0;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:6px">
+    <div style="height:4px;border-radius:2px;background:var(--line);overflow:hidden"><div style="width:5%;height:100%;background:var(--accent)"></div></div>
+    <div style="font-size:11.5px;color:var(--ink3);line-height:1.5">{{ t.k7 }}</div>
+    <button onClick="{{ lockNow }}" style="margin-top:4px;height:32px;border-radius:7px;border:1px solid var(--lineS);background:var(--surface);font-size:12.5px;font-weight:500;cursor:pointer">{{ t.k8 }}</button>
+  </div>
+</aside>
+</sc-if>
+
+<div style="flex:1;min-width:0;display:flex;flex-direction:column;position:relative;filter:{{ lockBlur }};pointer-events:{{ lockPE }}">
+<sc-if value="{{ isMobile }}" hint-placeholder-val="{{ false }}">
+  <div style="flex:none;display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--surface)">
+    <div style="width:26px;height:26px;border-radius:7px;background:var(--accent);color:var(--onAccent);display:grid;place-items:center;font:600 13px 'IBM Plex Mono',monospace">M</div>
+    <div style="flex:1;min-width:0;font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ mobileTitle }}</div>
+    <span style="font:500 10px 'IBM Plex Mono',monospace;color:var(--ink4)">LOCAL</span>
+    <button onClick="{{ lockNow }}" style="height:30px;padding:0 10px;border-radius:7px;border:1px solid var(--lineS);background:var(--surface);font-size:12px;cursor:pointer">{{ t.k9 }}</button>
+  </div>
+</sc-if>
+
+<main style="flex:1;overflow:auto;padding:{{ pad }}">
+<div style="max-width:1100px;margin:0 auto;display:flex;flex-direction:column;gap:20px">
+
+<sc-if value="{{ isFlow }}" hint-placeholder-val="{{ false }}">
+  <div style="display:flex;flex-direction:column;gap:14px">
+    <div style="display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px">
+      <span style="flex:none;width:36px;height:36px;border-radius:10px;display:grid;place-items:center;background:{{ curBg }}"><span style="width:20px;height:20px;background:{{ curColor }};-webkit-mask:{{ curMask }};mask:{{ curMask }}"></span></span>
+      <h1 style="margin:0;font-size:24px;font-weight:700;letter-spacing:-.01em">{{ curTitle }}</h1>
+      <span style="font:500 12.5px 'IBM Plex Mono',monospace;color:var(--ink3)">{{ curMeta }}</span>
+    </div>
+    <div style="display:flex;gap:4px;overflow-x:auto;padding-bottom:2px">
+      <sc-for list="{{ steps }}" as="st" hint-placeholder-count="4">
+        <button onClick="{{ st.onClick }}" style="flex:1 0 auto;display:flex;align-items:center;gap:8px;height:40px;padding:0 14px;border:0;border-radius:8px;cursor:pointer;font-size:13.5px;white-space:nowrap;background:{{ st.barBg }};color:{{ st.barFg }};font-weight:{{ st.weight }}">
+          <span style="font:600 11px 'IBM Plex Mono',monospace;opacity:.8">{{ st.mark }}</span>{{ st.label }}
+        </button>
+      </sc-for>
+    </div>
+  </div>
+</sc-if>
+
+<!-- HOME -->
+<sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;flex-direction:column;gap:20px">
+  <div style="display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px">
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <h1 style="margin:0;font-size:28px;font-weight:700;letter-spacing:-.015em">{{ t.k10 }}</h1>
+    </div>
+    <button onClick="{{ newMeeting }}" style="height:42px;padding:0 18px;border-radius:9px;border:0;background:var(--accent);color:var(--onAccent);font-size:14px;font-weight:600;cursor:pointer">{{ t.k11 }}</button>
+  </div>
+
+  <div style="background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 20px;font-size:13px;color:var(--ink3)"><span style="font-weight:600;color:var(--ink)">{{ t.k12 }} {{ meetingCount }}{{ t.k5 }}</span><span>{{ t.k13 }}</span></div>
+    <sc-for list="{{ meetingRows }}" as="m" hint-placeholder-count="5">
+      <div style="border-top:1px solid var(--fill);padding:16px 20px;display:flex;flex-wrap:wrap;gap:12px 24px;align-items:center">
+        <div style="flex:1 1 240px;min-width:0;display:flex;gap:12px;align-items:center">
+        <span style="flex:none;width:38px;height:38px;border-radius:10px;display:grid;place-items:center;background:{{ m.iconBg }}"><span style="width:21px;height:21px;background:{{ m.color }};-webkit-mask:{{ m.mask }};mask:{{ m.mask }}"></span></span>
+        <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:5px">
+          <sc-if value="{{ m.renaming }}">
+            <input value="{{ m.renameText }}" onChange="{{ m.onRenameChange }}" onKeyDown="{{ m.onRenameKey }}" onBlur="{{ m.onRenameSave }}" autoFocus="{{ true }}" style="height:34px;border:1px solid var(--ink);border-radius:7px;padding:0 10px;font-size:15px;font-weight:600;outline:none;width:100%">
+          </sc-if>
+          <sc-if value="{{ m.notRenaming }}"><div style="font-size:15px;font-weight:600;line-height:1.35">{{ m.title }}</div></sc-if>
+          <div style="font:400 12.5px 'IBM Plex Mono',monospace;color:var(--ink4)">{{ m.meta }}</div>
+        </div>
+        </div>
+        <div style="flex:0 1 190px;min-width:150px;display:flex;flex-direction:column;gap:7px">
+          <span style="align-self:flex-start;font-size:12px;font-weight:600;padding:3px 8px;border-radius:5px;background:{{ m.bg }};color:{{ m.fg }}">{{ m.label }}</span>
+          <div style="height:4px;border-radius:2px;background:var(--fill);overflow:hidden"><div style="height:100%;width:{{ m.pctW }};background:{{ m.fg }}"></div></div>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button onClick="{{ m.onResume }}" style="width:76px;height:36px;flex:none;border-radius:8px;border:0;background:var(--accent);color:var(--onAccent);font-size:13px;font-weight:600;cursor:pointer">{{ openLabel }}</button>
+          <button onClick="{{ m.onPin }}" title="{{ m.pinLabel }}" style="width:36px;height:36px;flex:none;border-radius:8px;border:1px solid var(--lineS);background:{{ m.pinBg }};cursor:pointer;display:grid;place-items:center"><span style="width:18px;height:18px;background:{{ m.pinFg }};-webkit-mask:{{ m.pinMask }};mask:{{ m.pinMask }}"></span></button>
+          <button onClick="{{ m.onRename }}" title="{{ tipRename }}" style="width:36px;height:36px;flex:none;border-radius:8px;border:1px solid var(--lineS);background:var(--surface);cursor:pointer;display:grid;place-items:center"><span style="width:18px;height:18px;background:var(--ink3);-webkit-mask:{{ icoEdit }};mask:{{ icoEdit }}"></span></button>
+          <button onClick="{{ m.onDelete }}" title="{{ tipDelete }}" style="width:36px;height:36px;flex:none;border-radius:8px;border:1px solid var(--lineS);background:var(--surface);cursor:pointer;display:grid;place-items:center"><span style="width:18px;height:18px;background:var(--err);-webkit-mask:{{ icoTrash }};mask:{{ icoTrash }}"></span></button>
+        </div>
+        <sc-if value="{{ m.deleting }}">
+          <div style="flex:1 1 100%;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;background:var(--errSoft);border-radius:8px;padding:10px 12px">
+            <span style="font-size:13px;color:var(--errInk);line-height:1.5">{{ t.k16 }}</span>
+            <div style="display:flex;gap:6px"><button onClick="{{ m.onDeleteCancel }}" style="height:32px;padding:0 12px;border-radius:7px;border:1px solid var(--lineS);background:var(--surface);font-size:13px;cursor:pointer">{{ t.k17 }}</button><button onClick="{{ m.onDeleteConfirm }}" style="height:32px;padding:0 12px;border-radius:7px;border:0;background:var(--err);color:var(--onAccent);font-size:13px;font-weight:600;cursor:pointer">{{ t.k15 }}</button></div>
+          </div>
+        </sc-if>
+      </div>
+    </sc-for>
+    <sc-if value="{{ noMeetings }}"><div style="border-top:1px solid var(--fill);padding:40px 20px;text-align:center;font-size:14px;color:var(--ink3)">{{ t.k18 }}</div></sc-if>
+  </div>
+
+  <div style="background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:20px;display:flex;flex-wrap:wrap;gap:20px 32px">
+    <div style="flex:1 1 260px;display:flex;flex-direction:column;gap:10px">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px"><span style="font-size:14px;font-weight:600">{{ t.k19 }}</span><span style="font:500 13px 'IBM Plex Mono',monospace">{{ t.k20 }}</span></div>
+      <div style="height:8px;border-radius:4px;background:var(--fill);overflow:hidden;display:flex"><div style="width:3.9%;background:var(--ink)"></div><div style="width:0.6%;background:var(--ink5)"></div></div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px 16px;font-size:12px;color:var(--ink3)"><span>{{ t.k21 }}</span><span style="color:var(--ink4)">{{ t.k22 }}</span><span>{{ t.k23 }}</span></div>
+    </div>
+    <div style="flex:1 1 320px;display:flex;flex-direction:column;gap:6px;padding:14px 16px;background:var(--fill);border-radius:10px">
+      <span style="font-size:13px;font-weight:600">{{ t.k24 }}</span>
+      <span style="font-size:13px;color:var(--ink3);line-height:1.6;text-wrap:pretty">{{ t.k25 }}</span>
+    </div>
+  </div>
+</div>
+</sc-if>
+
+<!-- IMPORT -->
+<sc-if value="{{ isImport }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-wrap:wrap;gap:20px;align-items:flex-start">
+  <div style="flex:1 1 460px;min-width:0;display:flex;flex-direction:column;gap:16px">
+    <sc-if value="{{ noFile }}">
+      <div onDragOver="{{ onDragOver }}" onDragLeave="{{ onDragLeave }}" onDrop="{{ onDrop }}" style="border:1.5px dashed {{ dropBorder }};background:{{ dropBg }};border-radius:14px;padding:48px 24px;display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center">
+        <div style="font-size:18px;font-weight:600">{{ t.k26 }}</div>
+        <div style="font-size:13px;color:var(--ink3);line-height:1.6;max-width:420px;text-wrap:pretty">{{ t.k27 }}</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center">
+          <label style="height:38px;padding:0 16px;border-radius:8px;background:var(--accent);color:var(--onAccent);font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center">{{ t.k28 }}<input type="file" accept="audio/*,video/*" onChange="{{ onFilePick }}" style="display:none"></label>
+          <button onClick="{{ loadSample }}" style="height:38px;padding:0 14px;border-radius:8px;border:1px solid var(--lineS);background:var(--surface);font-size:14px;cursor:pointer">{{ t.k29 }}</button>
+        </div>
+      </div>
+    </sc-if>
+    <sc-if value="{{ hasFile }}">
+      <div style="background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:14px">
+        <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start">
+          <div style="min-width:0;display:flex;flex-direction:column;gap:8px">
+            <div style="font-size:15px;font-weight:600;word-break:break-all">{{ file.name }}</div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px">
+              <sc-for list="{{ fileChips }}" as="c" hint-placeholder-count="3"><span style="font:500 12px 'IBM Plex Mono',monospace;padding:3px 8px;border-radius:5px;background:var(--fill);color:var(--ink2)">{{ c }}</span></sc-for>
+            </div>
+          </div>
+          <button onClick="{{ clearFile }}" style="flex:none;height:32px;padding:0 10px;border-radius:7px;border:1px solid var(--lineS);background:var(--surface);font-size:12.5px;cursor:pointer">{{ t.k30 }}</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;background:var(--fill);border-radius:10px;padding:10px 12px">
+          <button onClick="{{ togglePreview }}" style="flex:none;width:36px;height:36px;border-radius:50%;border:0;background:var(--accent);color:var(--onAccent);font-size:12px;cursor:pointer">{{ previewIcon }}</button>
+          <div onClick="{{ seekPreview }}" style="flex:1;min-width:0;height:40px;display:flex;align-items:center;gap:2px;cursor:pointer">
+            <sc-for list="{{ wave }}" as="w" hint-placeholder-count="48"><div style="flex:1;min-width:1px;border-radius:1px;height:{{ w.h }};background:{{ w.bg }}"></div></sc-for>
+          </div>
+          <span style="flex:none;font:500 12px 'IBM Plex Mono',monospace;color:var(--ink3)">{{ previewTime }}</span>
+        </div>
+        <sc-if value="{{ fileErr }}"><div style="font-size:13px;color:var(--err);background:var(--errSoft);border-radius:8px;padding:10px 12px;line-height:1.5">{{ file.err }}</div></sc-if>
+      </div>
+    </sc-if>
+
+    <div style="background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:16px">
+      <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12.5px;font-weight:600;color:var(--ink3)">{{ t.k31 }}</span>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span style="flex:none;width:40px;height:40px;border-radius:9px;display:grid;place-items:center;background:{{ curBg }}"><span style="width:22px;height:22px;background:{{ curColor }};-webkit-mask:{{ curMask }};mask:{{ curMask }}"></span></span>
+          <input value="{{ title }}" onChange="{{ onTitle }}" placeholder="{{ t.k152 }}" style="flex:1;min-width:0;height:40px;border:1px solid var(--lineS);border-radius:8px;padding:0 12px;font-size:14px;outline:none;background:var(--surface)">
+        </div>
+        <span style="font-size:12px;color:var(--ink4);line-height:1.5">{{ t.k32 }}</span>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:14px 28px">
+        <div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:12.5px;font-weight:600;color:var(--ink3)">{{ t.k33 }}</span>
+          <div style="display:flex;flex-wrap:wrap;gap:6px"><sc-for list="{{ iconOpts }}" as="ic" hint-placeholder-count="9"><button onClick="{{ ic.onClick }}" title="{{ ic.name }}" style="width:36px;height:36px;border-radius:9px;cursor:pointer;display:grid;place-items:center;border:1.5px solid {{ ic.border }};background:{{ ic.bg }}"><span style="width:18px;height:18px;background:{{ ic.fg }};-webkit-mask:{{ ic.mask }};mask:{{ ic.mask }}"></span></button></sc-for></div></div>
+        <div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:12.5px;font-weight:600;color:var(--ink3)">{{ t.k34 }}</span>
+          <div style="display:flex;gap:8px;height:36px;align-items:center"><sc-for list="{{ colorOpts }}" as="co" hint-placeholder-count="6"><button onClick="{{ co.onClick }}" style="width:26px;height:26px;border-radius:50%;border:0;cursor:pointer;background:{{ co.c }};box-shadow:{{ co.ring }}"></button></sc-for></div></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:12.5px;font-weight:600;color:var(--ink3)">{{ t.k35 }}</span>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">
+          <sc-for list="{{ langChips }}" as="l" hint-placeholder-count="5"><button onClick="{{ l.onClick }}" style="height:32px;padding:0 12px;border-radius:16px;font-size:13px;cursor:pointer;border:1px solid {{ l.border }};background:{{ l.bg }};color:{{ l.fg }}">{{ l.label }}</button></sc-for>
+        </div>
+        <span style="font-size:12px;color:var(--ink4);line-height:1.5">{{ t.k36 }}</span>
+      </div>
+    </div>
+
+    <div style="background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden">
+      <button onClick="{{ toggleChunk }}" style="width:100%;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:16px 18px;border:0;background:transparent;cursor:pointer;text-align:left">
+        <span style="display:flex;flex-direction:column;gap:3px"><span style="display:flex;gap:8px;align-items:center"><span style="font-size:14px;font-weight:600">{{ t.k37 }}</span><span style="font-size:11px;font-weight:600;padding:2px 7px;border-radius:4px;background:{{ ovrBg }};color:{{ ovrFg }}">{{ ovrLabel }}</span></span><span style="font:400 12.5px 'IBM Plex Mono',monospace;color:var(--ink3)">{{ chunkSummary }}</span></span>
+        <span style="font-size:13px;color:var(--ink3)">{{ chunkToggleLabel }}</span>
+      </button>
+      <sc-if value="{{ chunkOpen }}">
+        <div style="border-top:1px solid var(--fill);padding:16px 18px;display:flex;flex-direction:column;gap:16px">
+          <div style="display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;justify-content:space-between;background:var(--fill2);border-radius:8px;padding:10px 12px">
+            <span style="font-size:12.5px;color:var(--ink3);line-height:1.5">{{ t.k38 }}</span>
+            <div style="display:flex;gap:6px">
+              <sc-if value="{{ isOvr }}"><button onClick="{{ resetOvr }}" style="height:30px;padding:0 10px;border-radius:7px;border:1px solid var(--lineS);background:var(--surface);font-size:12.5px;cursor:pointer">{{ t.k39 }}</button></sc-if>
+              <button onClick="{{ openDefaults }}" style="height:30px;padding:0 10px;border-radius:7px;border:0;background:transparent;color:var(--accentInk);font-size:12.5px;font-weight:600;cursor:pointer">{{ t.k40 }}</button>
+            </div>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:16px 28px">
+            <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12.5px;font-weight:600;color:var(--ink3)">{{ t.k41 }}</span>
+              <div style="display:inline-flex;padding:3px;background:var(--fill);border-radius:9px;gap:2px"><sc-for list="{{ lenOpts }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.onClick }}" style="height:30px;padding:0 14px;border-radius:7px;border:0;font-size:13px;font-weight:500;cursor:pointer;background:{{ o.bg }};color:{{ o.fg }}">{{ o.label }}</button></sc-for></div></div>
+            <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12.5px;font-weight:600;color:var(--ink3)">{{ t.k42 }}</span>
+              <div style="display:inline-flex;padding:3px;background:var(--fill);border-radius:9px;gap:2px"><sc-for list="{{ ovOpts }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.onClick }}" style="height:30px;padding:0 14px;border-radius:7px;border:0;font-size:13px;font-weight:500;cursor:pointer;background:{{ o.bg }};color:{{ o.fg }}">{{ o.label }}</button></sc-for></div></div>
+          </div>
+          <div style="font-size:12.5px;color:var(--ink3);line-height:1.6">{{ t.k43 }}</div>
+          <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer">
+            <button onClick="{{ toggleCompress }}" style="flex:none;width:38px;height:22px;border-radius:11px;border:0;padding:2px;cursor:pointer;display:flex;justify-content:{{ compressJustify }};background:{{ compressBg }}"><span style="width:18px;height:18px;border-radius:50%;background:var(--surface)"></span></button>
+            <span style="display:flex;flex-direction:column;gap:3px"><span style="font-size:13.5px;font-weight:600">{{ t.k44 }}</span><span style="font-size:12.5px;color:var(--ink3)">{{ compressDesc }}</span></span>
+          </label>
+          <sc-if value="{{ compressWarn }}"><div style="font-size:12.5px;color:var(--warn);background:var(--warnSoft);border-radius:8px;padding:10px 12px;line-height:1.5">{{ compressWarn }}</div></sc-if>
+          <div style="border-top:1px dashed var(--line);padding-top:12px">
+            <button onClick="{{ toggleAdv }}" style="border:0;background:transparent;padding:0;font-size:13px;font-weight:600;cursor:pointer;color:var(--ink2)">{{ advLabel }}</button>
+            <sc-if value="{{ advOpen }}">
+              <div style="display:flex;flex-wrap:wrap;gap:16px 28px;margin-top:12px">
+                <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12.5px;font-weight:600;color:var(--ink3)">{{ t.k45 }}</span>
+                  <div style="display:inline-flex;padding:3px;background:var(--fill);border-radius:9px;gap:2px"><sc-for list="{{ brOpts }}" as="o" hint-placeholder-count="3"><button onClick="{{ o.onClick }}" style="height:30px;padding:0 12px;border-radius:7px;border:0;font-size:13px;cursor:pointer;background:{{ o.bg }};color:{{ o.fg }}">{{ o.label }}</button></sc-for></div></div>
+                <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12.5px;font-weight:600;color:var(--ink3)">{{ t.k46 }}</span>
+                  <div style="display:inline-flex;padding:3px;background:var(--fill);border-radius:9px;gap:2px"><sc-for list="{{ srOpts }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.onClick }}" style="height:30px;padding:0 12px;border-radius:7px;border:0;font-size:13px;cursor:pointer;background:{{ o.bg }};color:{{ o.fg }}">{{ o.label }}</button></sc-for></div></div>
+                <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12.5px;font-weight:600;color:var(--ink3)">{{ t.k47 }}</span><span style="height:36px;display:flex;align-items:center;font-size:13px">{{ t.k48 }}</span></div>
+              </div>
+            </sc-if>
+          </div>
+        </div>
+      </sc-if>
+    </div>
+  </div>
+
+  <div style="flex:1 1 300px;min-width:0;display:flex;flex-direction:column;gap:16px">
+    <div style="background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:14px">
+      <span style="font-size:14px;font-weight:600">{{ t.k49 }}</span>
+      <select value="{{ sttModel }}" onChange="{{ onSttModel }}" style="height:40px;border:1px solid var(--lineS);border-radius:8px;padding:0 10px;font-size:14px;background:var(--surface)">
+        <option value="whisper-1">OpenAI · whisper-1</option>
+        <option value="gpt-4o-transcribe">OpenAI · gpt-4o-transcribe</option>
+        <option value="gpt-4o-mini-transcribe">OpenAI · gpt-4o-mini-transcribe</option>
+      </select>
+      <span style="font-size:12.5px;color:var(--ink3);line-height:1.55">{{ sttModelNote }}</span>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:12px">
+      <span style="font-size:14px;font-weight:600">{{ t.k50 }}</span>
+      <div style="display:grid;grid-template-columns:auto 1fr;gap:8px 14px;font-size:13px;line-height:1.5">
+        <span style="color:var(--ink4)">{{ t.k51 }}</span><span>OpenAI (api.openai.com)</span>
+        <span style="color:var(--ink4)">{{ t.k52 }}</span><span>{{ sendDesc }}</span>
+        <span style="color:var(--ink4)">{{ t.k53 }}</span><span>{{ t.k54 }}</span>
+        <span style="color:var(--ink4)">{{ t.k55 }}</span><span>{{ t.k56 }}</span>
+      </div>
+      <div style="font-size:12px;color:var(--ink4);line-height:1.5">{{ t.k57 }}</div>
+      <label style="display:flex;gap:10px;align-items:center;cursor:pointer;padding-top:4px">
+        <input type="checkbox" checked="{{ consent }}" onChange="{{ toggleConsent }}" style="width:18px;height:18px;accent-color:var(--ink)">
+        <span style="font-size:13.5px">{{ t.k58 }}</span>
+      </label>
+      <button onClick="{{ startStt }}" disabled="{{ startDisabled }}" style="height:44px;border-radius:9px;border:0;font-size:14.5px;font-weight:600;background:{{ startBg }};color:{{ startFg }};cursor:{{ startCursor }}">{{ t.k59 }}</button>
+      <span style="font-size:12px;color:var(--ink4);text-align:center">{{ startHint }}</span>
+    </div>
+  </div>
+</div>
+</sc-if>
+
+<!-- STT -->
+<sc-if value="{{ isStt }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-direction:column;gap:16px">
+  <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:12px;color:var(--ink3)">
+    <span style="font:500 11px 'IBM Plex Mono',monospace;letter-spacing:.03em">{{ t.k60 }}</span>
+    <div style="display:inline-flex;padding:3px;background:var(--fill);border-radius:9px;gap:2px"><sc-for list="{{ modeOpts }}" as="o" hint-placeholder-count="3"><button onClick="{{ o.onClick }}" style="height:28px;padding:0 12px;border-radius:7px;border:0;font-size:12.5px;cursor:pointer;background:{{ o.bg }};color:{{ o.fg }}">{{ o.label }}</button></sc-for></div>
+  </div>
+
+  <div style="background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:18px">
+    <div style="display:flex;flex-wrap:wrap;gap:10px">
+      <sc-for list="{{ stages }}" as="g" hint-placeholder-count="3">
+        <div style="flex:1 1 180px;display:flex;gap:10px;align-items:flex-start;padding:12px;border-radius:10px;background:{{ g.bg }}">
+          <span style="flex:none;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font:600 11px 'IBM Plex Mono',monospace;background:{{ g.dotBg }};color:var(--onAccent)">{{ g.mark }}</span>
+          <span style="display:flex;flex-direction:column;gap:3px"><span style="font-size:13.5px;font-weight:600">{{ g.label }}</span><span style="font-size:12px;color:var(--ink3);line-height:1.45">{{ g.detail }}</span></span>
+        </div>
+      </sc-for>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap"><span style="font-size:14px;font-weight:600">{{ sttHeadline }}</span><span style="font:600 20px 'IBM Plex Mono',monospace">{{ overallPct }}</span></div>
+      <div style="height:10px;border-radius:5px;background:var(--fill);overflow:hidden;display:flex">
+        <sc-for list="{{ overallSegs }}" as="b" hint-placeholder-count="5"><div style="flex:1;border-right:2px solid var(--surface);position:relative;background:var(--fill)"><div style="height:100%;transition:width .25s;width:{{ b.w }};background:{{ b.bg }}"></div></div></sc-for>
+      </div>
+    </div>
+    <sc-if value="{{ hasFailed }}">
+      <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;background:var(--errSoft);border-radius:9px;padding:12px 14px">
+        <span style="font-size:13px;color:var(--errInk);line-height:1.5">{{ failSummary }}</span>
+        <button onClick="{{ retryFailed }}" style="height:34px;padding:0 14px;border-radius:8px;border:0;background:var(--err);color:var(--onAccent);font-size:13px;font-weight:600;cursor:pointer">{{ t.k61 }}</button>
+      </div>
+    </sc-if>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end">
+      <sc-if value="{{ isRunning }}"><button onClick="{{ cancelStt }}" style="height:38px;padding:0 14px;border-radius:8px;border:1px solid var(--lineS);background:var(--surface);font-size:13.5px;cursor:pointer">{{ t.k62 }}</button></sc-if>
+      <button onClick="{{ goReview }}" style="height:38px;padding:0 16px;border-radius:8px;border:0;font-size:13.5px;font-weight:600;cursor:pointer;background:{{ reviewBtnBg }};color:{{ reviewBtnFg }}">{{ reviewBtnLabel }}</button>
+    </div>
+  </div>
+
+  <div style="background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden">
+    <div style="padding:14px 18px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:13px;color:var(--ink3)"><span style="font-weight:600;color:var(--ink)">{{ t.k63 }} {{ chunkCount }}{{ t.k5 }}</span><span style="font-family:'IBM Plex Mono',monospace">{{ t.k64 }}</span></div>
+    <sc-for list="{{ chunkRows }}" as="c" hint-placeholder-count="5">
+      <div style="border-top:1px solid var(--fill);padding:14px 18px;display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center">
+        <span style="flex:none;width:34px;font:600 13px 'IBM Plex Mono',monospace">#{{ c.n }}</span>
+        <div style="flex:1 1 170px;display:flex;flex-direction:column;gap:3px"><span style="font:500 13.5px 'IBM Plex Mono',monospace">{{ c.range }}</span><span style="font:400 12px 'IBM Plex Mono',monospace;color:var(--ink4)">{{ c.size }} {{ t.k65 }} {{ c.ovl }}</span></div>
+        <div style="flex:1 1 200px;min-width:160px;display:flex;flex-direction:column;gap:6px">
+          <span style="align-self:flex-start;font-size:12px;font-weight:600;padding:3px 8px;border-radius:5px;background:{{ c.bg }};color:{{ c.fg }}">{{ c.label }}</span>
+          <div style="height:4px;border-radius:2px;background:var(--fill);overflow:hidden"><div style="height:100%;transition:width .25s;width:{{ c.w }};background:{{ c.fg }}"></div></div>
+        </div>
+        <div style="display:flex;gap:6px">
+          <button onClick="{{ c.onPlay }}" style="height:32px;min-width:88px;padding:0 10px;border-radius:7px;border:1px solid var(--lineS);background:var(--surface);font:500 12.5px 'IBM Plex Mono',monospace;cursor:pointer">{{ c.playLabel }}</button>
+          <sc-if value="{{ c.showAction }}"><button onClick="{{ c.onAction }}" style="height:32px;padding:0 12px;border-radius:7px;font-size:12.5px;font-weight:600;cursor:pointer;border:1px solid {{ c.actBorder }};background:{{ c.actBg }};color:{{ c.actFg }}">{{ c.actionLabel }}</button></sc-if>
+        </div>
+        <sc-if value="{{ c.err }}"><div style="flex:1 1 100%;font-size:12.5px;color:var(--err);line-height:1.5;padding-left:52px">{{ t.k66 }} {{ c.err }}</div></sc-if>
+      </div>
+    </sc-for>
+  </div>
+  <div style="font-size:12px;color:var(--ink3);line-height:1.6">{{ t.k67 }}</div>
+</div>
+</sc-if>
+
+<!-- REVIEW -->
+<sc-if value="{{ isReview }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-wrap:wrap;gap:20px;align-items:flex-start">
+  <div style="flex:2 1 480px;min-width:0;display:flex;flex-direction:column;gap:12px">
+    <div style="display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;justify-content:space-between">
+      <span style="flex:1 1 240px;font-size:12.5px;color:var(--ink3);line-height:1.55">{{ t.k155 }}</span>
+      <div style="flex:1 1 200px;max-width:320px;display:flex;align-items:center;gap:8px;height:36px;border:1px solid var(--lineS);border-radius:8px;background:var(--surface);padding:0 10px">
+        <span style="font-size:12px;color:var(--ink4)">{{ t.k68 }}</span>
+        <input value="{{ query }}" onChange="{{ onQuery }}" placeholder="{{ t.k153 }}" style="flex:1;min-width:0;border:0;outline:none;font-size:13.5px;background:transparent">
+        <span style="font:500 11.5px 'IBM Plex Mono',monospace;color:var(--ink3)">{{ matchLabel }}</span>
+      </div>
+    </div>
+    <sc-for list="{{ rawChunks }}" as="rc" hint-placeholder-count="5">
+      <div style="background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden">
+        <div style="display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;padding:10px 14px 10px 16px;background:var(--fill2);border-bottom:1px solid var(--fill)">
+          <span style="font:600 13px 'IBM Plex Mono',monospace">{{ t.k63 }} {{ rc.n }}</span>
+          <span style="font:400 12.5px 'IBM Plex Mono',monospace;color:var(--ink3)">{{ rc.range }}</span>
+          <span style="font-size:11.5px;font-weight:600;padding:2px 7px;border-radius:4px;background:{{ rc.bg }};color:{{ rc.fg }}">{{ rc.label }}</span>
+          <span style="font:400 11.5px 'IBM Plex Mono',monospace;color:var(--ink4)">{{ rc.model }}</span>
+          <span style="flex:1"></span>
+          <button onClick="{{ rc.onPlay }}" style="height:30px;min-width:84px;padding:0 10px;border-radius:7px;border:1px solid var(--lineS);background:var(--surface);font:500 12px 'IBM Plex Mono',monospace;cursor:pointer">{{ rc.playLabel }}</button>
+          <sc-if value="{{ rc.showRetry }}"><button onClick="{{ rc.onRetry }}" style="height:30px;padding:0 12px;border-radius:7px;font-size:12.5px;font-weight:600;cursor:pointer;border:1px solid {{ rc.rtBorder }};background:{{ rc.rtBg }};color:{{ rc.rtFg }}">↻ {{ rc.retryLabel }}</button></sc-if>
+        </div>
+        <sc-if value="{{ rc.empty }}"><div style="padding:14px 16px;font-size:13px;color:{{ rc.emptyColor }};line-height:1.55">{{ rc.emptyText }}</div></sc-if>
+        <sc-for list="{{ rc.lines }}" as="ln" hint-placeholder-count="3">
+          <div style="display:flex;gap:12px;padding:9px 16px;align-items:flex-start;background:{{ ln.bg }};opacity:{{ ln.op }}">
+            <button onClick="{{ ln.onPlay }}" style="flex:none;height:24px;padding:0 7px;border-radius:6px;border:1px solid {{ ln.tBorder }};background:{{ ln.tBg }};color:{{ ln.tFg }};font:500 12px 'IBM Plex Mono',monospace;cursor:pointer">{{ ln.time }}</button>
+            <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:6px">
+              <sc-if value="{{ ln.notEditing }}"><div style="font-size:14px;line-height:1.7;text-wrap:pretty"><sc-for list="{{ ln.parts }}" as="p" hint-placeholder-count="1"><span style="background:{{ p.bg }};border-radius:3px">{{ p.t }}</span></sc-for><sc-if value="{{ ln.edited }}"><span style="font-size:11.5px;color:var(--ink4)"> {{ t.k71 }}</span></sc-if></div></sc-if>
+              <sc-if value="{{ ln.editing }}">
+                <textarea value="{{ editText }}" onChange="{{ onEditText }}" rows="3" style="width:100%;border:1px solid var(--ink);border-radius:8px;padding:8px 10px;font-size:14px;line-height:1.6;resize:vertical;outline:none;background:var(--surface)"></textarea>
+                <div style="display:flex;gap:6px"><button onClick="{{ saveEdit }}" style="height:30px;padding:0 12px;border-radius:7px;border:0;background:var(--accent);color:var(--onAccent);font-size:12.5px;font-weight:600;cursor:pointer">{{ t.k70 }}</button><button onClick="{{ cancelEdit }}" style="height:30px;padding:0 12px;border-radius:7px;border:1px solid var(--lineS);background:var(--surface);font-size:12.5px;cursor:pointer">{{ t.k17 }}</button></div>
+              </sc-if>
+            </div>
+            <sc-if value="{{ ln.notEditing }}"><button onClick="{{ ln.onEdit }}" title="{{ tipEdit }}" style="flex:none;width:28px;height:28px;border-radius:6px;border:0;background:transparent;cursor:pointer;display:grid;place-items:center"><span style="width:15px;height:15px;background:var(--ink4);-webkit-mask:{{ icoEdit }};mask:{{ icoEdit }}"></span></button></sc-if>
+          </div>
+        </sc-for>
+      </div>
+    </sc-for>
+  </div>
+  <div style="flex:1 1 280px;min-width:0;display:flex;flex-direction:column;gap:14px">
+    <div style="background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:10px">
+      <span style="font-size:14px;font-weight:600">{{ t.k78 }}</span>
+      <div style="display:grid;grid-template-columns:auto 1fr;gap:8px 12px;font-size:12.5px;line-height:1.5">
+        <span style="color:var(--ink4)">{{ t.k79 }}</span><span style="font-family:'IBM Plex Mono',monospace">{{ sttModel }}</span>
+        <span style="color:var(--ink4)">{{ t.k80 }}</span><span>{{ t.k81 }}</span>
+        <span style="color:var(--ink4)">{{ t.k82 }}</span><span>{{ t.k83 }}</span>
+        <span style="color:var(--ink4)">{{ t.k156 }}</span><span>{{ t.k157 }}</span>
+      </div>
+    </div>
+    <button onClick="{{ goMinutes }}" style="height:44px;border-radius:9px;border:0;background:var(--accent);color:var(--onAccent);font-size:14.5px;font-weight:600;cursor:pointer">{{ t.k86 }}</button>
+  </div>
+</div>
+</sc-if>
+
+<!-- MINUTES -->
+<sc-if value="{{ isMinutes }}" hint-placeholder-val="{{ false }}">
+<div style="background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;display:flex;flex-wrap:wrap;gap:12px 16px;align-items:center">
+  <span style="flex:none;width:44px;height:44px;border-radius:12px;display:grid;place-items:center;background:{{ curBg }}"><span style="width:24px;height:24px;background:{{ curColor }};-webkit-mask:{{ curMask }};mask:{{ curMask }}"></span></span>
+  <div style="flex:1 1 280px;min-width:0;display:flex;flex-direction:column;gap:3px">
+    <span style="font-size:12px;font-weight:600;color:var(--accentInk)">{{ t.k87 }}</span>
+    <input value="{{ sugText }}" onChange="{{ onSug }}" style="border:0;border-bottom:1px solid var(--line);font-size:17px;font-weight:600;padding:4px 0 6px;outline:none;background:transparent;width:100%">
+    <span style="font-size:12px;color:var(--ink4)">{{ t.k88 }} {{ curTitle }}</span>
+  </div>
+  <div style="display:flex;gap:6px">
+    <button onClick="{{ nextSug }}" style="height:38px;padding:0 12px;border-radius:8px;border:1px solid var(--lineS);background:var(--surface);font-size:13px;cursor:pointer">{{ t.k89 }}</button>
+    <button onClick="{{ applySug }}" style="height:38px;padding:0 14px;border-radius:8px;border:0;font-size:13px;font-weight:600;cursor:pointer;background:{{ applyBg }};color:{{ applyFg }}">{{ applyLabel }}</button>
+  </div>
+</div>
+<div style="display:flex;flex-wrap:wrap;gap:20px;align-items:flex-start">
+  <div style="flex:1 1 300px;max-width:100%;min-width:0;display:flex;flex-direction:column;gap:14px">
+    <div style="background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:14px">
+      <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12.5px;font-weight:600;color:var(--ink3)">{{ t.k90 }}</span>
+        <div style="display:flex;flex-wrap:wrap;gap:6px"><sc-for list="{{ tplOpts }}" as="o" hint-placeholder-count="3"><button onClick="{{ o.onClick }}" style="height:32px;padding:0 12px;border-radius:16px;font-size:13px;cursor:pointer;border:1px solid {{ o.border }};background:{{ o.bg }};color:{{ o.fg }}">{{ o.label }}</button></sc-for></div></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <label style="flex:1 1 120px;display:flex;flex-direction:column;gap:6px"><span style="font-size:12.5px;font-weight:600;color:var(--ink3)">{{ t.k91 }}</span>
+          <select value="{{ mLang }}" onChange="{{ onMLang }}" style="height:38px;border:1px solid var(--lineS);border-radius:8px;padding:0 8px;font-size:13.5px;background:var(--surface)"><option value="ko">{{ t.k92 }}</option><option value="en">English</option></select></label>
+        <label style="flex:2 1 180px;display:flex;flex-direction:column;gap:6px"><span style="font-size:12.5px;font-weight:600;color:var(--ink3)">{{ t.k93 }}</span>
+          <select value="{{ mModel }}" onChange="{{ onMModel }}" style="height:38px;border:1px solid var(--lineS);border-radius:8px;padding:0 8px;font-size:13.5px;background:var(--surface)"><sc-for list="{{ modelOpts }}" as="mo" hint-placeholder-count="4"><option value="{{ mo.v }}">{{ mo.full }}</option></sc-for></select></label>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12.5px;font-weight:600;color:var(--ink3)">{{ t.k94 }}</span>
+        <div style="border:1px solid var(--fill);border-radius:9px;overflow:hidden">
+          <sc-for list="{{ sectionRows }}" as="sec" hint-placeholder-count="6">
+            <div style="display:flex;align-items:center;gap:10px;padding:6px 8px 6px 10px;border-top:1px solid var(--fill);background:{{ sec.bg }}">
+              <button onClick="{{ sec.onToggle }}" style="flex:none;width:20px;height:20px;border-radius:5px;display:grid;place-items:center;font-size:12px;cursor:pointer;border:1.5px solid {{ sec.boxBorder }};background:{{ sec.boxBg }};color:var(--onAccent)">{{ sec.check }}</button>
+              <span style="flex:1;font-size:13.5px;color:{{ sec.fg }}">{{ sec.label }}</span>
+              <button onClick="{{ sec.onUp }}" style="width:28px;height:28px;border:0;border-radius:6px;background:transparent;cursor:pointer;font-size:12px;opacity:{{ sec.upOp }}">▲</button>
+              <button onClick="{{ sec.onDown }}" style="width:28px;height:28px;border:0;border-radius:6px;background:transparent;cursor:pointer;font-size:12px;opacity:{{ sec.downOp }}">▼</button>
+            </div>
+          </sc-for>
+        </div></div>
+      <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12.5px;font-weight:600;color:var(--ink3)">{{ t.k95 }}</span>
+        <textarea value="{{ instr }}" onChange="{{ onInstr }}" rows="3" placeholder="{{ t.k154 }}" style="border:1px solid var(--lineS);border-radius:8px;padding:8px 10px;font-size:13.5px;line-height:1.55;resize:vertical;outline:none"></textarea></label>
+      <button onClick="{{ generate }}" style="height:44px;border-radius:9px;border:0;background:var(--accent);color:var(--onAccent);font-size:14.5px;font-weight:600;cursor:pointer">{{ genLabel }}</button>
+      <span style="font-size:12px;color:var(--ink4);line-height:1.5">{{ t.k96 }}</span>
+    </div>
+  </div>
+
+  <div style="flex:2 1 460px;min-width:0;display:flex;flex-direction:column;gap:12px">
+    <div style="display:inline-flex;align-self:flex-start;padding:3px;background:var(--fill);border-radius:9px;gap:2px"><sc-for list="{{ minViewOpts }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.onClick }}" style="height:32px;padding:0 14px;border-radius:7px;border:0;font-size:13px;font-weight:500;cursor:pointer;background:{{ o.bg }};color:{{ o.fg }}">{{ o.label }}</button></sc-for></div>
+    <sc-if value="{{ minSingle }}" hint-placeholder-val="{{ true }}">
+    <div style="display:flex;flex-direction:column;gap:12px">
+    <sc-if value="{{ incompleteWarn }}"><div style="font-size:13px;color:var(--warn);background:var(--warnSoft);border-radius:9px;padding:10px 14px;line-height:1.5">{{ incompleteWarn }}</div></sc-if>
+    <sc-if value="{{ notGenerated }}">
+      <div style="background:var(--surface);border:1px dashed var(--lineS);border-radius:12px;padding:56px 24px;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center">
+        <span style="font-size:16px;font-weight:600">{{ emptyTitle }}</span>
+        <span style="font-size:13px;color:var(--ink3);line-height:1.6;max-width:380px">{{ emptySub }}</span>
+      </div>
+    </sc-if>
+    <sc-if value="{{ generated }}">
+      <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between">
+        <span style="font:500 12px 'IBM Plex Mono',monospace;color:var(--ink3)">{{ genMeta }}</span>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <div style="display:inline-flex;padding:3px;background:var(--fill);border-radius:9px;gap:2px"><sc-for list="{{ viewOpts }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.onClick }}" style="height:30px;padding:0 12px;border-radius:7px;border:0;font-size:12.5px;cursor:pointer;background:{{ o.bg }};color:{{ o.fg }}">{{ o.label }}</button></sc-for></div>
+          <button onClick="{{ generate }}" style="height:36px;padding:0 12px;border-radius:8px;border:1px solid var(--lineS);background:var(--surface);font-size:13px;cursor:pointer">{{ t.k97 }}</button>
+          <button onClick="{{ downloadMd }}" style="height:36px;padding:0 14px;border-radius:8px;border:0;background:var(--accent);color:var(--onAccent);font-size:13px;font-weight:600;cursor:pointer">{{ t.k98 }}</button>
+        </div>
+      </div>
+      <sc-if value="{{ dirty }}"><div style="font-size:12.5px;color:var(--accentInk);background:var(--accentSoft);border-radius:8px;padding:9px 12px">{{ t.k99 }}</div></sc-if>
+      <div style="background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:24px 28px;opacity:{{ genOp }}">
+        <sc-if value="{{ mEdit }}"><textarea value="{{ mdText }}" onChange="{{ onMd }}" style="width:100%;min-height:460px;border:0;outline:none;resize:vertical;font:400 13px/1.7 'IBM Plex Mono',monospace"></textarea></sc-if>
+        <sc-if value="{{ mPreview }}">
+          <div style="display:flex;flex-direction:column;gap:6px;max-width:680px">
+            <sc-for list="{{ mdBlocks }}" as="bk" hint-placeholder-count="10">
+              <sc-if value="{{ bk.h1 }}"><h2 style="margin:0 0 2px;font-size:22px;font-weight:700;letter-spacing:-.01em">{{ bk.text }}</h2></sc-if>
+              <sc-if value="{{ bk.h2 }}"><h3 style="margin:18px 0 2px;font-size:16px;font-weight:700">{{ bk.text }}</h3></sc-if>
+              <sc-if value="{{ bk.h3 }}"><h4 style="margin:8px 0 0;font-size:14px;font-weight:600;color:var(--ink2)">{{ bk.text }}</h4></sc-if>
+              <sc-if value="{{ bk.p }}"><p style="margin:0;font-size:14.5px;line-height:1.75;text-wrap:pretty">{{ bk.text }}</p></sc-if>
+              <sc-if value="{{ bk.meta }}"><p style="margin:0;font:400 12.5px 'IBM Plex Mono',monospace;color:var(--ink4)">{{ bk.text }}</p></sc-if>
+              <sc-if value="{{ bk.note }}"><p style="margin:4px 0;font-size:13px;line-height:1.6;color:var(--warn);background:var(--warnSoft);border-radius:7px;padding:8px 12px">{{ bk.text }}</p></sc-if>
+              <sc-if value="{{ bk.li }}"><div style="display:flex;gap:10px;font-size:14.5px;line-height:1.7"><span style="flex:none;color:var(--ink4)">–</span><span>{{ bk.text }}</span></div></sc-if>
+              <sc-if value="{{ bk.todo }}"><div style="display:flex;gap:10px;font-size:14.5px;line-height:1.7;align-items:flex-start"><span style="flex:none;width:15px;height:15px;margin-top:5px;border:1.5px solid var(--ink5);border-radius:4px"></span><span>{{ bk.text }}</span></div></sc-if>
+            </sc-for>
+          </div>
+        </sc-if>
+      </div>
+    </sc-if>
+    </div>
+    </sc-if>
+    <sc-if value="{{ minCompare }}" hint-placeholder-val="{{ false }}">
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div style="background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;display:flex;flex-wrap:wrap;gap:10px 28px;align-items:center;justify-content:space-between">
+        <div style="display:flex;flex-direction:column;gap:4px;max-width:440px"><span style="font-size:14px;font-weight:600">{{ t.k100 }}</span><span style="font-size:12.5px;color:var(--ink3);line-height:1.55">{{ t.k101 }}{{ cmpConf }}{{ t.k102 }}</span></div>
+        <button onClick="{{ runCompare }}" style="height:38px;padding:0 16px;border-radius:8px;border:0;background:var(--accent);color:var(--onAccent);font-size:13.5px;font-weight:600;cursor:pointer">{{ cmpLabel }}</button>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:14px;align-items:stretch">
+        <sc-for list="{{ cmpCols }}" as="cc" hint-placeholder-count="2">
+          <div style="flex:1 1 300px;min-width:0;background:var(--surface);border:1px solid var(--line);border-radius:12px;display:flex;flex-direction:column;overflow:hidden">
+            <div style="padding:14px 16px;border-bottom:1px solid var(--fill);display:flex;flex-direction:column;gap:12px;background:var(--fill2)">
+              <select value="{{ cc.v }}" onChange="{{ cc.onChange }}" style="height:36px;border:1px solid var(--lineS);border-radius:8px;padding:0 8px;font:500 13px 'IBM Plex Mono',monospace;background:var(--surface)"><sc-for list="{{ modelOpts }}" as="mo" hint-placeholder-count="4"><option value="{{ mo.v }}">{{ mo.full }}</option></sc-for></select>
+              <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px">
+                <sc-for list="{{ cc.stats }}" as="sx" hint-placeholder-count="4">
+                  <div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:11.5px;color:var(--ink4)">{{ sx.k }}</span><span style="font:600 13.5px 'IBM Plex Mono',monospace">{{ sx.v }}</span><span style="align-self:flex-start;font-size:10.5px;font-weight:600;padding:1px 6px;border-radius:4px;background:{{ sx.bg }};color:{{ sx.fg }}">{{ sx.kind }}</span></div>
+                </sc-for>
+              </div>
+            </div>
+            <div style="padding:16px 18px;display:flex;flex-direction:column;gap:5px;opacity:{{ cmpOp }}">
+              <sc-for list="{{ cc.blocks }}" as="bk" hint-placeholder-count="6">
+                <sc-if value="{{ bk.h2 }}"><h3 style="margin:8px 0 2px;font-size:15px;font-weight:700">{{ bk.text }}</h3></sc-if>
+                <sc-if value="{{ bk.p }}"><p style="margin:0;font-size:14px;line-height:1.7">{{ bk.text }}</p></sc-if>
+                <sc-if value="{{ bk.li }}"><div style="display:flex;gap:8px;font-size:14px;line-height:1.65"><span style="color:var(--ink4)">–</span><span>{{ bk.text }}</span></div></sc-if>
+                <sc-if value="{{ bk.todo }}"><div style="display:flex;gap:8px;font-size:14px;line-height:1.65;align-items:flex-start"><span style="flex:none;width:14px;height:14px;margin-top:5px;border:1.5px solid var(--ink5);border-radius:3px"></span><span>{{ bk.text }}</span></div></sc-if>
+              </sc-for>
+            </div>
+            <div style="margin-top:auto;padding:12px 16px;border-top:1px solid var(--fill)"><button onClick="{{ cc.onUse }}" style="height:32px;padding:0 12px;border-radius:7px;border:1px solid var(--lineS);background:var(--surface);font-size:12.5px;cursor:pointer">{{ t.k103 }}</button></div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px 18px;font-size:12px;color:var(--ink3);align-items:center">
+        <span style="display:flex;gap:6px;align-items:center"><span style="font-size:10.5px;font-weight:600;padding:1px 6px;border-radius:4px;background:var(--okSoft);color:var(--ok)">{{ t.k104 }}</span>{{ t.k105 }}</span>
+        <span style="display:flex;gap:6px;align-items:center"><span style="font-size:10.5px;font-weight:600;padding:1px 6px;border-radius:4px;background:var(--warnSoft);color:var(--warn)">{{ t.k106 }}</span>{{ t.k107 }}</span>
+        <span style="display:flex;gap:6px;align-items:center"><span style="font-size:10.5px;font-weight:600;padding:1px 6px;border-radius:4px;background:var(--fill);color:var(--ink3)">{{ t.k108 }}</span>{{ t.k109 }}</span>
+      </div>
+    </div>
+    </sc-if>
+  </div>
+</div>
+</sc-if>
+
+<!-- SETTINGS -->
+<sc-if value="{{ isSettings }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-direction:column;gap:18px">
+  <h1 style="margin:0;font-size:26px;font-weight:700;letter-spacing:-.01em">{{ t.k6 }}</h1>
+  <div style="display:flex;gap:2px;border-bottom:1px solid var(--line);overflow-x:auto">
+    <sc-for list="{{ setTabs }}" as="o" hint-placeholder-count="3"><button onClick="{{ o.onClick }}" style="height:40px;padding:0 14px;border:0;background:transparent;font-size:14px;cursor:pointer;white-space:nowrap;border-bottom:2px solid {{ o.line }};color:{{ o.fg }};font-weight:{{ o.weight }}">{{ o.label }}</button></sc-for>
+  </div>
+
+  <sc-if value="{{ tabConn }}">
+    <div style="display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start">
+      <div style="flex:2 1 440px;min-width:0;display:flex;flex-direction:column;gap:14px">
+        <sc-for list="{{ providers }}" as="pv" hint-placeholder-count="2">
+          <div style="background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:12px">
+            <div style="display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap"><span style="display:flex;flex-direction:column;gap:3px"><span style="font-size:15px;font-weight:600">{{ pv.name }}</span><span style="font-size:12.5px;color:var(--ink3)">{{ pv.use }}</span></span><span style="font-size:12px;font-weight:600;padding:3px 8px;border-radius:5px;background:{{ pv.bg }};color:{{ pv.fg }}">{{ pv.status }}</span></div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <input type="{{ pv.inputType }}" value="{{ pv.key }}" onChange="{{ pv.onChange }}" placeholder="{{ pv.ph }}" autoComplete="off" style="flex:1 1 220px;min-width:0;height:38px;border:1px solid var(--lineS);border-radius:8px;padding:0 10px;font:400 13px 'IBM Plex Mono',monospace;outline:none">
+              <button onClick="{{ pv.onShow }}" style="height:38px;padding:0 12px;border-radius:8px;border:1px solid var(--lineS);background:var(--surface);font-size:13px;cursor:pointer">{{ pv.showLabel }}</button>
+              <button onClick="{{ pv.onClear }}" style="height:38px;padding:0 12px;border-radius:8px;border:1px solid var(--lineS);background:var(--surface);font-size:13px;cursor:pointer">{{ t.k110 }}</button>
+              <button onClick="{{ pv.onTest }}" style="height:38px;padding:0 12px;border-radius:8px;border:0;background:var(--accent);color:var(--onAccent);font-size:13px;font-weight:600;cursor:pointer">{{ t.k111 }}</button>
+            </div>
+            <span style="font:400 12px 'IBM Plex Mono',monospace;color:var(--ink4)">{{ pv.masked }}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="flex:1 1 280px;min-width:0;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:12px">
+        <span style="font-size:14px;font-weight:600">{{ t.k112 }}</span>
+        <sc-for list="{{ storeOpts }}" as="so" hint-placeholder-count="2">
+          <button onClick="{{ so.onClick }}" style="text-align:left;display:flex;gap:10px;padding:12px;border-radius:9px;cursor:pointer;border:1.5px solid {{ so.border }};background:{{ so.bg }}">
+            <span style="flex:none;width:16px;height:16px;margin-top:2px;border-radius:50%;border:1.5px solid var(--ink);display:grid;place-items:center"><span style="width:8px;height:8px;border-radius:50%;background:{{ so.dot }}"></span></span>
+            <span style="display:flex;flex-direction:column;gap:3px"><span style="font-size:13.5px;font-weight:600">{{ so.label }}</span><span style="font-size:12.5px;color:var(--ink3);line-height:1.5">{{ so.desc }}</span></span>
+          </button>
+        </sc-for>
+        <span style="font-size:12px;color:var(--ink4);line-height:1.6">{{ t.k113 }}</span>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ tabDefaults }}">
+    <div style="display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start">
+      <div style="flex:2 1 440px;min-width:0;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:18px">
+        <div style="display:flex;flex-direction:column;gap:4px"><span style="font-size:15px;font-weight:600">{{ t.k114 }}</span><span style="font-size:12.5px;color:var(--ink3);line-height:1.55">{{ t.k115 }}</span></div>
+        <div style="display:flex;flex-wrap:wrap;gap:16px 28px"><div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12.5px;font-weight:600;color:var(--ink3)">{{ t.k41 }}</span><div style="display:inline-flex;align-self:flex-start;padding:3px;background:var(--fill);border-radius:9px;gap:2px"><sc-for list="{{ dLenOpts }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.onClick }}" style="height:30px;padding:0 12px;border-radius:7px;border:0;font-size:13px;cursor:pointer;background:{{ o.bg }};color:{{ o.fg }}">{{ o.label }}</button></sc-for></div></div><div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12.5px;font-weight:600;color:var(--ink3)">{{ t.k42 }}</span><div style="display:inline-flex;align-self:flex-start;padding:3px;background:var(--fill);border-radius:9px;gap:2px"><sc-for list="{{ dOvOpts }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.onClick }}" style="height:30px;padding:0 12px;border-radius:7px;border:0;font-size:13px;cursor:pointer;background:{{ o.bg }};color:{{ o.fg }}">{{ o.label }}</button></sc-for></div></div></div>
+        <div style="display:flex;align-items:flex-start;gap:10px">
+          <button onClick="{{ toggleDComp }}" style="flex:none;width:38px;height:22px;border-radius:11px;border:0;padding:2px;cursor:pointer;display:flex;justify-content:{{ dCompJustify }};background:{{ dCompBg }}"><span style="width:18px;height:18px;border-radius:50%;background:var(--surface)"></span></button>
+          <span style="display:flex;flex-direction:column;gap:3px"><span style="font-size:13.5px;font-weight:600">{{ t.k116 }}</span><span style="font-size:12.5px;color:var(--ink3)">{{ t.k117 }}</span></span>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:16px 28px"><div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12.5px;font-weight:600;color:var(--ink3)">{{ t.k45 }}</span><div style="display:inline-flex;align-self:flex-start;padding:3px;background:var(--fill);border-radius:9px;gap:2px"><sc-for list="{{ dBrOpts }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.onClick }}" style="height:30px;padding:0 12px;border-radius:7px;border:0;font-size:13px;cursor:pointer;background:{{ o.bg }};color:{{ o.fg }}">{{ o.label }}</button></sc-for></div></div><div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12.5px;font-weight:600;color:var(--ink3)">{{ t.k46 }}</span><div style="display:inline-flex;align-self:flex-start;padding:3px;background:var(--fill);border-radius:9px;gap:2px"><sc-for list="{{ dSrOpts }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.onClick }}" style="height:30px;padding:0 12px;border-radius:7px;border:0;font-size:13px;cursor:pointer;background:{{ o.bg }};color:{{ o.fg }}">{{ o.label }}</button></sc-for></div></div></div>
+      </div>
+      <div style="flex:1 1 280px;min-width:0;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:10px">
+        <span style="font-size:14px;font-weight:600">{{ t.k118 }}</span>
+        <div style="display:grid;grid-template-columns:auto 1fr;gap:8px 14px;font-size:13px">
+          <span style="color:var(--ink4)">{{ t.k63 }}</span><span style="font-family:'IBM Plex Mono',monospace">{{ dEstN }}{{ t.k5 }}</span>
+          <span style="color:var(--ink4)">{{ t.k119 }}</span><span style="font-family:'IBM Plex Mono',monospace">{{ dEstPer }}</span>
+          <span style="color:var(--ink4)">{{ t.k120 }}</span><span style="font-family:'IBM Plex Mono',monospace">{{ dEstTotal }}</span>
+        </div>
+        <span style="font-size:12px;color:var(--ink4);line-height:1.55">{{ t.k121 }}</span>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ tabLook }}">
+    <div style="background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:20px">
+      <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12.5px;font-weight:600;color:var(--ink3)">{{ t.k122 }}</span><div style="display:inline-flex;align-self:flex-start;padding:3px;background:var(--fill);border-radius:9px;gap:2px"><sc-for list="{{ themeOpts }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.onClick }}" style="height:30px;padding:0 12px;border-radius:7px;border:0;font-size:13px;cursor:pointer;background:{{ o.bg }};color:{{ o.fg }}">{{ o.label }}</button></sc-for></div></div>
+      <div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:12.5px;font-weight:600;color:var(--ink3)">{{ t.k123 }}</span>
+        <div style="display:flex;flex-wrap:wrap;gap:10px">
+          <sc-for list="{{ paletteOpts }}" as="pl" hint-placeholder-count="3">
+            <button onClick="{{ pl.onClick }}" style="flex:1 1 200px;text-align:left;display:flex;flex-direction:column;gap:12px;padding:14px;border-radius:10px;cursor:pointer;background:var(--surface);border:1.5px solid {{ pl.border }}">
+              <span style="display:flex;flex-direction:column;gap:3px"><span style="font-size:14px;font-weight:600">{{ pl.name }}</span><span style="font-size:12px;color:var(--ink4)">{{ pl.desc }}</span></span>
+              <span style="display:flex;border-radius:8px;overflow:hidden;height:40px">
+                <sc-for list="{{ pl.sw }}" as="sw" hint-placeholder-count="8"><span style="flex:1;background:{{ sw }}"></span></sc-for>
+              </span>
+              <span style="display:flex;justify-content:space-between;font:500 10.5px 'IBM Plex Mono',monospace;color:var(--ink4)"><span>LIGHT</span><span>DARK</span></span>
+            </button>
+          </sc-for>
+        </div></div>
+      <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12.5px;font-weight:600;color:var(--ink3)">{{ t.k124 }}</span><div style="display:inline-flex;align-self:flex-start;padding:3px;background:var(--fill);border-radius:9px;gap:2px"><sc-for list="{{ uiLangOpts }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.onClick }}" style="height:30px;padding:0 12px;border-radius:7px;border:0;font-size:13px;cursor:pointer;background:{{ o.bg }};color:{{ o.fg }}">{{ o.label }}</button></sc-for></div></div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ tabSec }}">
+    <div style="display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start">
+      <div style="flex:2 1 440px;min-width:0;display:flex;flex-direction:column;gap:14px">
+        <div style="background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:14px">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><span style="font-size:15px;font-weight:600">{{ t.k125 }}</span><span style="font-size:12px;font-weight:600;padding:3px 8px;border-radius:5px;background:var(--okSoft);color:var(--ok)">{{ t.k126 }}</span></div>
+          <div style="display:grid;grid-template-columns:auto 1fr;gap:10px 16px;font-size:13px;line-height:1.55">
+            <span style="color:var(--ink4)">{{ t.k127 }}</span><span>{{ t.k128 }}</span>
+            <span style="color:var(--ink4)">{{ t.k129 }}</span><span>{{ t.k130 }}</span>
+            <span style="color:var(--ink4)">{{ t.k131 }}</span><span>{{ t.k132 }}</span>
+            <span style="color:var(--ink4)">{{ t.k133 }}</span><span>{{ t.k134 }}</span>
+            <span style="color:var(--ink4)">{{ t.k135 }}</span><span>{{ t.k136 }}</span>
+          </div>
+          <div style="font-size:12.5px;color:var(--ink3);background:var(--fill);border-radius:8px;padding:10px 12px;line-height:1.6">{{ t.k137 }}</div>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:14px">
+          <span style="font-size:15px;font-weight:600">{{ t.k138 }}</span>
+          <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12.5px;font-weight:600;color:var(--ink3)">{{ t.k139 }}</span>
+            <div style="display:inline-flex;align-self:flex-start;padding:3px;background:var(--fill);border-radius:9px;gap:2px"><sc-for list="{{ autoLockOpts }}" as="o" hint-placeholder-count="3"><button onClick="{{ o.onClick }}" style="height:30px;padding:0 12px;border-radius:7px;border:0;font-size:13px;cursor:pointer;background:{{ o.bg }};color:{{ o.fg }}">{{ o.label }}</button></sc-for></div></div>
+          <div style="display:flex;align-items:flex-start;gap:10px">
+            <button onClick="{{ toggleLoh }}" style="flex:none;width:38px;height:22px;border-radius:11px;border:0;padding:2px;cursor:pointer;display:flex;justify-content:{{ lohJustify }};background:{{ lohBg }}"><span style="width:18px;height:18px;border-radius:50%;background:var(--surface)"></span></button>
+            <span style="display:flex;flex-direction:column;gap:3px"><span style="font-size:13.5px;font-weight:600">{{ t.k140 }}</span><span style="font-size:12.5px;color:var(--ink3)">{{ t.k141 }}</span></span>
+          </div>
+        </div>
+      </div>
+      <div style="flex:1 1 280px;min-width:0;display:flex;flex-direction:column;gap:14px">
+        <div style="background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:12px">
+          <span style="font-size:15px;font-weight:600">PIN</span>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <button onClick="{{ lockNow }}" style="height:38px;padding:0 14px;border-radius:8px;border:0;background:var(--accent);color:var(--onAccent);font-size:13px;font-weight:600;cursor:pointer">{{ t.k8 }}</button>
+            <button onClick="{{ togglePinChange }}" style="height:38px;padding:0 14px;border-radius:8px;border:1px solid var(--lineS);background:var(--surface);font-size:13px;cursor:pointer">{{ t.k142 }}</button>
+          </div>
+          <sc-if value="{{ pinChangeOpen }}"><div style="font-size:12.5px;color:var(--accentInk);background:var(--accentSoft);border-radius:8px;padding:10px 12px;line-height:1.55">{{ t.k143 }}</div></sc-if>
+        </div>
+        <div style="background:var(--errSoft);border-radius:12px;padding:16px 18px;display:flex;flex-direction:column;gap:10px">
+          <span style="font-size:13.5px;font-weight:600;color:var(--errInk)">{{ t.k144 }}</span>
+          <span style="font-size:12.5px;color:var(--errInk);line-height:1.6">{{ t.k145 }}</span>
+          <button style="align-self:flex-start;height:34px;padding:0 12px;border-radius:8px;border:1px solid var(--err);background:var(--surface);color:var(--err);font-size:12.5px;font-weight:600;cursor:pointer">{{ t.k146 }}</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ tabLog }}">
+    <div style="background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden">
+      <sc-for list="{{ logRows }}" as="lg" hint-placeholder-count="5">
+        <div style="border-top:1px solid var(--fill);padding:14px 18px;display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center">
+          <span style="flex:0 0 110px;font:400 12.5px 'IBM Plex Mono',monospace;color:var(--ink4)">{{ lg.when }}</span>
+          <span style="flex:0 0 64px;font-size:12px;font-weight:600;padding:3px 8px;border-radius:5px;background:var(--fill);text-align:center">{{ lg.job }}</span>
+          <span style="flex:1 1 220px;min-width:0;display:flex;flex-direction:column;gap:2px"><span style="font:500 13px 'IBM Plex Mono',monospace">{{ lg.model }}</span><span style="font-size:12px;color:var(--ink3)">{{ lg.conf }}</span></span>
+          <span style="flex:0 0 80px;font:500 13px 'IBM Plex Mono',monospace">{{ lg.time }}</span>
+          <span style="flex:0 1 200px;display:flex;gap:6px;align-items:center;font:500 13px 'IBM Plex Mono',monospace">{{ lg.cost }}<span style="font:600 10.5px 'Pretendard Variable';padding:1px 6px;border-radius:4px;background:{{ lg.bg }};color:{{ lg.fg }}">{{ lg.kind }}</span></span>
+        </div>
+      </sc-for>
+    </div>
+  </sc-if>
+</div>
+</sc-if>
+
+</div>
+</main>
+
+<sc-if value="{{ showPlayer }}" hint-placeholder-val="{{ false }}">
+  <div style="flex:none;display:flex;align-items:center;gap:12px;padding:10px 16px;background:var(--accent);color:var(--onAccent)">
+    <button onClick="{{ togglePlay }}" style="flex:none;width:34px;height:34px;border-radius:50%;border:0;background:var(--fill);color:var(--ink);font-size:11px;cursor:pointer">{{ playIcon }}</button>
+    <span style="flex:none;font:500 12.5px 'IBM Plex Mono',monospace">{{ playTime }}</span>
+    <span style="flex:1;min-width:0;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:.85">{{ playText }}</span>
+    <button onClick="{{ closePlayer }}" style="flex:none;border:0;background:transparent;color:var(--fill);font-size:12.5px;cursor:pointer;opacity:.8">{{ t.k147 }}</button>
+  </div>
+</sc-if>
+
+<sc-if value="{{ isMobile }}" hint-placeholder-val="{{ false }}">
+  <nav style="flex:none;display:flex;border-top:1px solid var(--line);background:var(--surface);padding:6px 8px 10px">
+    <sc-for list="{{ mobileNav }}" as="mn" hint-placeholder-count="3"><button onClick="{{ mn.onClick }}" style="flex:1;height:48px;border:0;border-radius:10px;font-size:13px;cursor:pointer;background:{{ mn.bg }};font-weight:{{ mn.weight }}">{{ mn.label }}</button></sc-for>
+  </nav>
+</sc-if>
+</div>
+<sc-if value="{{ retryOpen }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ closeRetry }}" style="position:absolute;inset:0;z-index:15;background:var(--scrim);display:flex;overflow:auto;padding:16px">
+    <div onClick="{{ stopProp }}" style="width:100%;max-width:440px;margin:auto;background:var(--surface);border-radius:16px;box-shadow:0 24px 64px rgba(0,0,0,.25);padding:22px;display:flex;flex-direction:column;gap:16px">
+      <div style="display:flex;flex-direction:column;gap:4px"><span style="font-size:17px;font-weight:700">{{ retryTitle }}</span><span style="font:400 12.5px 'IBM Plex Mono',monospace;color:var(--ink4)">{{ retrySub }}</span></div>
+      <sc-if value="{{ retryCause }}"><div style="font-size:12.5px;color:var(--errInk);background:var(--errSoft);border-radius:8px;padding:9px 12px;line-height:1.55">{{ retryCause }}</div></sc-if>
+      <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12.5px;font-weight:600;color:var(--ink3)">{{ t.k79 }}</span>
+        <sc-for list="{{ retryModels }}" as="rm" hint-placeholder-count="3">
+          <button onClick="{{ rm.onClick }}" style="text-align:left;display:flex;gap:10px;padding:10px 12px;border-radius:9px;cursor:pointer;border:1.5px solid {{ rm.border }};background:{{ rm.bg }}">
+            <span style="flex:none;width:16px;height:16px;margin-top:2px;border-radius:50%;border:1.5px solid var(--ink);display:grid;place-items:center"><span style="width:8px;height:8px;border-radius:50%;background:{{ rm.dot }}"></span></span>
+            <span style="display:flex;flex-direction:column;gap:2px"><span style="font:600 13px 'IBM Plex Mono',monospace">{{ rm.label }}</span><span style="font-size:12px;color:var(--ink3);line-height:1.5">{{ rm.desc }}</span></span>
+          </button>
+        </sc-for>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:14px 24px">
+        <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12.5px;font-weight:600;color:var(--ink3)">{{ retryLangLabel }}</span><div style="display:flex;flex-wrap:wrap;gap:6px"><sc-for list="{{ retryLangs }}" as="l" hint-placeholder-count="3"><button onClick="{{ l.onClick }}" style="height:30px;padding:0 11px;border-radius:15px;font-size:12.5px;cursor:pointer;border:1px solid {{ l.border }};background:{{ l.bg }};color:{{ l.fg }}">{{ l.label }}</button></sc-for></div></div>
+        <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12.5px;font-weight:600;color:var(--ink3)">{{ retryBrLabel }}</span><div style="display:inline-flex;align-self:flex-start;padding:3px;background:var(--fill);border-radius:9px;gap:2px"><sc-for list="{{ retryBrOpts }}" as="o" hint-placeholder-count="3"><button onClick="{{ o.onClick }}" style="height:28px;padding:0 10px;border-radius:7px;border:0;font-size:12.5px;cursor:pointer;background:{{ o.bg }};color:{{ o.fg }}">{{ o.label }}</button></sc-for></div></div>
+      </div>
+      <div style="font-size:12px;color:var(--ink3);background:var(--fill);border-radius:8px;padding:10px 12px;line-height:1.6">{{ retrySend }}</div>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button onClick="{{ closeRetry }}" style="height:40px;padding:0 16px;border-radius:9px;border:1px solid var(--lineS);background:var(--surface);font-size:13.5px;cursor:pointer">{{ t.k17 }}</button>
+        <button onClick="{{ doRetry }}" style="height:40px;padding:0 18px;border-radius:9px;border:0;background:var(--accent);color:var(--onAccent);font-size:13.5px;font-weight:600;cursor:pointer">{{ retryGo }}</button>
+      </div>
+    </div>
+  </div>
+</sc-if>
+<sc-if value="{{ locked }}" hint-placeholder-val="{{ false }}">
+  <div style="position:absolute;inset:0;z-index:20;background:var(--scrim);display:flex;overflow:auto;padding:16px">
+    <div style="width:100%;max-width:348px;margin:auto;background:var(--surface);border:1px solid var(--line);border-radius:18px;box-shadow:0 24px 64px rgba(30,29,26,.2);padding:22px 22px 18px;display:flex;flex-direction:column;align-items:center;gap:12px">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+        <div style="width:36px;height:36px;border-radius:10px;background:var(--accent);color:var(--onAccent);display:grid;place-items:center;font:600 18px 'IBM Plex Mono',monospace">M</div>
+        <span style="font:500 11px 'IBM Plex Mono',monospace;color:var(--ink4);letter-spacing:.04em">MINUTES OF MEETING · LOCAL</span>
+        <span style="font-size:18px;font-weight:700">{{ t.k148 }}</span>
+        <span style="font-size:12.5px;color:var(--ink3);text-align:center;line-height:1.55">{{ t.k149 }}</span>
+      </div>
+      <div style="display:flex;gap:12px;padding:4px 0">
+        <sc-for list="{{ pinDots }}" as="d" hint-placeholder-count="6"><span style="width:13px;height:13px;border-radius:50%;border:1.5px solid {{ d.border }};background:{{ d.bg }}"></span></sc-for>
+      </div>
+      <div style="min-height:18px;font-size:12.5px;color:{{ pinMsgColor }};text-align:center">{{ pinMsg }}</div>
+      <div style="display:grid;grid-template-columns:repeat(3,72px);gap:8px">
+        <sc-for list="{{ pinKeys }}" as="k" hint-placeholder-count="12"><button onClick="{{ k.onClick }}" style="height:46px;border-radius:11px;border:0;font:500 19px 'IBM Plex Mono',monospace;cursor:pointer;background:{{ k.bg }};color:var(--ink);visibility:{{ k.vis }}">{{ k.label }}</button></sc-for>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px;padding-top:4px">
+        <span style="font-size:11.5px;color:var(--ink4);text-align:center;line-height:1.5">{{ t.k150 }}</span>
+        <span style="font:500 11px 'IBM Plex Mono',monospace;color:var(--ink5)">{{ t.k151 }}</span>
+      </div>
+    </div>
+  </div>
+</sc-if>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;frame&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;auto&quot;,&quot;desktop&quot;,&quot;mobile&quot;],&quot;default&quot;:&quot;auto&quot;,&quot;tsType&quot;:&quot;'auto'|'desktop'|'mobile'&quot;,&quot;section&quot;:&quot;미리보기&quot;},&quot;startScreen&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;home&quot;,&quot;import&quot;,&quot;stt&quot;,&quot;review&quot;,&quot;minutes&quot;,&quot;settings&quot;],&quot;default&quot;:&quot;home&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;미리보기&quot;},&quot;startLocked&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;미리보기&quot;},&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;,&quot;system&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;'light'|'dark'|'system'&quot;,&quot;section&quot;:&quot;테마&quot;},&quot;palette&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;cobalt&quot;,&quot;teal&quot;,&quot;mono&quot;],&quot;default&quot;:&quot;cobalt&quot;,&quot;tsType&quot;:&quot;'cobalt'|'teal'|'mono'&quot;,&quot;section&quot;:&quot;테마&quot;},&quot;uiLang&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;ko&quot;,&quot;en&quot;],&quot;default&quot;:&quot;ko&quot;,&quot;tsType&quot;:&quot;'ko'|'en'&quot;,&quot;section&quot;:&quot;테마&quot;},&quot;sttSample&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;processing&quot;,&quot;partial&quot;,&quot;done&quot;],&quot;default&quot;:&quot;partial&quot;,&quot;tsType&quot;:&quot;'processing'|'partial'|'done'&quot;,&quot;section&quot;:&quot;샘플 상태&quot;}}">
+const EN={"홈 · 로컬 작업":"Home","고정":"Pinned","최근":"Recent","+ 새 회의":"+ New","모든 회의":"All meetings","개":"","설정":"Settings","356 MB · 암호화되어 이 브라우저에 저장됨":"356 MB · encrypted in this browser","지금 잠그기":"Lock now","잠금":"Lock","회의 작업":"Meetings","+ 새 회의 만들기":"+ New meeting","저장된 회의":"Saved meetings","최근 수정 순":"Recently updated","이름 변경":"Rename","삭제":"Delete","삭제하면 음성·청크·전사문·회의록이 이 브라우저에서 지워지고 되돌릴 수 없어요.":"Deleting removes the audio, chunks, transcript and minutes from this browser. This can't be undone.","취소":"Cancel","저장된 회의가 없어요. 새 회의를 만들어 파일을 가져오세요.":"No saved meetings yet. Create a meeting and import a file.","저장 공간":"Storage","356 MB / 약 8.0 GB":"356 MB / ~8.0 GB","■ 원본·추출 음성 346 MB":"■ Original & extracted audio 346 MB","■ 전사문·회의록 10 MB":"■ Transcripts & minutes 10 MB","한도는 브라우저가 알려준 추정치":"Quota is the browser's estimate","암호화되어 이 브라우저에 저장됨":"Encrypted and stored in this browser","음성·전사문·회의록·API 키는 PIN으로 만든 키로 암호화해 이 브라우저(IndexedDB)에만 저장돼요. PIN 없이 저장소를 복사해 가도 내용을 읽을 수 없어요. 브라우저 데이터를 지우거나 다른 기기에서 열면 보이지 않으니, 완성한 회의록은 .md로 내려받아 두세요.":"Audio, transcripts, minutes and API keys are encrypted with a key derived from your PIN and stored only in this browser (IndexedDB). Copying the storage without the PIN won't make it readable. Clearing browser data or switching devices hides them, so download finished minutes as .md.","음성·영상 파일을 여기에 놓으세요":"Drop an audio or video file here","브라우저가 디코딩할 수 있는 형식만 처리할 수 있어요. 보통 MP3, M4A, WAV, MP4, WebM은 열리지만 코덱에 따라 열리지 않는 파일도 있어요.":"Only formats your browser can decode are supported. MP3, M4A, WAV, MP4 and WebM usually work, but some codecs may not.","파일 선택":"Choose file","샘플 파일로 보기":"Use sample file","교체":"Replace","회의 제목":"Meeting title","기본 제목은 날짜·시간이에요. 전사가 끝나면 회의록 화면에서 추천 제목으로 바꿀 수 있어요.":"The default title is the date and time. After transcription you can switch to a suggested title on the minutes screen.","아이콘":"Icon","색상":"Color","사용 언어 · 복수 선택":"Spoken languages · select multiple","선택한 언어는 전사 요청에 힌트로 전달돼요. 모델에 따라 첫 번째 언어만 반영될 수 있어요.":"Selected languages are sent as hints with the transcription request. Some models use only the first one.","청크·압축":"Chunks & compression","여기서 바꾼 값은 이 회의에만 적용돼요.":"Changes here apply to this meeting only.","기본값으로 되돌리기":"Reset to defaults","기본값 설정 →":"Edit defaults →","청크 길이":"Chunk length","겹침":"Overlap","겹침 구간은 앞뒤 청크에 모두 들어가 문장이 끊기지 않게 해요. 병합할 때 중복을 줄이지만, 겹친 문장이 남거나 빠질 수 있어 검토 단계에서 표시해 드려요.":"The overlap is included in both neighbouring chunks so sentences aren't cut. Merging reduces duplicates, but some overlapping text may remain or drop, so it's flagged during review.","자동 압축 (기본값)":"Auto compression (default)","비트레이트 (Opus)":"Bitrate (Opus)","샘플레이트":"Sample rate","채널":"Channels","모노 (고정)":"Mono (fixed)","전사 모델":"Transcription model","전송 전 확인":"Before sending","제공사":"Provider","보내는 것":"Sent","보내지 않는 것":"Not sent","원본 영상, 파일명, 다른 회의 데이터":"Original video, file name, other meetings","요청 방식":"How","이 브라우저에서 제공사로 직접 전송 · 중간 서버 없음":"Sent directly from this browser to the provider · no intermediate server","전송된 음성의 보관·학습 여부는 OpenAI 약관과 계정 설정을 따라요.":"Retention and training on uploaded audio follow OpenAI's terms and your account settings.","위 내용을 확인했어요":"I've reviewed the above","음성 준비 · 전사 시작":"Prepare audio & transcribe","샘플 상태":"Sample state","실패한 청크만 다시 실행":"Retry failed chunks only","전사 취소":"Cancel transcription","청크":"Chunks","10분 · 겹침 10초 · Opus 32kbps":"10 min · 10 s overlap · Opus 32kbps","· 겹침":"· overlap","원인:":"Cause:","완료된 청크의 전사 결과는 바로 이 브라우저에 저장돼요. 취소하거나 창을 닫아도 다시 전사하지 않고, 남은 청크만 이어서 실행할 수 있어요.":"Finished chunk transcripts are saved to this browser right away. If you cancel or close the window they aren't re-transcribed; only the remaining chunks run.","검색":"Search","음성 준비에서 재실행":"Retry in audio prep","저장":"Save","· 수정됨":"· edited","수정":"Edit","전사 결과 없음":"No transcript","겹침 구간 확인":"Overlap review","끝부분":"end","시작부분":"start","자동 병합안":"Auto-merged","전사 정보":"Transcript info","모델":"Model","시간 정보":"Timing","모델이 반환한 구간 시간 + 청크 시작 시각":"Segment times from the model + chunk start time","화자":"Speakers","이 모델은 화자 구분을 제공하지 않아 표시하지 않아요":"This model doesn't return speaker labels, so none are shown","병합":"Merging","겹침 구간의 중복을 줄였지만 일부 중복·누락이 남을 수 있어요":"Duplicates in overlaps were reduced, but some duplicates or gaps may remain","이 전사문으로 회의록 만들기":"Create minutes from this transcript","추천 회의록 제목":"Suggested title","현재 제목 ·":"Current title ·","다른 추천":"Another suggestion","기본 템플릿":"Template","회의록 언어":"Minutes language","생성 모델":"Model","포함할 항목 · 순서":"Sections · order","추가 작성 지침":"Extra instructions","언어·모델·항목을 바꿔도 저장된 전사문을 그대로 사용해요. 음성은 다시 전송하지 않아요.":"Changing language, model or sections reuses the saved transcript. Audio isn't sent again.","재생성":"Regenerate",".md 다운로드":"Download .md","설정이 바뀌었어요. 재생성하면 같은 전사문으로 다시 만들어요.":"Settings changed. Regenerate to rebuild from the same transcript.","같은 전사문으로 두 모델 결과 비교":"Compare two models on the same transcript","왼쪽 설정(":"Sends the settings on the left (",")을 두 모델에 똑같이 보내 결과·시간·비용을 나란히 봐요. 음성은 다시 전송하지 않아요.":") to both models and shows results, time and cost side by side. Audio isn't sent again.","이 모델로 회의록 만들기":"Use this model","확인":"Confirmed","API 응답에 포함된 값":"Value returned by the API","추정":"Estimated","공개 단가 × 토큰으로 계산 · 실제 청구액과 다를 수 있음":"Public price × tokens · may differ from your bill","측정":"Measured","이 브라우저에서 잰 시간":"Timed in this browser","지우기":"Clear","연결 확인":"Test","API 키 저장 방식":"API key storage","키는 요청할 때 해당 제공사로만 직접 전송돼요. 이 앱에는 키를 받아 두는 서버가 없어요. 공용 PC에서는 사용 후 지우기를 눌러 주세요.":"Keys are sent only to the provider when making a request. This app has no server that holds keys. On shared computers, clear them after use.","새 회의에 적용할 처리 기본값":"Processing defaults for new meetings","이미 만든 회의에는 적용되지 않아요. 회의마다 가져오기 화면에서 따로 바꿀 수 있어요.":"Existing meetings aren't affected. You can override per meeting on the import screen.","자동 압축":"Auto compression","모노 · Opus로 압축해 업로드 한도(25 MB) 안에 맞춰요.":"Compresses to mono Opus to stay under the 25 MB upload limit.","예상 결과 · 60분 회의 기준":"Estimate · 60-minute meeting","청크당":"Per chunk","전송량":"Upload size","겹침을 늘리면 문장이 잘릴 가능성은 줄지만 중복 확인이 필요한 구간이 늘어요.":"More overlap lowers the chance of cut sentences but adds more overlap sections to review.","테마":"Theme","색상 팔레트":"Color palette","화면 언어":"Interface language","데이터 암호화":"Data encryption","켜짐":"On","암호화 방식":"Cipher","AES-GCM 256비트 · 레코드마다 새 IV":"AES-GCM 256-bit · new IV per record","키 만들기":"Key derivation","PIN + PBKDF2-SHA256 (600,000회, 이 브라우저 전용 salt)":"PIN + PBKDF2-SHA256 (600,000 iterations, per-browser salt)","암호화 대상":"Encrypted","원본·추출 음성, 청크, 전사문, 회의록, API 키, 처리 기록":"Original & extracted audio, chunks, transcripts, minutes, API keys, history","키 보관":"Key handling","잠금 해제 중에만 메모리에 있고, 저장소에는 남기지 않아요. 잠그면 바로 지워져요.":"Kept in memory only while unlocked and never written to storage. Cleared as soon as you lock.","가려지지 않는 것":"Not hidden","저장된 레코드 개수와 전체 용량은 브라우저가 알 수 있어요.":"The browser can still see record counts and total size.","IndexedDB 파일을 복사해 가도 PIN 없이는 암호문만 보여요. 다만 PIN이 짧으면 오프라인에서 추측을 시도할 수 있으니 6자리 이상을 권장해요.":"Copying the IndexedDB files yields only ciphertext without the PIN. Short PINs can be guessed offline, so use 6 digits or more.","자동 잠금":"Auto-lock","사용하지 않을 때 잠그기":"Lock when idle","다른 탭으로 이동하면 바로 잠그기":"Lock when switching tabs","전사가 진행 중이면 작업은 계속되고 화면만 잠겨요. 이어지는작업이 중단 될 수 있어요.":"If transcription is running, only the screen locks and work continues. Follow-up steps may pause.","PIN 변경":"Change PIN","현재 PIN을 확인한 뒤 새 PIN으로 만든 키로 모든 데이터를 다시 암호화해요. 저장 용량에 따라 몇 분 걸릴 수 있고, 끝날 때까지 탭을 닫으면 안 돼요.":"After confirming your current PIN, all data is re-encrypted with a key from the new PIN. This can take a few minutes; keep the tab open until it finishes.","PIN을 잊으면 복구할 수 없어요":"A forgotten PIN can't be recovered","서버에 백업이 없어서 PIN 없이는 데이터를 풀 수 없어요. 방법은 초기화뿐이니 완성한 회의록은 .md로 내려받아 두세요.":"There's no server backup, so data can't be decrypted without the PIN. The only option is a reset, so keep finished minutes as .md.","모든 데이터 초기화":"Reset all data","닫기":"Close","PIN을 입력해 잠금 해제":"Enter PIN to unlock","저장된 데이터는 PIN으로 만든 키로 암호화돼 있어요.":"Stored data is encrypted with a key derived from your PIN.","PIN을 잊으면 데이터를 복구할 수 없어요.":"If you forget your PIN, data can't be recovered.","프로토타입 PIN · 123456":"Prototype PIN · 123456","2026.09.30 14:00 회의":"2026.09.30 14:00 Meeting","단어 또는 문장":"Word or phrase","예: 액션 아이템에 담당자와 기한을 표로 정리해 주세요":"e.g. Put action items in a table with owner and due date","녹음":"Recording","사람들":"People","문서":"Document","일정":"Schedule","대화":"Conversation","지표":"Metrics","아이디어":"Idea","목표":"Goal","중요":"Important","코발트":"Cobalt","차가운 회색 + 코발트 블루":"Cool gray + cobalt blue","틸 · 스톤":"Teal · Stone","따뜻한 스톤 그레이 + 딥 틸":"Warm stone gray + deep teal","모노":"Mono","흑백 중심 · 강조도 잉크 한 가지":"Black & white · ink as the only accent","전사 중 · 2/3 청크":"Transcribing · 2/3 chunks","회의록 완료":"Minutes ready","일부 실패 · 청크 2개":"Partly failed · 2 chunks","전사 검토 중":"Reviewing transcript","312 MB · 원본":"312 MB · original","처리 설정 대기":"Awaiting setup","진행 보기":"View progress","회의록 열기":"Open minutes","이어하기":"Continue","429 Too Many Requests — 요청 한도를 넘었어요. 잠시 후 다시 시도하세요.":"429 Too Many Requests — rate limit exceeded. Try again shortly.","네트워크 오류 — 응답 대기 시간(60초)을 넘겨 요청이 중단됐어요.":"Network error — no response within 60 s, request aborted.","문장이 겹침 구간 경계에서 잘렸어요. 자동 병합 결과가 맞는지 확인하세요.":"A sentence was cut at the overlap boundary. Check the auto-merge result.","두 청크의 표현이 달라 중복 제거가 정확하지 않을 수 있어요.":"The two chunks differ, so duplicate removal may be inaccurate.","요약":"Summary","주제별 논의":"Discussion by topic","결정사항":"Decisions","액션 아이템":"Action items","미결사항":"Open questions","원문 시간 참조":"Transcript references","11.2초":"11.2 s","6.4초":"6.4 s","13.8초":"13.8 s","17.1초":"17.1 s","12.0초":"12.0 s","3분 41초":"3 m 41 s","5분 12초":"5 m 12 s","전사":"Transcription","회의록":"Minutes","청크 10분 / 겹침 10초 · Opus 32kbps · ko, en":"10-min chunks / 10 s overlap · Opus 32kbps · ko, en","한국어 · 표준 회의록 · 입력 9,840 / 출력 1,120 토큰 (확인)":"Korean · Standard minutes · 9,840 in / 1,120 out tokens (confirmed)","한국어 · 요약 + 액션 아이템 · 입력 10,212 / 출력 804 토큰 (확인)":"Korean · Summary + action items · 10,212 in / 804 out tokens (confirmed)","English · 표준 회의록 · 전사문 재사용":"English · Standard minutes · transcript reused","청크 15분 / 겹침 15초 · 3분기 제품 로드맵 회의":"15-min chunks / 15 s overlap · 3분기 제품 로드맵 회의","이 브라우저에서 디코딩할 수 없는 형식이에요. MP3·M4A·WAV 등으로 변환한 뒤 다시 가져오세요.":"This format can't be decoded in this browser. Convert to MP3, M4A or WAV and import again.","파일 가져오기":"Import","음성 준비 · 전사":"Audio & transcription","전사 검토":"Review","홈":"Home","작업":"Work","새 회의":"New meeting","키보드 숫자로도 입력할 수 있어요":"You can also type with the keyboard","5분":"5 min","15분":"15 min","30분":"30 min","10분":"10 min","10초":"10 s","15초":"15 s","길이 확인 전":"Length unknown","고정 해제":"Unpin","길이 확인 중…":"Checking length…","이 파일은 브라우저에서 재생할 수 없어요. 음성 추출도 실패할 가능성이 높아요.":"This file can't be played in the browser. Audio extraction will likely fail too.","적용됨":"Applied","제목 업데이트":"Update title","접기":"Collapse","이번 회의만 변경":"Change for this meeting","이번 회의만 변경됨":"Changed for this meeting","기본값":"Default","약 ":"~","라이트":"Light","다크":"Dark","시스템 설정":"System","압축 안 함":"No compression","고급 설정 접기":"Hide advanced","고급 설정 ▸":"Advanced ▸","구간별 타임스탬프를 받을 수 있어요. 화자 구분은 제공하지 않아요.":"Returns segment timestamps. No speaker labels.","정확도가 높은 편이지만 구간 타임스탬프를 제공하지 않아 청크 단위 시간만 표시돼요.":"Generally more accurate, but no segment timestamps, so only chunk-level times are shown.","빠르고 저렴해요. 타임스탬프는 청크 단위로만 표시돼요.":"Fast and cheap. Timestamps are chunk-level only.","없음(자동 감지)":"none (auto-detect)","파일을 먼저 가져오세요":"Import a file first","재생할 수 없는 파일은 처리할 수 없어요":"Files that can't be played can't be processed","전송 내용을 확인하면 시작할 수 있어요":"Review what's sent to start","음성 추출과 분할은 이 브라우저 안에서 진행돼요":"Extraction and splitting run in this browser","전사 중":"Transcribing","처리 중":"Processing","일부 실패":"Partly failed","완료":"Done","음성 추출":"Extract audio","분할 · 압축":"Split & compress","전사 완료 · 모든 청크 결과가 저장됐어요":"Transcription complete · all chunks saved","전사 검토로 →":"Review transcript →","전사 결과 대기 중":"Waiting for transcripts","대기":"Queued","실패":"Failed","취소됨":"Cancelled","다시 시도":"Retry","전사 실행":"Transcribe","다시 전사":"Re-transcribe","없음":"None","▶ 재생":"▶ Play","병합본":"Merged","청크별 원본":"Raw by chunk","전사에 실패했어요. 이 청크만 다시 실행할 수 있어요.":"Transcription failed. You can retry just this chunk.","아직 전사가 끝나지 않았어요.":"Transcription isn't finished yet.","겹침 확인됨":"Overlap checked","겹침 구간 확인 필요":"Overlap needs review","원본 전사":"Raw transcript","병합안 사용":"Use merge","결과 없음":"No result","결과 없음 (전사 실패)":"No result (failed)","확인됨":"Checked","확인 필요":"Needs review","모두 확인됨":"All checked","요약 + 액션 아이템":"Summary + action items","표준 회의록":"Standard minutes","결정 중심":"Decision-focused","직접 구성":"Custom","생성 중…":"Generating…","이 설정으로 다시 생성":"Regenerate with these settings","회의록 생성":"Generate minutes","회의록을 만드는 중이에요":"Generating minutes","아직 생성한 회의록이 없어요":"No minutes yet","왼쪽에서 템플릿과 항목을 고르고 생성하세요. 결과는 바로 편집할 수 있어요.":"Pick a template and sections on the left, then generate. You can edit the result right away.","미리보기":"Preview","편집":"Edit","연결 설정":"Connections","처리 기본값":"Processing defaults","화면 · 언어":"Appearance & language","보안 · 잠금":"Security & lock","처리 기록":"History","전사 (whisper-1, gpt-4o-transcribe) · 회의록 생성":"Transcription (whisper-1, gpt-4o-transcribe) · minutes","회의록 생성 · 여러 제공사 모델":"Minutes · models from many providers","키 없음":"No key","확인 중…":"Checking…","연결됨":"Connected","저장됨":"Saved","가리기":"Hide","보기":"Show","이 탭에서만 유지":"This tab only","암호화되어 저장됨":"Encrypted","입력한 키가 없어요":"No key entered","암호화해서 이 브라우저에 저장":"Encrypt and store in this browser","다른 데이터와 같이 PIN으로 만든 키로 암호화돼요. 잠금을 풀어야 쓸 수 있어요. 기본값.":"Encrypted with your PIN-derived key like other data. Unlock to use. Default.","이 탭에서만 사용":"Use in this tab only","메모리에만 두고 탭을 닫으면 지워져요. 매번 다시 입력해야 해요.":"Kept in memory only and cleared when the tab closes. You'll re-enter it each time.","처리 시간":"Time","입력 토큰":"Input tokens","출력 토큰":"Output tokens","비용":"Cost","두 모델로 다시 생성":"Regenerate with both","모델 비교":"Compare models","청크별 원본 전사예요. 겹침 구간은 병합하지 않고 그대로 보여줘요.":"Raw transcript per chunk. Overlap sections are shown as-is, not merged.","재전사":"Re-run","청크마다 모델과 옵션을 골라 다시 전사할 수 있어요. 다른 청크 결과는 그대로 유지돼요.":"Re-run any chunk with a different model or options. Other chunks keep their results.","열기":"Open"};
+let LANG='ko';const T=s=>LANG==='en'&&s!=null&&EN[s]!=null?EN[s]:s;const L=(ko,en)=>LANG==='en'?en:ko;
+const KEYS=["홈 · 로컬 작업","고정","최근","+ 새 회의","모든 회의","개","설정","356 MB · 암호화되어 이 브라우저에 저장됨","지금 잠그기","잠금","회의 작업","+ 새 회의 만들기","저장된 회의","최근 수정 순","이름 변경","삭제","삭제하면 음성·청크·전사문·회의록이 이 브라우저에서 지워지고 되돌릴 수 없어요.","취소","저장된 회의가 없어요. 새 회의를 만들어 파일을 가져오세요.","저장 공간","356 MB / 약 8.0 GB","■ 원본·추출 음성 346 MB","■ 전사문·회의록 10 MB","한도는 브라우저가 알려준 추정치","암호화되어 이 브라우저에 저장됨","음성·전사문·회의록·API 키는 PIN으로 만든 키로 암호화해 이 브라우저(IndexedDB)에만 저장돼요. PIN 없이 저장소를 복사해 가도 내용을 읽을 수 없어요. 브라우저 데이터를 지우거나 다른 기기에서 열면 보이지 않으니, 완성한 회의록은 .md로 내려받아 두세요.","음성·영상 파일을 여기에 놓으세요","브라우저가 디코딩할 수 있는 형식만 처리할 수 있어요. 보통 MP3, M4A, WAV, MP4, WebM은 열리지만 코덱에 따라 열리지 않는 파일도 있어요.","파일 선택","샘플 파일로 보기","교체","회의 제목","기본 제목은 날짜·시간이에요. 전사가 끝나면 회의록 화면에서 추천 제목으로 바꿀 수 있어요.","아이콘","색상","사용 언어 · 복수 선택","선택한 언어는 전사 요청에 힌트로 전달돼요. 모델에 따라 첫 번째 언어만 반영될 수 있어요.","청크·압축","여기서 바꾼 값은 이 회의에만 적용돼요.","기본값으로 되돌리기","기본값 설정 →","청크 길이","겹침","겹침 구간은 앞뒤 청크에 모두 들어가 문장이 끊기지 않게 해요. 병합할 때 중복을 줄이지만, 겹친 문장이 남거나 빠질 수 있어 검토 단계에서 표시해 드려요.","자동 압축 (기본값)","비트레이트 (Opus)","샘플레이트","채널","모노 (고정)","전사 모델","전송 전 확인","제공사","보내는 것","보내지 않는 것","원본 영상, 파일명, 다른 회의 데이터","요청 방식","이 브라우저에서 제공사로 직접 전송 · 중간 서버 없음","전송된 음성의 보관·학습 여부는 OpenAI 약관과 계정 설정을 따라요.","위 내용을 확인했어요","음성 준비 · 전사 시작","샘플 상태","실패한 청크만 다시 실행","전사 취소","청크","10분 · 겹침 10초 · Opus 32kbps","· 겹침","원인:","완료된 청크의 전사 결과는 바로 이 브라우저에 저장돼요. 취소하거나 창을 닫아도 다시 전사하지 않고, 남은 청크만 이어서 실행할 수 있어요.","검색","음성 준비에서 재실행","저장","· 수정됨","수정","전사 결과 없음","겹침 구간 확인","끝부분","시작부분","자동 병합안","전사 정보","모델","시간 정보","모델이 반환한 구간 시간 + 청크 시작 시각","화자","이 모델은 화자 구분을 제공하지 않아 표시하지 않아요","병합","겹침 구간의 중복을 줄였지만 일부 중복·누락이 남을 수 있어요","이 전사문으로 회의록 만들기","추천 회의록 제목","현재 제목 ·","다른 추천","기본 템플릿","회의록 언어","한국어","생성 모델","포함할 항목 · 순서","추가 작성 지침","언어·모델·항목을 바꿔도 저장된 전사문을 그대로 사용해요. 음성은 다시 전송하지 않아요.","재생성",".md 다운로드","설정이 바뀌었어요. 재생성하면 같은 전사문으로 다시 만들어요.","같은 전사문으로 두 모델 결과 비교","왼쪽 설정(",")을 두 모델에 똑같이 보내 결과·시간·비용을 나란히 봐요. 음성은 다시 전송하지 않아요.","이 모델로 회의록 만들기","확인","API 응답에 포함된 값","추정","공개 단가 × 토큰으로 계산 · 실제 청구액과 다를 수 있음","측정","이 브라우저에서 잰 시간","지우기","연결 확인","API 키 저장 방식","키는 요청할 때 해당 제공사로만 직접 전송돼요. 이 앱에는 키를 받아 두는 서버가 없어요. 공용 PC에서는 사용 후 지우기를 눌러 주세요.","새 회의에 적용할 처리 기본값","이미 만든 회의에는 적용되지 않아요. 회의마다 가져오기 화면에서 따로 바꿀 수 있어요.","자동 압축","모노 · Opus로 압축해 업로드 한도(25 MB) 안에 맞춰요.","예상 결과 · 60분 회의 기준","청크당","전송량","겹침을 늘리면 문장이 잘릴 가능성은 줄지만 중복 확인이 필요한 구간이 늘어요.","테마","색상 팔레트","화면 언어","데이터 암호화","켜짐","암호화 방식","AES-GCM 256비트 · 레코드마다 새 IV","키 만들기","PIN + PBKDF2-SHA256 (600,000회, 이 브라우저 전용 salt)","암호화 대상","원본·추출 음성, 청크, 전사문, 회의록, API 키, 처리 기록","키 보관","잠금 해제 중에만 메모리에 있고, 저장소에는 남기지 않아요. 잠그면 바로 지워져요.","가려지지 않는 것","저장된 레코드 개수와 전체 용량은 브라우저가 알 수 있어요.","IndexedDB 파일을 복사해 가도 PIN 없이는 암호문만 보여요. 다만 PIN이 짧으면 오프라인에서 추측을 시도할 수 있으니 6자리 이상을 권장해요.","자동 잠금","사용하지 않을 때 잠그기","다른 탭으로 이동하면 바로 잠그기","전사가 진행 중이면 작업은 계속되고 화면만 잠겨요. 이어지는작업이 중단 될 수 있어요.","PIN 변경","현재 PIN을 확인한 뒤 새 PIN으로 만든 키로 모든 데이터를 다시 암호화해요. 저장 용량에 따라 몇 분 걸릴 수 있고, 끝날 때까지 탭을 닫으면 안 돼요.","PIN을 잊으면 복구할 수 없어요","서버에 백업이 없어서 PIN 없이는 데이터를 풀 수 없어요. 방법은 초기화뿐이니 완성한 회의록은 .md로 내려받아 두세요.","모든 데이터 초기화","닫기","PIN을 입력해 잠금 해제","저장된 데이터는 PIN으로 만든 키로 암호화돼 있어요.","PIN을 잊으면 데이터를 복구할 수 없어요.","프로토타입 PIN · 123456","2026.09.30 14:00 회의","단어 또는 문장","예: 액션 아이템에 담당자와 기한을 표로 정리해 주세요","청크별 원본 전사예요. 겹침 구간은 병합하지 않고 그대로 보여줘요.","재전사","청크마다 모델과 옵션을 골라 다시 전사할 수 있어요. 다른 청크 결과는 그대로 유지돼요."];
+const P2=n=>String(n).padStart(2,'0');
+const fmt=s=>{s=Math.max(0,Math.round(s));const h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=s%60;return h?`${h}:${P2(m)}:${P2(x)}`:`${P2(m)}:${P2(x)}`};
+const fmtT=s=>{s=Math.max(0,Math.round(s));return `${P2(Math.floor(s/3600))}:${P2(Math.floor(s%3600/60))}:${P2(s%60)}`};
+const fmtSize=b=>b>=1e9?(b/1e9).toFixed(2)+' GB':b>=1e6?(b/1e6).toFixed(1)+' MB':Math.round(b/1e3)+' KB';
+const TONE={done:['var(--okSoft)','var(--ok)'],running:['var(--accentSoft)','var(--accentInk)'],failed:['var(--errSoft)','var(--err)'],review:['var(--warnSoft)','var(--warn)'],idle:['var(--fill)','var(--ink3)']};
+const INK='var(--ink)';
+const seg=(opts,cur,fn)=>opts.map(o=>({label:o.l,bg:o.v===cur?'var(--surface)':'transparent',fg:o.v===cur?INK:'var(--ink4)',onClick:()=>fn(o.v)}));
+const chip=(label,on,fn)=>({label,bg:on?'var(--accentSoft)':'var(--surface)',fg:on?'var(--accentInk)':INK,border:on?'var(--accent)':'var(--lineS)',onClick:fn});
+
+const ICONS={mic:['녹음','M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3z M5 11a7 7 0 0 0 14 0 M12 18v3'],users:['사람들','M9 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6z M3 20c0-3.3 2.7-5 6-5s6 1.7 6 5 M16 5.5a3 3 0 0 1 0 5.5 M18 15c2 .6 3 2.2 3 5'],doc:['문서','M7 3h7l5 5v13H7z M14 3v5h5'],calendar:['일정','M4 6h16v14H4z M4 10h16 M8 3v5 M16 3v5'],chat:['대화','M4 5h16v11H9l-5 4z'],chart:['지표','M4 4v16h16 M8 16v-5 M12 16V8 M16 16v-3'],bulb:['아이디어','M9 18h6 M10 21h4 M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z'],flag:['목표','M5 21V4 M5 4h11l-2 4 2 4H5'],star:['중요','M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z']};
+const MASK={};Object.keys(ICONS).forEach(k=>{MASK[k]='url("data:image/svg+xml,'+encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='"+ICONS[k][1]+"'/></svg>")+'") center/contain no-repeat'});
+const COLORS=Object.fromEntries(['#3B82F6','#03B26C','#FE9800','#F04452','#A234C7','#64748B'].map(c=>[c,'color-mix(in srgb, '+c+' 14%, var(--surface))']));
+const nowTitle=()=>{const d=new Date();return L(`${d.getFullYear()}.${P2(d.getMonth()+1)}.${P2(d.getDate())} ${P2(d.getHours())}:${P2(d.getMinutes())} 회의`,`${d.getFullYear()}.${P2(d.getMonth()+1)}.${P2(d.getDate())} ${P2(d.getHours())}:${P2(d.getMinutes())} Meeting`)};
+const SUGS={ko:['온보딩 개선안 리뷰 · 권한 요청 시점과 단계 축소','디자인 리뷰: 온보딩 권한 요청 개선','온보딩 3단계 축소와 A/B 테스트 계획'],en:['Onboarding review: permission timing and fewer steps','Design review: onboarding permission prompt','Three-step onboarding and A/B test plan']};
+const NEU={cool:{l:{ink:'#191F28',ink2:'#333D4B',ink3:'#4E5968',ink4:'#6B7684',ink5:'#8B95A1',lineS:'#D1D6DB',line:'#E5E8EB',fill:'#F2F4F6',fill2:'#F9FAFB',surface:'#FFFFFF',frame:'#DCE0E5',scrim:'rgba(20,24,30,.3)'},d:{ink:'#ECEEF1',ink2:'#D5D9DE',ink3:'#AEB5BE',ink4:'#8F97A2',ink5:'#6B727C',lineS:'#3A3F47',line:'#2B2F36',fill:'#16181C',fill2:'#1B1E23',surface:'#202328',frame:'#0B0C0F',scrim:'rgba(0,0,0,.55)'}},
+ warm:{l:{ink:'#1C1B19',ink2:'#34322E',ink3:'#57534C',ink4:'#6F6A62',ink5:'#9A948A',lineS:'#D6D2CA',line:'#E7E4DE',fill:'#F3F1EC',fill2:'#FAF9F6',surface:'#FFFFFF',frame:'#E2DED6',scrim:'rgba(28,27,25,.3)'},d:{ink:'#EEECE8',ink2:'#D8D4CD',ink3:'#B3ADA3',ink4:'#948E84',ink5:'#6F6A62',lineS:'#403C36',line:'#302D29',fill:'#171614',fill2:'#1C1B18',surface:'#22211E',frame:'#0D0C0B',scrim:'rgba(0,0,0,.55)'}},
+ mono:{l:{ink:'#111111',ink2:'#2A2A2A',ink3:'#4A4A4A',ink4:'#666666',ink5:'#8F8F8F',lineS:'#D4D4D4',line:'#E8E8E8',fill:'#F4F4F4',fill2:'#FAFAFA',surface:'#FFFFFF',frame:'#E0E0E0',scrim:'rgba(0,0,0,.3)'},d:{ink:'#EDEDED',ink2:'#D4D4D4',ink3:'#ABABAB',ink4:'#8C8C8C',ink5:'#6A6A6A',lineS:'#3D3D3D',line:'#2C2C2C',fill:'#121212',fill2:'#181818',surface:'#1E1E1E',frame:'#080808',scrim:'rgba(0,0,0,.6)'}}};
+const PAL={cobalt:{name:'코발트',desc:'차가운 회색 + 코발트 블루',neu:'cool',l:{accent:'#2B59C3',accentInk:'#1F46A0',accentSoft:'#EAF0FC',accentSofter:'#F4F7FD',onAccent:'#FFFFFF'},d:{accent:'#6C93F0',accentInk:'#9DB8F6',accentSoft:'#1E2A45',accentSofter:'#1A2236',onAccent:'#0E1424'}},
+ teal:{name:'틸 · 스톤',desc:'따뜻한 스톤 그레이 + 딥 틸',neu:'warm',l:{accent:'#0E7C6B',accentInk:'#0A5F52',accentSoft:'#E3F3F0',accentSofter:'#F1F9F7',onAccent:'#FFFFFF'},d:{accent:'#3CC3AA',accentInk:'#7ED9C7',accentSoft:'#16312C',accentSofter:'#142824',onAccent:'#06201B'}},
+ mono:{name:'모노',desc:'흑백 중심 · 강조도 잉크 한 가지',neu:'mono',l:{accent:'#111111',accentInk:'#111111',accentSoft:'#EDEDED',accentSofter:'#F6F6F6',onAccent:'#FFFFFF'},d:{accent:'#F2F2F2',accentInk:'#FFFFFF',accentSoft:'#2C2C2C',accentSofter:'#232323',onAccent:'#111111'}}};
+const STATUS={l:{ok:'#0B8A55',okSoft:'#E4F6EC',err:'#D9363E',errSoft:'#FDECEC',errInk:'#B4232B',errMid:'#F6C1C4',warn:'#A65B00',warnSoft:'#FEF3E2',warnSofter:'#FFFAF0',mark:'#FFE58A'},d:{ok:'#4CC38A',okSoft:'#15291F',err:'#F0686E',errSoft:'#3A1A1C',errInk:'#F59A9E',errMid:'#6B2A2E',warn:'#F0A94B',warnSoft:'#33250F',warnSofter:'#2A2112',mark:'#6B5A12'}};
+const MEETINGS=[
+ {id:'m3',icon:'mic',color:'#3B82F6',title:'2026.09.30 09:30 회의',date:'2026.09.30',dur:1324,size:'5.8 MB',st:'running',label:'전사 중 · 2/3 청크',pct:62},
+ {id:'m1',icon:'chart',color:'#A234C7',title:'3분기 제품 로드맵 회의',date:'2026.09.29',dur:4360,size:'17.9 MB',st:'done',label:'회의록 완료',pct:100},
+ {id:'m2',icon:'users',color:'#03B26C',title:'2026.09.28 14:00 회의',date:'2026.09.28',dur:2895,size:'11.8 MB',st:'partial',label:'일부 실패 · 청크 2개',pct:60},
+ {id:'m4',icon:'chat',color:'#FE9800',title:'고객 인터뷰 #14',date:'2026.09.24',dur:2150,size:'8.9 MB',st:'review',label:'전사 검토 중',pct:75},
+ {id:'m5',icon:'star',color:'#F04452',title:'채용 논의 (초안)',date:'2026.09.22',dur:null,size:'312 MB · 원본',st:'draft',label:'처리 설정 대기',pct:8},
+ {id:'m6',icon:'calendar',color:'#64748B',title:'9월 전사 타운홀',date:'2026.09.19',dur:3620,size:'14.6 MB',st:'done',label:'회의록 완료',pct:100,pinned:true},
+ {id:'m7',icon:'bulb',color:'#FE9800',title:'신규 기능 아이디어 워크숍',date:'2026.09.17',dur:5410,size:'21.8 MB',st:'done',label:'회의록 완료',pct:100},
+ {id:'m8',icon:'doc',color:'#3B82F6',title:'보안 점검 결과 공유',date:'2026.09.15',dur:1880,size:'7.6 MB',st:'done',label:'회의록 완료',pct:100},
+ {id:'m9',icon:'flag',color:'#03B26C',title:'4분기 OKR 초안',date:'2026.09.12',dur:2710,size:'10.9 MB',st:'done',label:'회의록 완료',pct:100,pinned:true},
+ {id:'m10',icon:'users',color:'#A234C7',title:'파트너사 킥오프',date:'2026.09.10',dur:3300,size:'13.2 MB',st:'done',label:'회의록 완료',pct:100},
+ {id:'m11',icon:'chat',color:'#F04452',title:'고객 인터뷰 #13',date:'2026.09.08',dur:2040,size:'8.2 MB',st:'done',label:'회의록 완료',pct:100},
+ {id:'m12',icon:'mic',color:'#3B82F6',title:'2026.09.05 10:00 회의',date:'2026.09.05',dur:900,size:'3.6 MB',st:'done',label:'회의록 완료',pct:100}];
+const ST_TONE={running:'running',done:'done',partial:'failed',review:'review',draft:'idle'};
+const RESUME={running:['stt','processing','진행 보기'],done:['minutes','done','회의록 열기'],partial:['stt','partial','이어하기'],review:['review','done','이어하기'],draft:['import',null,'이어하기']};
+
+const buildChunks=(dur,len,ov,br)=>{const L=len*60,step=L-ov,out=[];let s=0,i=1;for(;;){const e=Math.min(dur,s+L);out.push({n:i++,s,e,mb:(e-s)*br/8/1000,status:'waiting',pct:0,err:null});if(e>=dur)break;s+=step}return out};
+const sampleChunks=mode=>{const c=buildChunks(2895,10,10,32);if(mode==='processing'){c[0].status=c[1].status='done';c[0].pct=c[1].pct=100;c[2].status='running';c[2].pct=45}else if(mode==='partial'){c.forEach(x=>{x.status='done';x.pct=100});c[2].status='failed';c[2].pct=0;c[2].err='429 Too Many Requests — 요청 한도를 넘었어요. 잠시 후 다시 시도하세요.';c[4].status='failed';c[4].pct=0;c[4].err='네트워크 오류 — 응답 대기 시간(60초)을 넘겨 요청이 중단됐어요.'}else c.forEach(x=>{x.status='done';x.pct=100});return c};
+
+const SEGS=[
+ {id:1,t:4,text:'그럼 온보딩 개선안 리뷰 시작하겠습니다. 지난주 사용성 테스트 결과부터 공유할게요.'},
+ {id:2,t:92,text:'참가자 여덟 명 중 다섯 명이 권한 요청 화면에서 이탈했어요. 왜 필요한지 설명이 없다는 의견이 많았고요.'},
+ {id:3,t:190,text:'그 화면을 첫 단계에서 빼고, 실제로 마이크가 필요한 시점에 요청하는 방향이 좋겠어요.'},
+ {id:4,t:348,text:'개발 쪽에서는 지연 요청이 가능한가요? iOS에서 제약이 있었던 걸로 기억하는데.'},
+ {id:5,t:441,text:'가능합니다. 다만 거절한 사용자에게 다시 묻는 흐름은 설정 화면으로 보내야 해요.'},
+ {id:6,t:592,ov:'ov1',text:'그럼 재요청 안내 문구는 콘텐츠팀에 부탁드리고, 시안은 이번 주 금요일까지 올릴게요.'},
+ {id:7,t:750,text:'진행 표시줄은 세 단계로 줄이는 걸로 합의된 거죠? 다섯 단계는 너무 길어 보인다는 피드백이 있었어요.'},
+ {id:8,t:905,text:'네, 세 단계로 가되 건너뛰기 버튼은 두 번째 단계부터 보여주기로 해요.'},
+ {id:9,t:1120,text:'샘플 데이터로 시작하기 옵션은 아직 결론이 안 났어요. 데이터팀 의견을 들어봐야 할 것 같습니다.'},
+ {id:10,t:1160,text:'그건 다음 주 회의 안건으로 넘기죠.'},
+ {id:11,t:1335,text:'A/B 테스트 기간은 2주로 잡고, 이탈률이랑 첫 녹음 완료율을 같이 보면 될 것 같아요.'},
+ {id:12,t:1562,text:'지표 대시보드는 제가 목요일까지 정리해서 공유하겠습니다.'},
+ {id:13,t:1900,text:'마지막으로 접근성 점검은 출시 전에 한 번 더 하기로 하죠.'},
+ {id:14,t:2361,ov:'ov2',text:'출시 일정은 QA 결과를 보고 확정하는 걸로요.'},
+ {id:15,t:2650,text:'좋습니다. 오늘 결정된 내용은 회의록으로 정리해서 채널에 올릴게요.'}];
+const OVS=[
+ {id:'ov1',range:'09:50 – 10:00',a:{chunk:1,text:'…그럼 재요청 안내 문구는 콘텐츠팀에 부탁드리고, 시안은 이번 주 금요일까지'},b:{chunk:2,text:'부탁드리고 시안은 이번 주 금요일까지 올릴게요.'},merged:'그럼 재요청 안내 문구는 콘텐츠팀에 부탁드리고, 시안은 이번 주 금요일까지 올릴게요.',reason:'문장이 겹침 구간 경계에서 잘렸어요. 자동 병합 결과가 맞는지 확인하세요.'},
+ {id:'ov2',range:'39:20 – 39:30',a:{chunk:4,text:'…출시 일정은 QA 결과를 보고 확정하는 걸로요.'},b:{chunk:5,text:'QA 결과 보고 확정하는 걸로요. 네.'},merged:'출시 일정은 QA 결과를 보고 확정하는 걸로요.',reason:'두 청크의 표현이 달라 중복 제거가 정확하지 않을 수 있어요.'}];
+
+const SECTIONS={summary:'요약',topics:'주제별 논의',decisions:'결정사항',actions:'액션 아이템',open:'미결사항',refs:'원문 시간 참조'};
+const TPL={sa:['summary','actions'],std:['summary','topics','decisions','actions','open'],dec:['decisions','actions','open','refs']};
+const ORDER=['summary','topics','decisions','actions','open','refs'];
+const MD={
+ ko:{summary:'## 요약\n온보딩 사용성 테스트에서 권한 요청 화면 이탈이 가장 컸다(8명 중 5명). 권한 요청을 첫 단계에서 빼고 마이크가 실제로 필요한 시점에 요청하기로 했고, 진행 단계는 5단계에서 3단계로 줄인다.',
+  topics:'## 주제별 논의\n### 권한 요청 시점\n- 설명 없는 권한 요청에서 참가자 다수가 이탈\n- 지연 요청은 가능하나, 거절한 사용자는 설정 화면으로 안내해야 함\n### 진행 단계\n- 5단계가 길다는 피드백이 있어 3단계로 축소\n### 실험 계획\n- A/B 테스트 2주, 이탈률과 첫 녹음 완료율을 함께 측정',
+  decisions:'## 결정사항\n- 권한 요청은 마이크가 필요한 시점으로 이동\n- 온보딩 진행 단계를 3단계로 축소, 건너뛰기는 2단계부터 노출\n- A/B 테스트 기간 2주',
+  actions:'## 액션 아이템\n- [ ] 재요청 안내 문구 작성 — 콘텐츠팀\n- [ ] 온보딩 시안 업로드 — 디자인, 금요일까지\n- [ ] 지표 대시보드 정리·공유 — 목요일까지\n- [ ] 출시 전 접근성 점검',
+  open:'## 미결사항\n- 샘플 데이터로 시작하기 옵션 (데이터팀 의견 필요, 다음 주 안건)\n- 출시 일정 (QA 결과 확인 후 확정)',
+  refs:'## 원문 시간 참조\n- 00:01:32 권한 요청 화면 이탈 결과\n- 00:03:10 권한 요청 시점 변경 제안\n- 00:15:05 진행 단계 3단계 합의\n- 00:22:15 A/B 테스트 기간',
+  warn:n=>`> 청크 ${n} 전사가 없어 해당 구간 내용이 빠졌을 수 있어요.`},
+ en:{summary:'## Summary\nIn usability testing, the permission prompt caused the most drop-off (5 of 8 participants). The team agreed to request the microphone only when it is first needed and to shorten onboarding from five steps to three.',
+  topics:'## Discussion by topic\n### Permission timing\n- Most participants left at an unexplained permission prompt\n- Deferred prompts are possible; users who decline must be sent to Settings\n### Progress steps\n- Five steps felt long, so reduce to three\n### Experiment plan\n- Two-week A/B test measuring drop-off and first-recording completion',
+  decisions:'## Decisions\n- Request microphone permission when it is first needed\n- Reduce onboarding to three steps; show Skip from step two\n- Run the A/B test for two weeks',
+  actions:'## Action items\n- [ ] Write re-request copy — Content team\n- [ ] Upload onboarding mockups — Design, by Friday\n- [ ] Prepare and share metrics dashboard — by Thursday\n- [ ] Accessibility check before launch',
+  open:'## Open questions\n- "Start with sample data" option (needs data team input; next week\'s agenda)\n- Launch date (set after QA results)',
+  refs:'## Transcript references\n- 00:01:32 Drop-off at permission prompt\n- 00:03:10 Proposal to defer the prompt\n- 00:15:05 Agreement on three steps\n- 00:22:15 A/B test duration',
+  warn:n=>`> Chunk ${n} has no transcript, so content from that range may be missing.`}};
+
+const MODELS=[{v:'openai:gpt-4.1',l:'gpt-4.1',p:'OpenAI'},{v:'openai:gpt-4.1-mini',l:'gpt-4.1-mini',p:'OpenAI'},{v:'or:anthropic/claude-sonnet-4',l:'anthropic/claude-sonnet-4',p:'OpenRouter'},{v:'or:google/gemini-2.5-pro',l:'google/gemini-2.5-pro',p:'OpenRouter'}];
+const CMP={
+ 'openai:gpt-4.1':{time:'11.2초',tin:'9,840',tout:'612',cost:'≈ $0.025',kind:'추정',md:'## 요약\n권한 요청 화면 이탈(8명 중 5명)이 핵심 문제로 확인됐고, 요청 시점을 뒤로 미루고 온보딩을 3단계로 줄이기로 했다.\n## 액션 아이템\n- [ ] 재요청 안내 문구 — 콘텐츠팀\n- [ ] 온보딩 시안 — 디자인, 금요일\n- [ ] 지표 대시보드 — 목요일'},
+ 'openai:gpt-4.1-mini':{time:'6.4초',tin:'9,840',tout:'418',cost:'≈ $0.005',kind:'추정',md:'## 요약\n온보딩 개선안을 리뷰했다. 권한 요청 시점 변경과 단계 축소에 합의했다.\n## 액션 아이템\n- [ ] 안내 문구 작성\n- [ ] 시안 업로드 (금)\n- [ ] 대시보드 공유 (목)'},
+ 'or:anthropic/claude-sonnet-4':{time:'13.8초',tin:'10,212',tout:'804',cost:'$0.043',kind:'확인',md:'## 요약\n사용성 테스트 참가자 8명 중 5명이 권한 요청 단계에서 이탈했다. 권한 요청을 실제 필요 시점으로 옮기고, 거절한 사용자는 설정 화면으로 안내하며, 진행 단계를 3단계로 줄이기로 했다. 샘플 데이터 옵션은 미정.\n## 액션 아이템\n- [ ] 재요청 안내 문구 작성 — 콘텐츠팀\n- [ ] 온보딩 시안 업로드 — 디자인, 금요일까지\n- [ ] 지표 대시보드 정리 — 목요일까지\n- [ ] 출시 전 접근성 재점검'},
+ 'or:google/gemini-2.5-pro':{time:'17.1초',tin:'10,034',tout:'522',cost:'$0.018',kind:'확인',md:'## 요약\n- 권한 요청 화면 이탈률 높음 (5/8)\n- 권한 요청 지연, 3단계 온보딩으로 결정\n- A/B 테스트 2주\n## 액션 아이템\n- [ ] 콘텐츠팀: 재요청 문구\n- [ ] 디자인: 시안 (금)\n- [ ] 대시보드 (목)'}};
+const LOG=[
+ {when:'09.28 14:02',job:'전사',model:'whisper-1 · OpenAI',conf:'청크 10분 / 겹침 10초 · Opus 32kbps · ko, en',time:'3분 41초',cost:'≈ $0.29',kind:'추정'},
+ {when:'09.28 14:09',job:'회의록',model:'gpt-4.1 · OpenAI',conf:'한국어 · 표준 회의록 · 입력 9,840 / 출력 1,120 토큰 (확인)',time:'11.2초',cost:'≈ $0.029',kind:'추정'},
+ {when:'09.28 14:12',job:'회의록',model:'anthropic/claude-sonnet-4 · OpenRouter',conf:'한국어 · 요약 + 액션 아이템 · 입력 10,212 / 출력 804 토큰 (확인)',time:'13.8초',cost:'$0.043',kind:'확인'},
+ {when:'09.28 14:13',job:'회의록',model:'gpt-4.1 · OpenAI',conf:'English · 표준 회의록 · 전사문 재사용',time:'12.0초',cost:'≈ $0.031',kind:'추정'},
+ {when:'09.29 10:40',job:'전사',model:'gpt-4o-transcribe · OpenAI',conf:'청크 15분 / 겹침 15초 · 3분기 제품 로드맵 회의',time:'5분 12초',cost:'≈ $0.44',kind:'추정'}];
+const KIND0={'확인':['var(--okSoft)','var(--ok)'],'추정':['var(--warnSoft)','var(--warn)'],'측정':['var(--fill)','var(--ink3)']};
+const KIND={...KIND0};Object.keys(KIND0).forEach(k=>{if(EN[k])KIND[EN[k]]=KIND0[k]});
+
+const parseMd=md=>md.split('\n').filter(l=>l.trim()).map((l,i)=>{
+ if(l.startsWith('### '))return{h3:true,text:l.slice(4)};if(l.startsWith('## '))return{h2:true,text:l.slice(3)};if(l.startsWith('# '))return{h1:true,text:l.slice(2)};
+ if(l.startsWith('- [ ] '))return{todo:true,text:l.slice(6)};if(l.startsWith('- '))return{li:true,text:l.slice(2)};if(l.startsWith('> '))return{note:true,text:l.slice(2)};
+ if(i===1)return{meta:true,text:l};return{p:true,text:l}});
+const WAVE=Array.from({length:64},(_,i)=>18+Math.round(78*Math.abs(Math.sin(i*1.7)*Math.cos(i*.37)+.15*Math.sin(i*5.3))));
+
+class Component extends DCLogic {
+  state={
+    screen:this.props.startScreen??'home',meetingId:'m2',meetings:MEETINGS,renameId:null,renameText:'',deleteId:null,
+    file:null,drag:false,previewPlaying:false,previewPos:0,title:'2026.09.28 14:00 회의',icon:'users',color:'#03B26C',sugIdx:0,sugEdit:null,langs:['ko','en'],chunkLen:10,overlap:10,retryN:null,retryModel:'whisper-1',retryLang:'auto',retryBr:32,dLen:10,dOv:10,dComp:true,dBr:32,dSr:16,theme:this.props.theme??'light',palette:this.props.palette??'cobalt',uiLang:this.props.uiLang??'ko',chunkOpen:false,autoCompress:true,advOpen:false,bitrate:32,sampleRate:16,sttModel:'whisper-1',consent:false,
+    sttMode:this.props.sttSample??'partial',chunks:sampleChunks(this.props.sttSample??'partial'),queue:(this.props.sttSample??'partial')==='processing',playChunk:null,playChunkPos:0,
+    rvTab:'merged',query:'',segs:SEGS.map(s=>({...s})),editId:null,editText:'',ovRes:{},playSeg:null,playPos:0,playing:false,
+    mLang:'ko',mModel:'openai:gpt-4.1',template:'std',order:ORDER.slice(),on:{summary:1,topics:1,decisions:1,actions:1,open:1},instr:'',generated:false,generating:false,mdText:'',mEdit:false,genMeta:'',genSig:'',
+    setTab:'conn',minView:'single',locked:this.props.startLocked??true,pin:'',pinErr:'',fails:0,autoLock:15,lockOnHide:true,pinChangeOpen:false,keys:{openai:'sk-proj-8Hq2vTnWc1LmZr7dKp0yXb4sE93f9a',openrouter:'sk-or-v1-5f2c9a1be07d44c3a8e0b6d21c7f10'},showKey:{},tested:{},storeMode:'local',cmpA:'openai:gpt-4.1',cmpB:'or:anthropic/claude-sonnet-4',cmpRunning:false,
+    vw:typeof window!=='undefined'?window.innerWidth:1200};
+  componentDidMount(){this.applyTheme();this.mq=window.matchMedia&&matchMedia('(prefers-color-scheme: dark)');this.onMq=()=>this.applyTheme();if(this.mq)this.mq.addEventListener('change',this.onMq);this.onResize=()=>this.setState({vw:window.innerWidth});window.addEventListener('resize',this.onResize);
+    this.onKey=e=>{if(!this.state.locked)return;if(/^[0-9]$/.test(e.key))this.pinPress(e.key);else if(e.key==='Backspace')this.setState(st=>({pin:st.pin.slice(0,-1)}))};window.addEventListener('keydown',this.onKey);
+    this.onVis=()=>{if(document.hidden&&this.state.lockOnHide)this.lock()};document.addEventListener('visibilitychange',this.onVis);this.timer=setInterval(()=>this.tick(),250)}
+  componentWillUnmount(){window.removeEventListener('resize',this.onResize);window.removeEventListener('keydown',this.onKey);document.removeEventListener('visibilitychange',this.onVis);clearInterval(this.timer);if(this.audio)this.audio.pause()}
+  componentDidUpdate(pp){const tk=this.state.theme+'|'+this.state.palette;if(this._tk!==tk)this.applyTheme();
+    ['theme','palette','uiLang'].forEach(k=>{if(pp[k]!==this.props[k]&&this.props[k])this.setState({[k]:this.props[k]})});if(pp.sttSample!==this.props.sttSample&&this.props.sttSample)this.setSttMode(this.props.sttSample)}
+  tick(){const s=this.state,up={};
+    if(s.chunks.some(c=>c.status==='running')||(s.queue&&s.chunks.some(c=>c.status==='waiting'))){
+      let ch=s.chunks.map(c=>c.status==='running'?{...c,pct:Math.min(100,c.pct+2+Math.random()*4)}:c).map(c=>c.status==='running'&&c.pct>=100?{...c,status:'done',pct:100}:c);
+      if(s.queue&&!ch.some(c=>c.status==='running')){const i=ch.findIndex(c=>c.status==='waiting');if(i>=0)ch[i]={...ch[i],status:'running',pct:0};else up.queue=false}
+      up.chunks=ch}
+    else if(s.queue)up.queue=false;
+    if(s.previewPlaying&&!(s.file&&s.file.real)){const d=s.file?s.file.dur:0;const p=s.previewPos+.25;if(p>=d){up.previewPlaying=false;up.previewPos=0}else up.previewPos=p}
+    if(s.playChunk){const c=s.chunks.find(x=>x.n===s.playChunk);const p=s.playChunkPos+.25;if(!c||p>=c.e-c.s){up.playChunk=null;up.playChunkPos=0}else up.playChunkPos=p}
+    if(s.playing)up.playPos=s.playPos+.25;
+    if(Object.keys(up).length)this.setState(up)}
+  applyTheme(){const s=this.state;this._tk=s.theme+'|'+s.palette;const dark=s.theme==='dark'||(s.theme==='system'&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches);const p=PAL[s.palette]||PAL.cobalt,m=dark?'d':'l';const t={...NEU[p.neu][m],...p[m],...STATUS[m]};const r=document.documentElement;Object.entries(t).forEach(([k,v])=>r.style.setProperty('--'+k,v));r.style.colorScheme=dark?'dark':'light'}
+  lock(){if(this.audio)this.audio.pause();this.setState({locked:true,pin:'',pinErr:'',playing:false,previewPlaying:false})}
+  pinPress(d){const s=this.state;if(s.pin.length>=6)return;const pin=s.pin+d;this.setState({pin,pinErr:''});
+    if(pin.length===6)setTimeout(()=>{if(pin==='123456')this.setState({locked:false,pin:'',fails:0,pinErr:''});else this.setState(st=>({pin:'',fails:st.fails+1,pinErr:L(`PIN이 맞지 않아요 · ${st.fails+1}회 실패${st.fails+1>=3?' · 5회 틀리면 30초 동안 입력이 막혀요':''}`,`Wrong PIN · ${st.fails+1} failed${st.fails+1>=3?' · 5 wrong attempts lock input for 30 s':''}`)}))},180)}
+  openRetry(c){this.setState({retryN:c.n,retryModel:c.model||this.state.sttModel,retryLang:'auto',retryBr:32})}
+  patchMeeting(p){this.setState(st=>({...p,meetings:st.meetingId?st.meetings.map(m=>m.id===st.meetingId?{...m,...p}:m):st.meetings}))}
+  resume(m){const r=RESUME[m.st];if(r[1])this.setSttMode(r[1]);this.setState({meetingId:m.id,title:m.title,icon:m.icon,color:m.color,sugIdx:0,sugEdit:null,screen:r[0],file:m.st==='draft'?null:this.state.file})}
+  setSttMode(mode){this.setState({sttMode:mode,chunks:sampleChunks(mode),queue:mode==='processing',playChunk:null})}
+  go(screen){this.setState({screen});if(this.audio&&screen!=='import'){this.audio.pause();this.setState({previewPlaying:false})}}
+  loadFile(f){if(!f)return;if(this.audio)this.audio.pause();const url=URL.createObjectURL(f);const a=new Audio();a.preload='metadata';a.src=url;this.audio=a;
+    const ext=(f.name.split('.').pop()||'').toUpperCase();
+    this.setState({file:{name:f.name,size:f.size,fmt:ext+(f.type?' · '+f.type:''),dur:null,real:true,err:null},title:f.name.replace(/\.[^.]+$/,''),previewPos:0,previewPlaying:false});
+    a.onloadedmetadata=()=>this.setState(st=>({file:{...st.file,dur:isFinite(a.duration)?a.duration:null}}));
+    a.onerror=()=>this.setState(st=>({file:{...st.file,err:T('이 브라우저에서 디코딩할 수 없는 형식이에요. MP3·M4A·WAV 등으로 변환한 뒤 다시 가져오세요.')}}));
+    a.ontimeupdate=()=>this.setState({previewPos:a.currentTime});a.onended=()=>this.setState({previewPlaying:false})}
+  buildMd(){const s=this.state,L=MD[s.mLang];const parts=[`# ${this.curMeeting().title}`,s.mLang==='ko'?`2026-09-28 · 48:15 · 전사: ${s.sttModel}`:`2026-09-28 · 48:15 · Transcript: ${s.sttModel}`];
+    const miss=s.chunks.filter(c=>c.status!=='done').map(c=>c.n);if(miss.length)parts.push(L.warn(miss.join('·')));
+    s.order.filter(k=>s.on[k]).forEach(k=>parts.push(L[k]));return parts.join('\n\n')}
+  sig(){const s=this.state;return [s.mLang,s.mModel,s.order.filter(k=>s.on[k]).join(','),s.instr].join('|')}
+  curMeeting(){return this.state.meetings.find(m=>m.id===this.state.meetingId)||{title:this.state.title||nowTitle(),icon:this.state.icon,color:this.state.color,date:'2026.09.30',dur:null}}
+
+  renderVals(){
+    const s=this.state,P=this.props,frame=P.frame??'auto';LANG=s.uiLang;
+    const isMobile=frame==='mobile'||(frame==='auto'&&s.vw<760),mobileFrame=frame==='mobile';
+    const cm=this.curMeeting();
+    const FLOW=['import','stt','review','minutes'],LBL={import:T('파일 가져오기'),stt:T('음성 준비 · 전사'),review:T('전사 검토'),minutes:T('회의록')};
+    const fi=FLOW.indexOf(s.screen);
+    const steps=FLOW.map((k,i)=>{const act=k===s.screen,done=fi>i;return{label:LBL[k],mark:done?'✓':String(i+1),onClick:()=>this.go(k),navBg:act?'var(--surface)':'transparent',weight:act?600:400,dotBg:act?'var(--accent)':done?'var(--accentInk)':'var(--line)',dotFg:act||done?'var(--onAccent)':'var(--ink3)',barBg:act?'var(--accent)':done?'var(--accentSoft)':'var(--surface)',barFg:act?'var(--onAccent)':done?'var(--accentInk)':'var(--ink4)'}});
+    const v={
+      outerAlign:mobileFrame?'center':'stretch',outerPad:mobileFrame?'28px':'0',shellW:mobileFrame?'390px':'100%',shellH:mobileFrame?'844px':'100vh',shellR:mobileFrame?'34px':'0',shellShadow:mobileFrame?'0 0 0 10px #0B0C0E, 0 30px 70px rgba(0,0,0,.25)':'none',
+      isMobile,isDesktop:!isMobile,pad:isMobile?'18px 16px 24px':'32px 40px 48px',
+      isHome:s.screen==='home',isImport:s.screen==='import',isStt:s.screen==='stt',isReview:s.screen==='review',isMinutes:s.screen==='minutes',isSettings:s.screen==='settings',isFlow:fi>=0,
+      steps,curTitle:cm.title,curMeta:[cm.date,cm.dur?fmt(cm.dur):null].filter(Boolean).join(' · '),
+      mobileTitle:fi>=0?cm.title:s.screen==='settings'?T('설정'):'Minutes of Meeting',
+      navHomeBg:s.screen==='home'?'var(--surface)':'transparent',navSetBg:s.screen==='settings'?'var(--surface)':'transparent',
+      goHome:()=>this.go('home'),goSettings:()=>this.go('settings'),goReview:()=>{if(s.chunks.some(c=>c.status==='done'))this.go('review')},goMinutes:()=>this.go('minutes'),
+      mobileNav:[['home',T('홈')],['flow',T('작업')],['settings',T('설정')]].map(([k,l])=>{const on=k==='flow'?fi>=0:s.screen===k;return{label:l,bg:on?'var(--surface)':'transparent',weight:on?600:400,onClick:()=>this.go(k==='flow'?(this.lastFlow||'stt'):k)}})};
+    if(fi>=0)this.lastFlow=s.screen;v.t=Object.fromEntries(KEYS.map((k,i)=>['k'+i,T(k)]));
+    const sideItem=m=>{const open=fi>=0&&m.id===s.meetingId;return{title:m.title,color:m.color,mask:MASK[m.icon],bg:open?'var(--fill)':'transparent',weight:open?600:400,open,onClick:()=>this.resume(m)}};
+    const pins=s.meetings.filter(m=>m.pinned),rest=s.meetings.filter(m=>!m.pinned);let recent=rest.slice(0,5);const curM=rest.find(m=>m.id===s.meetingId);if(curM&&!recent.includes(curM))recent=[...recent,curM];
+    v.pinnedSide=pins.map(sideItem);v.hasPinned=pins.length>0;v.allCount=s.meetings.length;
+    v.recentSide=(fi>=0&&!s.meetingId?[{title:s.title||T('새 회의'),color:s.color,mask:MASK[s.icon],bg:'var(--fill)',weight:600,open:true,onClick:()=>{}}]:[]).concat(recent.map(sideItem));
+    v.locked=s.locked;v.lockBlur=s.locked?'blur(14px)':'none';v.lockPE=s.locked?'none':'auto';v.lockNow=()=>this.lock();
+    v.pinDots=Array.from({length:6},(_,i)=>({bg:i<s.pin.length?'var(--accent)':'transparent',border:s.pinErr?'var(--err)':i<s.pin.length?'var(--accent)':'var(--lineS)'}));
+    v.pinMsg=s.pinErr||T('키보드 숫자로도 입력할 수 있어요');v.pinMsgColor=s.pinErr?'var(--err)':'var(--ink4)';
+    v.pinKeys=['1','2','3','4','5','6','7','8','9','','0','⌫'].map(k=>({label:k,vis:k?'visible':'hidden',bg:k==='⌫'?'transparent':'var(--fill)',onClick:()=>k==='⌫'?this.setState(st=>({pin:st.pin.slice(0,-1)})):k&&this.pinPress(k)}));
+    v.autoLockOpts=seg([{v:5,l:T('5분')},{v:15,l:T('15분')},{v:30,l:T('30분')}],s.autoLock,x=>this.setState({autoLock:x}));
+    v.toggleLoh=()=>this.setState({lockOnHide:!s.lockOnHide});v.lohBg=s.lockOnHide?'var(--accent)':'var(--lineS)';v.lohJustify=s.lockOnHide?'flex-end':'flex-start';
+    v.pinChangeOpen=s.pinChangeOpen;v.togglePinChange=()=>this.setState({pinChangeOpen:!s.pinChangeOpen});
+
+    // home
+    v.meetingCount=s.meetings.length;v.noMeetings=!s.meetings.length;v.newMeeting=()=>{if(this.audio)this.audio.pause();this.setState({meetingId:null,file:null,title:nowTitle(),icon:'mic',color:'#3B82F6',sugIdx:0,sugEdit:null,consent:false,screen:'import',chunkLen:s.dLen,overlap:s.dOv,autoCompress:s.dComp,bitrate:s.dBr,sampleRate:s.dSr,chunkOpen:false})};
+    v.meetingRows=s.meetings.map(m=>{const [bg,fg]=TONE[ST_TONE[m.st]],r=RESUME[m.st];return{...m,label:T(m.label),bg,fg,mask:MASK[m.icon],iconBg:COLORS[m.color],pctW:m.pct+'%',meta:L(`${m.date} · ${m.dur?fmt(m.dur):'길이 확인 전'} · ${m.size}`,`${m.date} · ${m.dur?fmt(m.dur):'Length unknown'} · ${T(m.size)}`),resumeLabel:L('열기','Open'),
+      renaming:s.renameId===m.id,notRenaming:s.renameId!==m.id,renameText:s.renameText,deleting:s.deleteId===m.id,
+      onResume:()=>this.resume(m),pinLabel:m.pinned?T('고정 해제'):L('고정','Pin'),pinBg:m.pinned?'var(--accentSoft)':'var(--surface)',onPin:()=>this.setState(st=>({meetings:st.meetings.map(x=>x.id===m.id?{...x,pinned:!x.pinned}:x)})),
+      onRename:()=>this.setState({renameId:m.id,renameText:m.title,deleteId:null}),onRenameChange:e=>this.setState({renameText:e.target.value}),
+      onRenameSave:()=>this.setState(st=>({renameId:null,meetings:st.meetings.map(x=>x.id===m.id&&st.renameText.trim()?{...x,title:st.renameText.trim()}:x)})),
+      onRenameKey:e=>{if(e.key==='Enter')e.target.blur();if(e.key==='Escape')this.setState({renameId:null})},
+      onDelete:()=>this.setState({deleteId:m.id,renameId:null}),onDeleteCancel:()=>this.setState({deleteId:null}),onDeleteConfirm:()=>this.setState(st=>({deleteId:null,meetings:st.meetings.filter(x=>x.id!==m.id)}))}});
+
+    // import
+    const f=s.file;v.file=f||{};v.noFile=!f;v.hasFile=!!f;v.fileErr=!!(f&&f.err);
+    v.dropBorder=s.drag?INK:'var(--lineS)';v.dropBg=s.drag?'var(--surface)':'var(--fill2)';
+    v.onDragOver=e=>{e.preventDefault();if(!s.drag)this.setState({drag:true})};v.onDragLeave=()=>this.setState({drag:false});
+    v.onDrop=e=>{e.preventDefault();this.setState({drag:false});this.loadFile(e.dataTransfer.files[0])};v.onFilePick=e=>this.loadFile(e.target.files[0]);
+    v.loadSample=()=>this.setState({file:{name:'design-review-0928.mp4',size:1.12e9,fmt:'MP4 · H.264 / AAC',dur:2895,real:false,err:null},title:s.title||T('디자인 리뷰 · 온보딩 개선'),previewPos:0});
+    v.clearFile=()=>{if(this.audio){this.audio.pause();this.audio=null}this.setState({file:null,previewPlaying:false,previewPos:0})};
+    const dur=f&&f.dur;
+    v.fileChips=f?[f.fmt,dur?fmt(dur):T('길이 확인 중…'),fmtSize(f.size)]:[];
+    v.wave=WAVE.map((h,i)=>({h:h+'%',bg:dur&&i/WAVE.length<=s.previewPos/dur?'var(--accent)':'var(--lineS)'}));
+    v.previewIcon=s.previewPlaying?'❚❚':'▶';v.previewTime=`${fmt(s.previewPos)} / ${dur?fmt(dur):'--:--'}`;
+    v.togglePreview=()=>{if(f&&f.real&&this.audio){if(s.previewPlaying)this.audio.pause();else this.audio.play().catch(()=>this.setState(st=>({previewPlaying:false,file:{...st.file,err:T('이 파일은 브라우저에서 재생할 수 없어요. 음성 추출도 실패할 가능성이 높아요.')}})))}this.setState({previewPlaying:!s.previewPlaying})};
+    v.seekPreview=e=>{if(!dur)return;const r=e.currentTarget.getBoundingClientRect();const p=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width))*dur;if(this.audio&&f.real)this.audio.currentTime=p;this.setState({previewPos:p})};
+    v.title=s.title;v.onTitle=e=>this.patchMeeting({title:e.target.value});
+    v.curColor=cm.color||s.color;v.curMask=MASK[cm.icon||s.icon];v.curBg=COLORS[cm.color||s.color];
+    v.iconOpts=Object.keys(ICONS).map(k=>{const on=(cm.icon||s.icon)===k;return{name:T(ICONS[k][0]),mask:MASK[k],fg:on?v.curColor:'var(--ink3)',bg:on?v.curBg:'var(--surface)',border:on?v.curColor:'var(--line)',onClick:()=>this.patchMeeting({icon:k})}});
+    v.colorOpts=Object.keys(COLORS).map(c=>({c,ring:(cm.color||s.color)===c?'0 0 0 2px var(--surface), 0 0 0 4px '+c:'none',onClick:()=>this.patchMeeting({color:c})}));
+    const sugList=SUGS[s.mLang]||SUGS.ko;v.sugText=s.sugEdit??sugList[s.sugIdx%sugList.length];
+    v.onSug=e=>this.setState({sugEdit:e.target.value});v.nextSug=()=>this.setState(st=>({sugIdx:st.sugIdx+1,sugEdit:null}));
+    const applied=v.sugText.trim()===cm.title;v.applyLabel=applied?T('적용됨'):T('제목 업데이트');v.applyBg=applied?'var(--line)':'var(--accent)';v.applyFg=applied?'var(--ink5)':'var(--onAccent)';
+    v.applySug=()=>{const t=v.sugText.trim();if(t&&!applied)this.patchMeeting({title:t})};
+    const LANGS=[['ko',T('한국어')],['en','English'],['ja','日本語'],['zh','中文'],['id','Bahasa Indonesia'],['es','Español']];
+    v.langChips=LANGS.map(([k,l])=>{const on=s.langs.includes(k);return chip(on?`${s.langs.indexOf(k)+1} · ${l}`:l,on,()=>this.setState(st=>({langs:on?st.langs.filter(x=>x!==k):[...st.langs,k]})))});
+    const D=dur||2895,LEN=s.chunkLen*60,step=LEN-s.overlap,n=Math.max(1,Math.ceil((D-s.overlap)/step));
+    const br=s.autoCompress?s.bitrate:256,totalMB=(D+(n-1)*s.overlap)*br/8/1000,perMB=Math.min(D,LEN)*br/8/1000;
+    v.chunkOpen=s.chunkOpen;v.toggleChunk=()=>this.setState({chunkOpen:!s.chunkOpen});v.chunkToggleLabel=s.chunkOpen?T('접기'):T('이번 회의만 변경');
+    const isOvr=s.chunkLen!==s.dLen||s.overlap!==s.dOv||s.autoCompress!==s.dComp||s.bitrate!==s.dBr||s.sampleRate!==s.dSr;
+    v.isOvr=isOvr;v.ovrLabel=isOvr?T('이번 회의만 변경됨'):T('기본값');v.ovrBg=isOvr?'var(--warnSoft)':'var(--fill)';v.ovrFg=isOvr?'var(--warn)':'var(--ink3)';
+    v.resetOvr=()=>this.setState({chunkLen:s.dLen,overlap:s.dOv,autoCompress:s.dComp,bitrate:s.dBr,sampleRate:s.dSr});
+    v.openDefaults=()=>{this.go('settings');this.setState({setTab:'defaults'})};
+    v.dLenOpts=seg([{v:10,l:T('10분')},{v:15,l:T('15분')}],s.dLen,x=>this.setState({dLen:x}));
+    v.dOvOpts=seg([{v:10,l:T('10초')},{v:15,l:T('15초')}],s.dOv,x=>this.setState({dOv:x}));
+    v.dBrOpts=seg([{v:24,l:'24 kbps'},{v:32,l:'32 kbps'},{v:48,l:'48 kbps'}],s.dBr,x=>this.setState({dBr:x}));
+    v.dSrOpts=seg([{v:16,l:'16 kHz'},{v:24,l:'24 kHz'}],s.dSr,x=>this.setState({dSr:x}));
+    v.toggleDComp=()=>this.setState({dComp:!s.dComp});v.dCompBg=s.dComp?'var(--accent)':'var(--lineS)';v.dCompJustify=s.dComp?'flex-end':'flex-start';
+    {const DD=3600,LL=s.dLen*60,nn=Math.ceil((DD-s.dOv)/(LL-s.dOv)),bb=s.dComp?s.dBr:256;v.dEstN=nn;v.dEstPer=T('약 ')+(LL*bb/8/1000).toFixed(1)+' MB';v.dEstTotal=T('약 ')+((DD+(nn-1)*s.dOv)*bb/8/1000).toFixed(1)+' MB';}
+    v.themeOpts=seg([{v:'light',l:T('라이트')},{v:'dark',l:T('다크')},{v:'system',l:T('시스템 설정')}],s.theme,x=>this.setState({theme:x},()=>this.applyTheme()));
+    v.uiLangOpts=seg([{v:'ko',l:T('한국어')},{v:'en',l:'English'}],s.uiLang,x=>this.setState({uiLang:x}));
+    v.paletteOpts=Object.keys(PAL).map(k=>{const p=PAL[k],nl=NEU[p.neu].l,nd=NEU[p.neu].d;return{name:T(p.name),desc:T(p.desc),border:s.palette===k?'var(--accent)':'var(--line)',sw:[nl.fill,nl.surface,nl.ink,p.l.accent,nd.fill,nd.surface,nd.ink,p.d.accent],onClick:()=>this.setState({palette:k},()=>this.applyTheme())}});
+    v.chunkSummary=L(`${s.chunkLen}분 · 겹침 ${s.overlap}초 · ${s.autoCompress?'자동 압축':'압축 안 함'} → 청크 ${n}개`,`${s.chunkLen} min · ${s.overlap} s overlap · ${s.autoCompress?'auto compression':'no compression'} → ${n} chunks`);
+    v.lenOpts=seg([{v:10,l:T('10분')},{v:15,l:T('15분')}],s.chunkLen,x=>this.setState({chunkLen:x}));
+    v.ovOpts=seg([{v:10,l:T('10초')},{v:15,l:T('15초')}],s.overlap,x=>this.setState({overlap:x}));
+    v.brOpts=seg([{v:24,l:'24 kbps'},{v:32,l:'32 kbps'},{v:48,l:'48 kbps'}],s.bitrate,x=>this.setState({bitrate:x}));
+    v.srOpts=seg([{v:16,l:'16 kHz'},{v:24,l:'24 kHz'}],s.sampleRate,x=>this.setState({sampleRate:x}));
+    v.toggleCompress=()=>this.setState({autoCompress:!s.autoCompress});v.compressBg=s.autoCompress?'var(--accent)':'var(--lineS)';v.compressJustify=s.autoCompress?'flex-end':'flex-start';
+    v.compressDesc=s.autoCompress?L(`모노 ${s.sampleRate}kHz · Opus ${s.bitrate}kbps · 청크당 약 ${perMB.toFixed(1)} MB`,`Mono ${s.sampleRate}kHz · Opus ${s.bitrate}kbps · ~${perMB.toFixed(1)} MB per chunk`):L(`모노 16kHz WAV · 청크당 약 ${perMB.toFixed(1)} MB`,`Mono 16kHz WAV · ~${perMB.toFixed(1)} MB per chunk`);
+    v.compressWarn=!s.autoCompress&&perMB>25?L(`${s.chunkLen}분 청크는 비압축 시 약 ${perMB.toFixed(1)} MB로 OpenAI 업로드 한도(25 MB)를 넘어 실패할 수 있어요.`,`Uncompressed ${s.chunkLen}-min chunks are ~${perMB.toFixed(1)} MB and may exceed OpenAI's 25 MB upload limit.`):'';
+    v.advOpen=s.advOpen;v.toggleAdv=()=>this.setState({advOpen:!s.advOpen});v.advLabel=s.advOpen?T('고급 설정 접기'):T('고급 설정 ▸');
+    v.sttModel=s.sttModel;v.onSttModel=e=>this.setState({sttModel:e.target.value});
+    v.sttModelNote={'whisper-1':T('구간별 타임스탬프를 받을 수 있어요. 화자 구분은 제공하지 않아요.'),'gpt-4o-transcribe':T('정확도가 높은 편이지만 구간 타임스탬프를 제공하지 않아 청크 단위 시간만 표시돼요.'),'gpt-4o-mini-transcribe':T('빠르고 저렴해요. 타임스탬프는 청크 단위로만 표시돼요.')}[s.sttModel];
+    const codes=s.langs.join(', ')||T('없음(자동 감지)');
+    v.sendDesc=L(`압축된 음성 청크 ${n}개 (약 ${totalMB.toFixed(1)} MB), 언어 힌트 (${codes})`,`${n} compressed audio chunks (~${totalMB.toFixed(1)} MB), language hints (${codes})`);
+    v.consent=s.consent;v.toggleConsent=()=>this.setState({consent:!s.consent});
+    const canStart=!!f&&!f.err&&s.consent;v.startDisabled=!canStart;v.startBg=canStart?'var(--accent)':'var(--line)';v.startFg=canStart?'var(--onAccent)':'var(--ink5)';v.startCursor=canStart?'pointer':'not-allowed';
+    v.startHint=!f?T('파일을 먼저 가져오세요'):f.err?T('재생할 수 없는 파일은 처리할 수 없어요'):!s.consent?T('전송 내용을 확인하면 시작할 수 있어요'):T('음성 추출과 분할은 이 브라우저 안에서 진행돼요');
+    v.startStt=()=>{if(!canStart)return;const id=s.meetingId||('m'+Date.now());const ch=buildChunks(D,s.chunkLen,s.overlap,br);ch[0].status='running';
+      this.setState(st=>({meetingId:id,meetings:st.meetingId?st.meetings:[{id,icon:st.icon,color:st.color,title:st.title||nowTitle(),date:'2026.09.30',dur:D,size:totalMB.toFixed(1)+' MB',st:'running',label:T('전사 중'),pct:5},...st.meetings],chunks:ch,queue:true,sttMode:'processing',screen:'stt'}))};
+
+    // stt
+    const ch=s.chunks,nDone=ch.filter(c=>c.status==='done').length,failed=ch.filter(c=>c.status==='failed'),running=ch.some(c=>c.status==='running')||s.queue&&ch.some(c=>c.status==='waiting');
+    const prog=ch.reduce((a,c)=>a+(c.status==='done'?1:c.status==='running'?c.pct/100:0),0)/ch.length;
+    v.modeOpts=seg([{v:'processing',l:T('처리 중')},{v:'partial',l:T('일부 실패')},{v:'done',l:T('완료')}],s.sttMode,x=>this.setSttMode(x));
+    const tStatus=nDone===ch.length?'done':running?'running':failed.length?'failed':'idle';
+    v.stages=[{label:T('음성 추출'),detail:L(`${fmt(D)} · 모노 16kHz 추출 완료`,`${fmt(D)} · mono 16kHz extracted`),st:'done'},{label:T('분할 · 압축'),detail:L(`청크 ${ch.length}개 · 총 ${ch.reduce((a,c)=>a+c.mb,0).toFixed(1)} MB`,`${ch.length} chunks · ${ch.reduce((a,c)=>a+c.mb,0).toFixed(1)} MB total`),st:'done'},{label:T('전사'),detail:L(`${nDone}/${ch.length} 완료`,`${nDone}/${ch.length} done`)+(failed.length?L(` · 실패 ${failed.length}`,` · ${failed.length} failed`):''),st:tStatus}]
+      .map(g=>({...g,bg:g.st==='running'?'var(--accentSoft)':g.st==='failed'?'var(--errSoft)':'var(--fill)',dotBg:TONE[g.st][1],mark:g.st==='done'?'✓':g.st==='failed'?'!':g.st==='running'?'…':'·'}));
+    v.overallPct=Math.round(prog*100)+'%';
+    const rc=ch.find(c=>c.status==='running');
+    v.sttHeadline=nDone===ch.length?T('전사 완료 · 모든 청크 결과가 저장됐어요'):rc?L(`청크 ${rc.n} 전사 중 · 완료된 결과는 저장돼요`,`Transcribing chunk ${rc.n} · finished results are saved`):failed.length?L(`${nDone}개 청크 완료 · ${failed.length}개 실패`,`${nDone} chunks done · ${failed.length} failed`):L(`${nDone}개 청크 완료 · 대기 중`,`${nDone} chunks done · waiting`);
+    v.overallSegs=ch.map(c=>({w:(c.status==='done'?100:c.status==='running'?c.pct:c.status==='failed'?100:0)+'%',bg:c.status==='failed'?'var(--errMid)':c.status==='running'?'var(--accent)':'var(--accentInk)'}));
+    v.hasFailed=failed.length>0&&!running;v.failSummary=L(`청크 ${failed.map(c=>c.n).join(', ')} 전사에 실패했어요. 완료된 청크 ${nDone}개의 결과는 그대로 보존되고, 실패한 청크만 다시 요청해요.`,`Chunk ${failed.map(c=>c.n).join(', ')} failed. The ${nDone} finished chunks are kept; only failed chunks are requested again.`);
+    v.retryFailed=()=>this.setState(st=>({queue:true,chunks:st.chunks.map(c=>c.status==='failed'||c.status==='cancelled'?{...c,status:'waiting',err:null,pct:0}:c)}));
+    v.isRunning=running;v.cancelStt=()=>this.setState(st=>({queue:false,chunks:st.chunks.map(c=>c.status==='running'||c.status==='waiting'?{...c,status:'cancelled',pct:0}:c)}));
+    v.reviewBtnLabel=nDone===ch.length?T('전사 검토로 →'):nDone?L(`완료된 ${nDone}개로 검토 시작 →`,`Review ${nDone} finished chunks →`):T('전사 결과 대기 중');v.reviewBtnBg=nDone?'var(--accent)':'var(--line)';v.reviewBtnFg=nDone?'var(--onAccent)':'var(--ink5)';
+    v.chunkCount=ch.length;
+    const CL={done:T('완료'),running:'',waiting:T('대기'),failed:T('실패'),cancelled:T('취소됨')};
+    v.chunkRows=ch.map((c,i)=>{const tone=TONE[c.status==='cancelled'||c.status==='waiting'?'idle':c.status];const playing=s.playChunk===c.n;
+      const act=c.status==='failed'?T('다시 시도'):c.status==='waiting'||c.status==='cancelled'?T('전사 실행'):c.status==='done'?T('다시 전사'):'';
+      return{n:c.n,range:`${fmt(c.s)} – ${fmt(c.e)}`,size:c.mb.toFixed(1)+' MB',ovl:i?`${fmt(c.s)}–${fmt(c.s+s.overlap)}`:T('없음'),label:c.status==='running'?L(`전사 중 ${Math.round(c.pct)}%`,`Transcribing ${Math.round(c.pct)}%`):CL[c.status],bg:tone[0],fg:tone[1],w:(c.status==='done'?100:c.status==='running'?c.pct:0)+'%',err:T(c.err),
+        playLabel:playing?`❚❚ ${fmt(c.s+s.playChunkPos)}`:T('▶ 재생'),onPlay:()=>this.setState({playChunk:playing?null:c.n,playChunkPos:0}),
+        showAction:!!act,actionLabel:act,actBg:c.status==='failed'?'var(--err)':'var(--surface)',actFg:c.status==='failed'?'var(--surface)':INK,actBorder:c.status==='failed'?'var(--err)':'var(--lineS)',
+        onAction:()=>this.openRetry(c)}});
+
+    // review
+    v.rvTabs=seg([{v:'merged',l:T('병합본')},{v:'chunks',l:T('청크별 원본')}],s.rvTab,x=>this.setState({rvTab:x}));v.rvMerged=s.rvTab==='merged';v.rvChunks=s.rvTab==='chunks';
+    v.query=s.query;v.onQuery=e=>this.setState({query:e.target.value});
+    const q=s.query.trim().toLowerCase();let matches=0;
+    const chunkOf=t=>ch.find(c=>t>=c.s&&t<c.e)||ch[ch.length-1];
+    const ovMap=Object.fromEntries(OVS.map(o=>[o.id,o]));
+    const items=[],gapShown={};
+    s.segs.forEach(sg=>{const c=chunkOf(sg.t);if(c.status!=='done'){if(!gapShown[c.n]){gapShown[c.n]=1;items.push({isGap:true,label:L(`청크 ${c.n} · ${fmt(c.s)}–${fmt(c.e)} 전사 없음`,`Chunk ${c.n} · ${fmt(c.s)}–${fmt(c.e)} no transcript`),sub:c.status==='failed'?T('전사에 실패했어요. 이 청크만 다시 실행할 수 있어요.'):T('아직 전사가 끝나지 않았어요.'),onGo:()=>this.go('stt')})}return}
+      let parts=[{t:sg.text,bg:'transparent'}],hit=false;
+      if(q){const low=sg.text.toLowerCase();let i=0,j;parts=[];while((j=low.indexOf(q,i))>=0){parts.push({t:sg.text.slice(i,j),bg:'transparent'},{t:sg.text.slice(j,j+q.length),bg:'var(--mark)'});i=j+q.length;hit=true;matches++}parts.push({t:sg.text.slice(i),bg:'transparent'})}
+      const ov=sg.ov&&ovMap[sg.ov],res=sg.ov&&s.ovRes[sg.ov];const playing=s.playSeg===sg.id;
+      items.push({isSeg:true,time:fmtT(sg.t),parts,chunk:c.n,op:q&&!hit?.4:1,bg:playing?'var(--accentSofter)':ov&&!res?'var(--warnSofter)':'var(--surface)',
+        tBg:playing?'var(--accent)':'var(--surface)',tFg:playing?'var(--onAccent)':INK,tBorder:playing?'var(--accent)':'var(--lineS)',
+        flag:ov?(res?T('겹침 확인됨'):T('겹침 구간 확인 필요')):'',flagBg:res?'var(--okSoft)':'var(--warnSoft)',flagFg:res?'var(--ok)':'var(--warn)',edited:!!sg.edited,
+        editing:s.editId===sg.id,notEditing:s.editId!==sg.id,onEdit:()=>this.setState({editId:sg.id,editText:sg.text}),
+        onPlay:()=>this.setState({playSeg:sg.id,playPos:sg.t,playing:true})})});
+    v.rvItems=items;v.matchLabel=q?L(`${matches}건`,`${matches} found`):'';
+    v.editText=s.editText;v.onEditText=e=>this.setState({editText:e.target.value});
+    v.saveEdit=()=>this.setState(st=>({segs:st.segs.map(x=>x.id===st.editId?{...x,text:st.editText,edited:x.text!==st.editText||x.edited}:x),editId:null}));v.cancelEdit=()=>this.setState({editId:null});
+    const LN={ko:'한국어',en:'English',ja:'日本語',zh:'中文',id:'Bahasa Indonesia',es:'Español'};
+    v.rawChunks=ch.map(c=>{const done=c.status==='done',st=c.status,tone=TONE[done?'done':st==='failed'?'failed':st==='running'?'running':'idle'];const playing=s.playChunk===c.n;
+      const lines=done?s.segs.filter(sg=>sg.t>=c.s&&sg.t<c.e).map(sg=>{let parts=[{t:sg.text,bg:'transparent'}],hit=false;
+        if(q){const low=sg.text.toLowerCase();let i=0,j;parts=[];while((j=low.indexOf(q,i))>=0){parts.push({t:sg.text.slice(i,j),bg:'transparent'},{t:sg.text.slice(j,j+q.length),bg:'var(--mark)'});i=j+q.length;hit=true}parts.push({t:sg.text.slice(i),bg:'transparent'})}
+        const pl=s.playSeg===sg.id;return{time:fmtT(sg.t),parts,op:q&&!hit?.4:1,bg:pl?'var(--accentSofter)':'var(--surface)',tBg:pl?'var(--accent)':'var(--surface)',tFg:pl?'var(--onAccent)':'var(--ink)',tBorder:pl?'var(--accent)':'var(--lineS)',
+          edited:!!sg.edited,editing:s.editId===sg.id,notEditing:s.editId!==sg.id,onEdit:()=>this.setState({editId:sg.id,editText:sg.text}),onPlay:()=>this.setState({playSeg:sg.id,playPos:sg.t,playing:true})}}):[];
+      const act=st==='failed'?L('다시 시도','Retry'):st==='done'?L('다시 전사','Re-transcribe'):(st==='waiting'||st==='cancelled')?L('전사 실행','Transcribe'):'';
+      return{n:c.n,range:fmt(c.s)+' – '+fmt(c.e),label:done?T('원본 전사'):st==='running'?L('전사 중 '+Math.round(c.pct)+'%','Transcribing '+Math.round(c.pct)+'%'):(CL[st]||''),bg:tone[0],fg:tone[1],lines,empty:!done,
+        model:done||st==='failed'||st==='running'?(c.model||s.sttModel):'',
+        emptyText:st==='failed'?L('원인: ','Cause: ')+T(c.err||''):st==='running'?L('전사 중이에요.','Transcribing.'):L('아직 전사가 없어요.','No transcript yet.'),emptyColor:st==='failed'?'var(--err)':'var(--ink3)',
+        playLabel:playing?'❚❚ '+fmt(c.s+s.playChunkPos):L('▶ 재생','▶ Play'),onPlay:()=>this.setState({playChunk:playing?null:c.n,playChunkPos:0}),
+        showRetry:!!act&&st!=='running',retryLabel:act,rtBg:st==='failed'?'var(--err)':'var(--surface)',rtFg:st==='failed'?'var(--onAccent)':'var(--ink)',rtBorder:st==='failed'?'var(--err)':'var(--lineS)',onRetry:()=>this.openRetry(c)}});
+    const ovItems=OVS.map(o=>{const bDone=(ch.find(c=>c.n===o.b.chunk)||{}).status==='done',aDone=(ch.find(c=>c.n===o.a.chunk)||{}).status==='done',res=s.ovRes[o.id];
+      const pick=(k,text)=>this.setState(st=>({ovRes:{...st.ovRes,[o.id]:k},segs:st.segs.map(x=>x.ov===o.id?{...x,text:text.replace(/^…/,'')}:x)}));
+      const opts=[['merged',T('병합안 사용'),o.merged,true],['a',L(`청크 ${o.a.chunk} 기준`,`Use chunk ${o.a.chunk}`),o.a.text,aDone],['b',L(`청크 ${o.b.chunk} 기준`,`Use chunk ${o.b.chunk}`),o.b.text,bDone]].filter(x=>x[3]).map(([k,l,t])=>chip(l,res===k,()=>pick(k,t)));
+      return{range:o.range,reason:bDone?T(o.reason):L(`청크 ${o.b.chunk} 결과가 없어 청크 ${o.a.chunk} 기준으로 임시 표시 중이에요.`,`No result for chunk ${o.b.chunk}; showing chunk ${o.a.chunk} for now.`),aLabel:L(`청크 ${o.a.chunk}`,`Chunk ${o.a.chunk}`),bLabel:L(`청크 ${o.b.chunk}`,`Chunk ${o.b.chunk}`),aText:aDone?o.a.text:T('결과 없음'),bText:bDone?o.b.text:T('결과 없음 (전사 실패)'),merged:o.merged,opts,
+        status:res?T('확인됨'):T('확인 필요'),bg:res?'var(--okSoft)':'var(--warnSoft)',fg:res?'var(--ok)':'var(--warn)'}});
+    v.ovItems=ovItems;const pend=OVS.filter(o=>!s.ovRes[o.id]).length;v.ovPending=pend?L(`${pend}건 남음`,`${pend} left`):T('모두 확인됨');
+    const ps=s.segs.find(x=>x.id===s.playSeg);
+    v.showPlayer=s.screen==='review'&&!!ps;v.playIcon=s.playing?'❚❚':'▶';v.playTime=`${fmtT(s.playPos)} / ${fmtT(2895)}`;v.playText=ps?ps.text:'';
+    v.togglePlay=()=>this.setState({playing:!s.playing});v.closePlayer=()=>this.setState({playSeg:null,playing:false});
+
+    // minutes
+    const tplMatch=Object.keys(TPL).find(k=>{const want=TPL[k];return ORDER.every(x=>!!s.on[x]===want.includes(x))});
+    v.tplOpts=[['sa',T('요약 + 액션 아이템')],['std',T('표준 회의록')],['dec',T('결정 중심')]].map(([k,l])=>chip(l,tplMatch===k,()=>this.setState({on:Object.fromEntries(TPL[k].map(x=>[x,1])),order:ORDER.slice()})));
+    if(!tplMatch)v.tplOpts.push(chip(T('직접 구성'),true,()=>{}));
+    v.mLang=s.mLang;v.onMLang=e=>this.setState({mLang:e.target.value});v.mModel=s.mModel;v.onMModel=e=>this.setState({mModel:e.target.value});
+    v.modelOpts=MODELS.map(m=>({v:m.v,full:L(`${m.p} · ${m.l}${m.p==='OpenRouter'&&!s.keys.openrouter||m.p==='OpenAI'&&!s.keys.openai?' (키 필요)':''}`,`${m.p} · ${m.l}${m.p==='OpenRouter'&&!s.keys.openrouter||m.p==='OpenAI'&&!s.keys.openai?' (key needed)':''}`)}));
+    const mv=(i,d)=>this.setState(st=>{const o=st.order.slice(),j=i+d;if(j<0||j>=o.length)return null;[o[i],o[j]]=[o[j],o[i]];return{order:o}});
+    v.sectionRows=s.order.map((k,i)=>{const on=!!s.on[k];return{label:T(SECTIONS[k]),check:on?'✓':'',boxBg:on?'var(--accent)':'var(--surface)',boxBorder:on?'var(--accent)':'var(--lineS)',fg:on?INK:'var(--ink4)',bg:'var(--surface)',upOp:i?1:.25,downOp:i<s.order.length-1?1:.25,
+      onToggle:()=>this.setState(st=>({on:{...st.on,[k]:!st.on[k]}})),onUp:()=>mv(i,-1),onDown:()=>mv(i,1)}});
+    v.instr=s.instr;v.onInstr=e=>this.setState({instr:e.target.value});
+    const mm=MODELS.find(m=>m.v===s.mModel);
+    v.generate=()=>{if(s.generating)return;this.setState({generating:true});setTimeout(()=>{const t=(8+Math.random()*6).toFixed(1);this.setState({generating:false,generated:true,mEdit:false,mdText:this.buildMd(),genSig:this.sig(),genMeta:L(`${mm.l} · ${s.mLang==='ko'?'한국어':'English'} · ${t}초 · 전사문 재사용${s.instr.trim()?' · 추가 지침 반영':''}`,`${mm.l} · ${s.mLang==='ko'?'Korean':'English'} · ${t} s · transcript reused${s.instr.trim()?' · extra instructions applied':''}`)})},1400)};
+    v.genLabel=s.generating?T('생성 중…'):s.generated?T('이 설정으로 다시 생성'):T('회의록 생성');
+    v.generated=s.generated;v.notGenerated=!s.generated;v.genOp=s.generating?.45:1;v.cmpOp=s.cmpRunning?.45:1;
+    v.emptyTitle=s.generating?T('회의록을 만드는 중이에요'):T('아직 생성한 회의록이 없어요');
+    v.emptySub=s.generating?L(`${mm.l}에 전사문과 작성 지침을 보내고 있어요.`,`Sending the transcript and instructions to ${mm.l}.`):T('왼쪽에서 템플릿과 항목을 고르고 생성하세요. 결과는 바로 편집할 수 있어요.');
+    const miss=ch.filter(c=>c.status!=='done');v.incompleteWarn=miss.length?L(`청크 ${miss.map(c=>c.n).join(', ')}의 전사가 없어요. 지금 생성하면 ${miss.map(c=>fmt(c.s)+'–'+fmt(c.e)).join(', ')} 구간이 빠져요.`,`No transcript for chunk ${miss.map(c=>c.n).join(', ')}. Generating now leaves out ${miss.map(c=>fmt(c.s)+'–'+fmt(c.e)).join(', ')}.`):'';
+    v.dirty=s.generated&&!s.generating&&s.genSig!==this.sig();v.genMeta=s.genMeta;
+    v.mEdit=s.mEdit;v.mPreview=!s.mEdit;v.viewOpts=seg([{v:false,l:T('미리보기')},{v:true,l:T('편집')}],s.mEdit,x=>this.setState({mEdit:x}));
+    v.mdText=s.mdText;v.onMd=e=>this.setState({mdText:e.target.value});v.mdBlocks=parseMd(s.mdText);
+    v.downloadMd=()=>{const b=new Blob([s.mdText],{type:'text/markdown'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=(cm.title||'meeting').replace(/[\\/:*?"<>|]/g,'_')+'.md';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)};
+
+    // settings
+    v.setTabs=[['conn',T('연결 설정')],['defaults',T('처리 기본값')],['look',T('화면 · 언어')],['security',T('보안 · 잠금')],['log',T('처리 기록')]].map(([k,l])=>{const on=s.setTab===k;return{label:l,line:on?'var(--ink)':'transparent',fg:on?INK:'var(--ink3)',weight:on?600:400,onClick:()=>this.setState({setTab:k})}});
+    v.tabConn=s.setTab==='conn';v.tabSec=s.setTab==='security';v.tabDefaults=s.setTab==='defaults';v.tabLook=s.setTab==='look';v.tabLog=s.setTab==='log';
+    v.providers=[['openai','OpenAI',T('전사 (whisper-1, gpt-4o-transcribe) · 회의록 생성'),'sk-proj-…'],['openrouter','OpenRouter',T('회의록 생성 · 여러 제공사 모델'),'sk-or-v1-…']].map(([k,name,use,ph])=>{const key=s.keys[k]||'',shown=!!s.showKey[k],t=s.tested[k];
+      const status=!key?T('키 없음'):t==='testing'?T('확인 중…'):t==='ok'?T('연결됨'):T('저장됨');const tone=TONE[!key?'idle':t==='ok'?'done':t==='testing'?'running':'idle'];
+      return{name,use,ph,key,inputType:shown?'text':'password',showLabel:shown?T('가리기'):T('보기'),status,bg:tone[0],fg:tone[1],
+        masked:key?L(`표시: ${key.slice(0,key.indexOf('-',3)+1)}••••••••${key.slice(-4)} · ${s.storeMode==='session'?'이 탭에서만 유지':'암호화되어 저장됨'}`,`Shown: ${key.slice(0,key.indexOf('-',3)+1)}••••••••${key.slice(-4)} · ${s.storeMode==='session'?'this tab only':'encrypted'}`):T('입력한 키가 없어요'),
+        onChange:e=>this.setState(st=>({keys:{...st.keys,[k]:e.target.value},tested:{...st.tested,[k]:null}})),onShow:()=>this.setState(st=>({showKey:{...st.showKey,[k]:!shown}})),
+        onClear:()=>this.setState(st=>({keys:{...st.keys,[k]:''},tested:{...st.tested,[k]:null}})),
+        onTest:()=>{if(!key)return;this.setState(st=>({tested:{...st.tested,[k]:'testing'}}));setTimeout(()=>this.setState(st=>({tested:{...st.tested,[k]:'ok'}})),900)}}});
+    v.storeOpts=[['local',T('암호화해서 이 브라우저에 저장'),T('다른 데이터와 같이 PIN으로 만든 키로 암호화돼요. 잠금을 풀어야 쓸 수 있어요. 기본값.')],['session',T('이 탭에서만 사용'),T('메모리에만 두고 탭을 닫으면 지워져요. 매번 다시 입력해야 해요.')]].map(([k,l,d])=>{const on=s.storeMode===k;return{label:l,desc:d,border:on?'var(--accent)':'var(--line)',bg:on?'var(--accentSofter)':'var(--surface)',dot:on?'var(--accent)':'transparent',onClick:()=>this.setState({storeMode:k})}});
+    const kb=k=>KIND[k];
+    v.cmpCols=[['cmpA',s.cmpA],['cmpB',s.cmpB]].map(([key,val])=>{const d=CMP[val];const [cb,cf]=kb(d.kind);return{v:val,onChange:e=>this.setState({[key]:e.target.value}),onUse:()=>this.setState({mModel:val,minView:'single'}),blocks:parseMd('x\n'+d.md).slice(1),
+      stats:[{k:T('처리 시간'),v:T(d.time),kind:T('측정'),bg:KIND[T('측정')][0],fg:KIND[T('측정')][1]},{k:T('입력 토큰'),v:d.tin,kind:T('확인'),bg:KIND[T('확인')][0],fg:KIND[T('확인')][1]},{k:T('출력 토큰'),v:d.tout,kind:T('확인'),bg:KIND[T('확인')][0],fg:KIND[T('확인')][1]},{k:T('비용'),v:d.cost,kind:T(d.kind),bg:cb,fg:cf}]}});
+    v.runCompare=()=>{this.setState({cmpRunning:true});setTimeout(()=>this.setState({cmpRunning:false}),1500)};v.cmpLabel=s.cmpRunning?T('생성 중…'):T('두 모델로 다시 생성');
+    v.minViewOpts=seg([{v:'single',l:T('회의록')},{v:'compare',l:T('모델 비교')}],s.minView,x=>this.setState({minView:x}));v.minSingle=s.minView==='single';v.minCompare=s.minView==='compare';
+    v.cmpConf=L(`${s.mLang==='ko'?'한국어':'English'} · ${s.order.filter(k=>s.on[k]).map(k=>SECTIONS[k]).join(', ')}`,`${s.mLang==='ko'?'Korean':'English'} · ${s.order.filter(k=>s.on[k]).map(k=>T(SECTIONS[k])).join(', ')}`);
+    v.logRows=LOG.map(l=>({...l,job:T(l.job),conf:T(l.conf),time:T(l.time),kind:T(l.kind),bg:KIND[l.kind][0],fg:KIND[l.kind][1]}));
+    const UIM={"edit":"M4 20h4L19 9l-4-4L4 16z M13.5 6.5l4 4","trash":"M4 7h16 M9 7V4h6v3 M6 7l1 13h10l1-13 M10 11v6 M14 11v6","pin":"M9 4h6l-1 6 3 3H7l3-3z M12 13v7","unpin":"M9 4h6l-1 6 3 3H7l3-3z M12 13v7 M4 4l16 16"};const um=k=>'url("data:image/svg+xml,'+encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='"+UIM[k]+"'/></svg>")+'") center/contain no-repeat';
+    v.icoEdit=um('edit');v.icoTrash=um('trash');v.tipRename=L('이름 변경','Rename');v.tipDelete=L('삭제','Delete');v.tipEdit=L('수정','Edit');v.openLabel=L('열기','Open');
+    v.meetingRows=v.meetingRows.map(r=>({...r,pinMask:um(r.pinned?'unpin':'pin'),pinFg:r.pinned?'var(--accent)':'var(--ink3)'}));
+    const rtc=ch.find(c=>c.n===s.retryN);v.retryOpen=!!rtc;
+    if(rtc){const bl={24:'24 kbps',32:'32 kbps',48:'48 kbps'};
+      v.retryTitle=L('청크 '+rtc.n+' 다시 전사','Re-transcribe chunk '+rtc.n);v.retrySub=fmt(rtc.s)+' – '+fmt(rtc.e)+' · '+rtc.mb.toFixed(1)+' MB';
+      v.retryCause=rtc.status==='failed'?L('직전 실패 원인: ','Last failure: ')+T(rtc.err||''):'';
+      const MD=[['whisper-1',T('구간별 타임스탬프를 받을 수 있어요. 화자 구분은 제공하지 않아요.')],['gpt-4o-transcribe',T('정확도가 높은 편이지만 구간 타임스탬프를 제공하지 않아 청크 단위 시간만 표시돼요.')],['gpt-4o-mini-transcribe',T('빠르고 저렴해요. 타임스탬프는 청크 단위로만 표시돼요.')]];
+      v.retryModels=MD.map(([k,d])=>{const on=s.retryModel===k;return{label:'OpenAI · '+k,desc:d,border:on?'var(--accent)':'var(--line)',bg:on?'var(--accentSofter)':'var(--surface)',dot:on?'var(--accent)':'transparent',onClick:()=>this.setState({retryModel:k})}});
+      v.retryLangLabel=L('언어 힌트','Language hint');
+      v.retryLangs=[['auto',L('자동 감지','Auto-detect')]].concat(s.langs.map(k=>[k,LN[k]||k])).map(([k,l])=>chip(l,s.retryLang===k,()=>this.setState({retryLang:k})));
+      v.retryBrLabel=L('압축 (Opus)','Compression (Opus)');v.retryBrOpts=seg([24,32,48].map(b=>({v:b,l:bl[b]})),s.retryBr,x=>this.setState({retryBr:x}));
+      const mbx=(rtc.e-rtc.s)*s.retryBr/8/1000;
+      v.retrySend=L('이 청크 1개(약 '+mbx.toFixed(1)+' MB)만 OpenAI로 전송돼요. 다른 청크의 전사 결과는 바뀌지 않아요.','Only this chunk (~'+mbx.toFixed(1)+' MB) is sent to OpenAI. Other chunks keep their results.');
+      v.retryGo=rtc.status==='done'?L('다시 전사','Re-transcribe'):L('전사 실행','Transcribe');
+      v.doRetry=()=>this.setState(st=>({retryN:null,sttModel:st.retryModel,queue:true,chunks:st.chunks.map(x=>x.n===rtc.n?{...x,status:'running',pct:0,err:null,model:st.retryModel}:x)}));}
+    v.closeRetry=()=>this.setState({retryN:null});v.stopProp=e=>e.stopPropagation();
+    return v;
+  }
+}
+</script>
+</body>
+</html>

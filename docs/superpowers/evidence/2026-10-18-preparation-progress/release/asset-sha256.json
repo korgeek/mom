@@ -1,0 +1,76 @@
+{
+  "checkedAt": "2026-10-18T07:34:16.203Z",
+  "base": "https://mom.korgeek.workers.dev",
+  "featureSHA": "25242ab42036b11d591074182656390b469dc9a3",
+  "revision": "25242ab42036b11d591074182656390b469dc9a3",
+  "passed": true,
+  "files": [
+    {
+      "path": "index.html",
+      "size": 566,
+      "sha256": "b2e89af52e6992015eda4f287774dee906916e203914b4cf52acc90c0933c0ca",
+      "status": 200,
+      "servedBytes": 566,
+      "servedSHA256": "b2e89af52e6992015eda4f287774dee906916e203914b4cf52acc90c0933c0ca",
+      "mime": "text/html",
+      "matched": true,
+      "headers": {
+        "content-security-policy": "default-src 'none'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; media-src 'self' blob:; worker-src 'self'; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; object-src 'none'",
+        "cross-origin-opener-policy": "same-origin",
+        "permissions-policy": "camera=(), microphone=(self), geolocation=(), payment=()",
+        "referrer-policy": "no-referrer",
+        "x-content-type-options": "nosniff"
+      }
+    },
+    {
+      "path": "assets/index-DAySg1Xu.css",
+      "size": 49424,
+      "sha256": "e9650e857fec69b1d9187637280d19913e7206a5e6d777d75301edce000db717",
+      "status": 200,
+      "servedBytes": 49424,
+      "servedSHA256": "e9650e857fec69b1d9187637280d19913e7206a5e6d777d75301edce000db717",
+      "mime": "text/css",
+      "matched": true
+    },
+    {
+      "path": "assets/index-DFVtcyKu.js",
+      "size": 1227000,
+      "sha256": "f4b41f96d94e60b139a494265c70a9cbe034aee92f982da10d26e0d2e5415e9a",
+      "status": 200,
+      "servedBytes": 1227000,
+      "servedSHA256": "f4b41f96d94e60b139a494265c70a9cbe034aee92f982da10d26e0d2e5415e9a",
+      "mime": "text/javascript",
+      "matched": true
+    },
+    {
+      "path": "assets/mp3-BxzrsqzD.wasm",
+      "size": 132999,
+      "sha256": "85e81719250b9a667b1258143f689dda70e3e57a7e7c29ab0b4cef65c8f6eb9a",
+      "status": 200,
+      "servedBytes": 132999,
+      "servedSHA256": "85e81719250b9a667b1258143f689dda70e3e57a7e7c29ab0b4cef65c8f6eb9a",
+      "mime": "application/wasm",
+      "matched": true
+    },
+    {
+      "path": "assets/pcm-worklet-Bpzm_RA1.js",
+      "size": 2612,
+      "sha256": "6d997339b00284ab9c5c6af10d72402172fe80e313fce2f043cfda2c72936203",
+      "status": 200,
+      "servedBytes": 2612,
+      "servedSHA256": "6d997339b00284ab9c5c6af10d72402172fe80e313fce2f043cfda2c72936203",
+      "mime": "text/javascript",
+      "matched": true
+    },
+    {
+      "path": "assets/worker-C2o35iJn.js",
+      "size": 297741,
+      "sha256": "5e7e6fed6ede754088f7c12847e5addc96c2fde7f531b02f2d10b5e3647af094",
+      "status": 200,
+      "servedBytes": 297741,
+      "servedSHA256": "5e7e6fed6ede754088f7c12847e5addc96c2fde7f531b02f2d10b5e3647af094",
+      "mime": "text/javascript",
+      "matched": true
+    }
+  ]
+}

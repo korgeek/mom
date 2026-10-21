@@ -1,0 +1,42 @@
+Embedded reference-font metadata (verbatim field values)
+
+Pretendard Variable
+Source: public/fonts/b0c70943-c6ff-45d1-bafa-4c3c4ba2cd93.woff2
+
+Copyright © 2023 Kil Hyung-jin
+Copyright © 2023 길형진
+Pretendard Variable
+Version 1.309;Glyphs 3.2 (3225)
+Kil Hyung-jin
+길형진
+Base glyphs from Inter by Rasmus Andersson; Hangeul glyphs from Noto Sans CJK(Source Han Sans) by Jang Soo-young and Kang Joo-yeon, Sandoll Communications; Kana glyphs from M PLUS 1p by Coji Morishita, UNDERFOREST DESIGN; Combined and redesigned to Pretendard by Kil Hyung-jin.
+This Font Software is licensed under the SIL Open Font License, Version 1.1. This license is available with a FAQ at: http://scripts.sil.org/OFL
+http://scripts.sil.org/OFL
+
+IBM Plex Mono (all fifteen reference WOFF2 subsets)
+
+Copyright 2017 IBM Corp. All rights reserved.
+Version 2.3
+http://scripts.sil.org/OFL
+
+Embedded family names, across the subsets:
+IBM Plex Mono
+IBM Plex Mono Medium
+IBM Plex Mono SemiBold
+
+Source files:
+public/fonts/07774ae9-419e-4039-936a-3fcf17a211f9.woff2
+public/fonts/2f8a5888-28f0-49b1-a783-a406bbce27d8.woff2
+public/fonts/48183dc6-2318-48cd-a46b-abbc8b97861b.woff2
+public/fonts/4c414dd3-3df3-4f2b-a13f-283e3f4f8988.woff2
+public/fonts/55e701fa-9bd1-4b66-bd33-72ba1408db0f.woff2
+public/fonts/5945bc4f-fecd-4252-9852-40fc489b798b.woff2
+public/fonts/78e9c765-c9f0-4377-81a4-18fa1937184a.woff2
+public/fonts/87b04f0e-dd42-469d-97f7-69f37348af36.woff2
+public/fonts/a7cb5beb-c2a6-4154-9f62-75abc13bcdac.woff2
+public/fonts/a9f1438d-547f-4157-9b72-cc25f292f4fe.woff2
+public/fonts/b4754d39-d7fa-4b79-8b30-a3646fb18252.woff2
+public/fonts/b98838b0-9fa1-425e-b662-19e4ce824047.woff2
+public/fonts/e603d32d-3679-4cf7-9f44-786d92c7e53e.woff2
+public/fonts/e84e0aa7-415f-4321-9487-52a6ed8225e2.woff2
+public/fonts/ed6accf5-e01d-42fb-8d7a-d7ac67bf1ee1.woff2

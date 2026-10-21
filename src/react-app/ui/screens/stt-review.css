@@ -1,0 +1,24 @@
+/* The review dialogs share the native modal focus boundary used by settings. */
+.mom .stt-review-dialog { width: min(1200px, calc(100vw - 48px)); }
+.mom .stt-usage-dialog { width: min(860px, calc(100vw - 48px)); }
+.mom .stt-chunk-dialog { width: min(720px, calc(100vw - 48px)); }
+.stt-review-dialog > header, .stt-usage-dialog > header, .stt-chunk-dialog > header { position: sticky; top: -24px; z-index: 1; background: var(--surface); padding-block: 8px; }
+.stt-original-text { background: var(--surface-subtle, var(--bg)); padding: 16px; border-radius: 8px; max-height: 45vh; overflow: auto; }
+.mom .stt-review-button { color: var(--accent); }
+.stt-usage-summary .facts { grid-template-columns: minmax(0, 1fr) auto; }
+.stt-usage-summary .usage-costs { font-size: 13px; overflow-wrap: anywhere; }
+.stt-usage-summary .usage-costs > :first-child { font-size: 17px; font-weight: 600; }
+.usage-attempt > summary { display: flex; flex-wrap: wrap; gap: 8px; align-items: baseline; }
+.usage-diagnostics { overflow-wrap: anywhere; }
+.stt-request-dialog { font-size: 13px; line-height: 1.6; }
+.stt-request-dialog > .warning { font-size: 12px; }
+.stt-selected-chunks { border: 1px solid var(--line); border-radius: 8px; padding: 12px; background: var(--fill2); }
+.stt-selected-chunks > strong { font-size: 13px; font-weight: 600; }
+.stt-selected-chunks ul { list-style: none; padding: 0; margin: 8px 0 0; display: grid; gap: 6px; max-height: 160px; overflow: auto; }
+.stt-selected-chunks li { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: baseline; }
+.stt-selected-chunks li strong { font-size: 13px; }
+@media (max-width: 650px) {
+  .mom .stt-review-dialog, .mom .stt-usage-dialog, .mom .stt-chunk-dialog { width: calc(100vw - 24px); padding: 16px; }
+  .stt-review-dialog > header, .stt-usage-dialog > header, .stt-chunk-dialog > header { top: -16px; }
+  .stt-review-dialog .review-grid { grid-template-columns: minmax(0, 1fr); }
+}

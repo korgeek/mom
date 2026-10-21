@@ -1,0 +1,20 @@
+[
+  {
+    "path": "index.html",
+    "sha256": "a6152a1a207fc3e95ade1d45d8b6079edbe475bb2770dd40f52d92a02a4de5d3",
+    "http_status": 200,
+    "security_headers": 5
+  },
+  {
+    "path": "assets/index-CnThzoZg.js",
+    "sha256": "7043ab6edd82e99747e5c721926ee8c35eb4bbbb2ecfec4a946331f664695b75",
+    "http_status": 200,
+    "security_headers": null
+  },
+  {
+    "path": "assets/index-DsVIOx9T.css",
+    "sha256": "1d5ff25138292b1257b1ea3e876266dbb03d27ee30c883bfbf6e31b031cbbf0a",
+    "http_status": 200,
+    "security_headers": null
+  }
+]
