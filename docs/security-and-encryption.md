@@ -94,7 +94,7 @@ The original inner data key and ciphertext remain unchanged. This design cannot 
 
 ## Recorded evidence and remaining work
 
-The [2026-10-29 security audit](superpowers/evidence/2026-10-29-security-release/security-audit.md) records the current working-tree review, synthetic checks and outstanding release blockers. The [2026-10-18 evidence record](superpowers/evidence/2026-10-18-screen-lock-responsive/README.md) is the source for exact commands, failures, corrections and environment limits. Its results apply to the source/build and synthetic inputs recorded there:
+The [2026-10-29 security audit](superpowers/evidence/2026-10-29-security-release/security-audit.md) records the current working-tree review, synthetic checks, corrections and remaining limitations. The [2026-10-18 evidence record](superpowers/evidence/2026-10-18-screen-lock-responsive/README.md) is the source for exact commands, failures, corrections and environment limits. Its results apply to the source/build and synthetic inputs recorded there:
 
 - **Selected vault/lock unit checks:** `npm run test:unit -- tests/screen-state.spec.ts tests/lock.spec.ts tests/vault.spec.ts` recorded **62 passing** tests. They cover the directly affected encrypted state, ownership, reauthentication and lock paths; they are not a whole-repository or cryptographic-certification result.
 - **Synthetic browser storage audit:** fresh Chrome contexts checked sentinel absence in raw IndexedDB stores/Web Storage, checked CacheStorage/service-worker/console observations, and rejected a wrong passphrase before successful reopening. These checks did not open an existing user vault, dump a production browser profile or audit OS/Blob backing files.
