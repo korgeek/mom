@@ -71,3 +71,25 @@ Chrome의 별도 로컬 검증 창에서 1610×1068 데스크톱으로 합성 �
 ## 남은 범위와 한계
 
 `stream` 수신 처리, 화자 참조 클립과 일반 고급 배열의 multipart 반복 매핑, 감지된 `languages`의 별도 결과 UI는 이번 변경에 포함하지 않았다. 감지 언어 등 원본 응답의 필드는 기존 암호화 원본 응답에 보존된다. OpenRouter의 고유 옵션 전달, 모델별 실제 포맷 허용과 추론 품질은 인증된 실행으로 별도 확인해야 한다. 사용자의 실제 저장 설정·키·회의 데이터는 변경하지 않았다.
+
+## 변경 파일
+
+- `docs/README.md`
+- `docs/superpowers/evidence/2026-10-29-stt-standardization/README.md`
+- `docs/superpowers/evidence/2026-10-29-stt-standardization/history-desktop.jpg`
+- `docs/superpowers/evidence/2026-10-29-stt-standardization/model-direct-desktop.jpg`
+- `docs/superpowers/evidence/2026-10-29-stt-standardization/model-openrouter-desktop.jpg`
+- `docs/superpowers/evidence/2026-10-29-stt-standardization/model-stale-desktop.jpg`
+- `src/react-app/controller.tsx`
+- `src/react-app/domain/pipeline.ts`
+- `src/react-app/domain/types.ts`
+- `src/react-app/providers/model-profiles.ts`
+- `src/react-app/providers/model-registrations.ts`
+- `src/react-app/providers/openrouter.ts`
+- `src/react-app/ui/components/ModelRegistrations.tsx`
+- `src/react-app/ui/screens/History.tsx`
+- `tests/history-listing.spec.tsx`
+- `tests/model-registrations-ui.spec.tsx`
+- `tests/provider-data-policy.spec.ts`
+- `tests/stt-input-settings.spec.ts`
+- `tests/stt-rerun-controller.spec.tsx`

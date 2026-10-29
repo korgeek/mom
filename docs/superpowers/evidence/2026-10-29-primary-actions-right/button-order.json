@@ -1,0 +1,226 @@
+{
+  "states": [
+    {
+      "state": "모델 관리",
+      "groups": [
+        {
+          "buttons": [
+            "JSON 가져오기",
+            "JSON 내보내기",
+            "새 모델"
+          ],
+          "lastIsPrimary": true,
+          "rightGap": 0
+        }
+      ]
+    },
+    {
+      "state": "모델 수정",
+      "groups": [
+        {
+          "buttons": [
+            "JSON 가져오기",
+            "JSON 내보내기",
+            "새 모델"
+          ],
+          "lastIsPrimary": true,
+          "rightGap": 0
+        },
+        {
+          "buttons": [
+            "저장한 설정 JSON 내보내기",
+            "저장"
+          ],
+          "lastIsPrimary": true,
+          "rightGap": 0
+        }
+      ]
+    },
+    {
+      "state": "API 키 추가",
+      "groups": [
+        {
+          "buttons": [
+            "JSON 가져오기",
+            "JSON 내보내기",
+            "새 모델"
+          ],
+          "lastIsPrimary": true,
+          "rightGap": 0
+        },
+        {
+          "buttons": [
+            "취소",
+            "키 저장"
+          ],
+          "lastIsPrimary": true,
+          "rightGap": 0
+        }
+      ]
+    },
+    {
+      "state": "음성 메모 목록",
+      "groups": [
+        {
+          "buttons": [
+            "처리 기록 합성 음성 메모",
+            "고정 합성 음성 메모",
+            "이름 변경 합성 음성 메모",
+            "삭제 합성 음성 메모",
+            "열기"
+          ],
+          "lastIsPrimary": true,
+          "rightGap": 0
+        }
+      ]
+    },
+    {
+      "state": "음성 준비 전",
+      "groups": [
+        {
+          "buttons": [
+            "전사하기",
+            "전사 준비"
+          ],
+          "lastIsPrimary": true,
+          "rightGap": 0
+        }
+      ]
+    },
+    {
+      "state": "음성 준비 완료",
+      "groups": [
+        {
+          "buttons": [
+            "전사 준비",
+            "전사하기"
+          ],
+          "lastIsPrimary": true,
+          "rightGap": 0
+        }
+      ]
+    },
+    {
+      "state": "녹음 중",
+      "groups": [
+        {
+          "buttons": [
+            "일시정지",
+            "녹음 취소",
+            "저장 후 종료"
+          ],
+          "lastIsPrimary": true,
+          "rightGap": 0
+        },
+        {
+          "buttons": [
+            "전사하기",
+            "전사 준비"
+          ],
+          "lastIsPrimary": true,
+          "rightGap": 0
+        }
+      ]
+    },
+    {
+      "state": "마이크 권한 대기",
+      "groups": [
+        {
+          "buttons": [
+            "녹음 취소",
+            "녹음 시작"
+          ],
+          "lastIsPrimary": true,
+          "rightGap": 0
+        },
+        {
+          "buttons": [
+            "전사하기",
+            "전사 준비"
+          ],
+          "lastIsPrimary": true,
+          "rightGap": 0
+        }
+      ]
+    },
+    {
+      "state": "정리 노트 편집",
+      "groups": [
+        {
+          "buttons": [
+            "Markdown 복사",
+            ".md 다운로드"
+          ],
+          "lastIsPrimary": true,
+          "rightGap": 0
+        },
+        {
+          "buttons": [
+            "수정 취소",
+            "수정본 저장"
+          ],
+          "lastIsPrimary": true,
+          "rightGap": 0
+        }
+      ]
+    },
+    {
+      "state": "전사문 편집",
+      "groups": [
+        {
+          "buttons": [
+            "취소",
+            "저장"
+          ],
+          "lastIsPrimary": true,
+          "rightGap": 0
+        }
+      ]
+    },
+    {
+      "state": "목록 설정 편집",
+      "groups": [
+        {
+          "buttons": [
+            "취소",
+            "저장"
+          ],
+          "lastIsPrimary": true,
+          "rightGap": 0
+        }
+      ]
+    },
+    {
+      "state": "모바일 모델 관리",
+      "groups": [
+        {
+          "buttons": [
+            "JSON 가져오기",
+            "JSON 내보내기",
+            "새 모델"
+          ],
+          "lastIsPrimary": true,
+          "rightGap": 0,
+          "viewport": {
+            "height": 800,
+            "width": 360
+          }
+        }
+      ]
+    }
+  ],
+  "keyboard": {
+    "from": "저장한 설정 JSON 내보내기",
+    "to": "저장"
+  },
+  "recordingStart": {
+    "idle": {
+      "left": 1368.921875,
+      "right": 1446.5
+    },
+    "permission": {
+      "left": 1368.921875,
+      "right": 1446.5
+    }
+  }
+}

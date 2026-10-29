@@ -1,0 +1,182 @@
+{
+  "before": {
+    "main": {
+      "left": 373,
+      "right": 1473,
+      "width": 1100
+    },
+    "screen": {
+      "left": 443,
+      "right": 1403,
+      "width": 960
+    },
+    "viewport": {
+      "height": 1068,
+      "width": 1610
+    }
+  },
+  "after": [
+    {
+      "heading": "음성 메모",
+      "main": {
+        "left": 16,
+        "right": 329,
+        "width": 313
+      },
+      "overflow": false,
+      "screen": {
+        "left": 16,
+        "right": 329,
+        "width": 313
+      },
+      "viewport": {
+        "height": 800,
+        "width": 360
+      }
+    },
+    {
+      "heading": "처리 기록",
+      "main": {
+        "left": 16,
+        "right": 329,
+        "width": 313
+      },
+      "overflow": false,
+      "screen": {
+        "left": 16,
+        "right": 329,
+        "width": 313
+      },
+      "viewport": {
+        "height": 800,
+        "width": 360
+      }
+    },
+    {
+      "heading": "설정",
+      "main": {
+        "left": 16,
+        "right": 329,
+        "width": 313
+      },
+      "overflow": false,
+      "screen": {
+        "left": 16,
+        "right": 329,
+        "width": 313
+      },
+      "viewport": {
+        "height": 800,
+        "width": 360
+      }
+    },
+    {
+      "heading": "설정",
+      "main": {
+        "left": 20,
+        "right": 1065,
+        "width": 1045
+      },
+      "overflow": false,
+      "screen": {
+        "left": 20,
+        "right": 1065,
+        "width": 1045
+      },
+      "viewport": {
+        "height": 900,
+        "width": 1100
+      }
+    },
+    {
+      "heading": "처리 기록",
+      "main": {
+        "left": 20,
+        "right": 1065,
+        "width": 1045
+      },
+      "overflow": false,
+      "screen": {
+        "left": 20,
+        "right": 1065,
+        "width": 1045
+      },
+      "viewport": {
+        "height": 900,
+        "width": 1100
+      }
+    },
+    {
+      "heading": "음성 메모",
+      "main": {
+        "left": 20,
+        "right": 1065,
+        "width": 1045
+      },
+      "overflow": false,
+      "screen": {
+        "left": 20,
+        "right": 1065,
+        "width": 1045
+      },
+      "viewport": {
+        "height": 900,
+        "width": 1100
+      }
+    },
+    {
+      "heading": "음성 메모",
+      "main": {
+        "left": 365.5,
+        "right": 1465.5,
+        "width": 1100
+      },
+      "overflow": false,
+      "screen": {
+        "left": 365.5,
+        "right": 1465.5,
+        "width": 1100
+      },
+      "viewport": {
+        "height": 1068,
+        "width": 1610
+      }
+    },
+    {
+      "heading": "처리 기록",
+      "main": {
+        "left": 365.5,
+        "right": 1465.5,
+        "width": 1100
+      },
+      "overflow": false,
+      "screen": {
+        "left": 365.5,
+        "right": 1465.5,
+        "width": 1100
+      },
+      "viewport": {
+        "height": 1068,
+        "width": 1610
+      }
+    },
+    {
+      "heading": "설정",
+      "main": {
+        "left": 365.5,
+        "right": 1465.5,
+        "width": 1100
+      },
+      "overflow": false,
+      "screen": {
+        "left": 365.5,
+        "right": 1465.5,
+        "width": 1100
+      },
+      "viewport": {
+        "height": 1068,
+        "width": 1610
+      }
+    }
+  ]
+}
