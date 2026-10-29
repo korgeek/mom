@@ -68,3 +68,11 @@ git diff --check
 변경된 앱 TS/TSX 소스 37개 경로를 `npx eslint <변경 경로들>`로 검사했다. 오류 0, 기존 코드 줄의 Fast Refresh 및 effect cleanup 경고 2개가 남는다. Node v24.11.1의 일부 jsdom 의존성 엔진 요구 미달 경고는 변경 전 잠금파일에도 존재했으며 이번에 사용한 명령은 위 결과대로 통과했다. 빌드의 기존 mixed-import·큰 번들 경고와 jsdom 오디오 메서드 미구현 경고는 남는다.
 
 레퍼런스 원본 6개의 SHA-256은 이전 값과 동일하다. 새 보안 문서와 안내 페이지의 로컬 링크도 확인했다. 운영 revision과 실제 배포 결과는 배포 후 별도로 덧붙인다.
+
+## 원격 미리보기 배포 수정
+
+PR의 첫 Cloudflare 검사(`43a25a4`, build `c1bbf4e8-9736-46d0-8d24-c7102f9ac3e0`)는 원격 Node 24.22.1에서 설치·타입·앱 빌드에 성공한 뒤, 기존 비운영 명령 `npx wrangler preview`가 요구하는 `previews` 블록이 없어 실패했다. [공식 구성 문서](https://developers.cloudflare.com/workers/previews/configuration/#wrangler-configuration-file)에 따라 `wrangler.json`에 빈 `previews` 객체를 추가했다. 이 앱은 정적 자산만 배포하며 서버 데이터 바인딩이 없다.
+
+`npm run build`를 다시 통과했고, 생성된 `dist/client/wrangler.json`에도 `previews: {}`, 기존 정적 자산 설정, `upload_source_maps: false`가 반영되는 것을 Node assert로 확인했다. 앱 동작 코드는 바뀌지 않아 위 통과한 기능 검사를 재사용한다. 이후 원격 검사와 운영 반영 결과는 별도 확인한다.
+
+로컬 합성 테스트 도중 개발 서버의 HMR 갱신과 같은 시각에 React `flushSync` lifecycle 콘솔 경고 한 건이 있었다. 이를 오류 없는 콘솔 증거로 취급하지 않는다. 사용자 작업용 개발 서버는 유지하고, 합성 보관함을 삭제한 별도 4195 서버와 테스트 탭은 종료했다.
