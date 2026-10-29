@@ -10,6 +10,17 @@ async function fixture(fetch: typeof globalThis.fetch = vi.fn()) {
   const core = createMeetingController({ indexedDB: new IDBFactory(), databaseName: crypto.randomUUID(), fetch, sessionFactory: options => createVaultSession({ ...options, testOnlyOwnership: { acquire: async () => () => {} } }) });
   cores.push(core); await core.initialize(); await core.createVault(phrase); return core;
 }
+it('reports three and four failed full unlocks and enters a new vault only after the fifth deletes it',async()=>{
+  const core=await fixture(); await core.createMeeting(); await core.lock();
+  for(let count=1;count<=4;count++) {
+    await expect(core.unlock('synthetic incorrect passphrase')).rejects.toThrow();
+    expect(core.getSnapshot().authFailures).toBe(count);
+    expect(core.getSnapshot().session).toBe('locked');
+  }
+  await core.unlock('synthetic incorrect passphrase');
+  expect(core.getSnapshot()).toMatchObject({session:'new',authFailures:5,authDeleted:true,authDeletionPending:false});
+  expect(core.getSnapshot().projects).toEqual([]);
+});
 it('screens a live approved request, rejects bad reauthentication without cancellation, and releases keys after its saved completion', async () => {
   let finish!: (response: Response) => void;
   const fetch = vi.fn((_url: RequestInfo | URL, init?: RequestInit) => new Promise<Response>(resolve => { expect(init?.signal?.aborted).toBe(false); finish = resolve; }));

@@ -42,7 +42,7 @@ async function fixture(options: { respond?: (attempt: number, init?: RequestInit
     await session.store.checkpoint({ project: seeded, runId: null, audioRecords: [{ recordId: sourceId, audio }, ...preparedChunks.map(chunk => ({ recordId: chunk.audioRecordId, audio }))] }, createJobContext());
     await core.lock(); await core.unlock(secret); await core.saveKey("openai", "SYNTHETIC_FAKE_KEY_NO_NETWORK", "encrypted");
     for (const id of ['gpt-transcribe', 'gpt-4o-mini-transcribe']) {
-        const model = validateRegistration({ ...createModelPreset('openai-stt', () => id), modelId: id, enabled: true, stt: { formats: ['mp3'], maxBytes: 25000000, responseFormat: 'json', languageMode: id === 'gpt-transcribe' ? 'multiple' : 'none', timestamps: 'none' } });
+        const model = validateRegistration({ ...createModelPreset('openai-gpt-transcribe', () => id), modelId: id, enabled: true, stt: { formats: ['mp3'], maxBytes: 25000000, responseFormat: 'json', languageMode: id === 'gpt-transcribe' ? 'multiple' : 'none', timestamps: 'none' } });
         await core.getSnapshot().onSaveRegistration!(model, { action: 'replace', value: 'SYNTHETIC_REGISTRATION_KEY_NO_NETWORK' });
     }
     await core.getSnapshot().onSetRegistrationDefault!('stt', 'gpt-transcribe');
@@ -77,7 +77,8 @@ it.each([true, false])('retains encrypted failure diagnostics after reload with 
     const saved = f.project() as import('../src/react-app/controller').ControllerProject;
     expect(saved.failedProviderResponses).toHaveLength(1);
     expect(saved.failedProviderResponses![0]).toMatchObject({ runId: saved.runs[0].id, status: 400, failureCode: 'invalid-input' });
-    if (json) expect(saved.failedProviderResponses![0].response).toMatchObject({ message: 'Unsupported format verbose_json [redacted]', code: 'unsupported_value', param: 'response_format' });
+    if (json) expect(saved.failedProviderResponses![0].response).toMatchObject({ error: { message: 'Unsupported format verbose_json [redacted]', code: 'unsupported_value', param: 'response_format' } });
+    expect(saved.failedProviderResponses![0].request).toMatchObject({method:'POST',body:{file:{omitted:'audio bytes'}}});
     expect(JSON.stringify(saved.failedProviderResponses)).not.toContain('SYNTHETIC_REGISTRATION_KEY_NO_NETWORK');
     expect(saved.rawTranscripts).toHaveLength(0); expect(f.requests).toHaveLength(1);
 });
@@ -90,7 +91,7 @@ it('retains LLM failure diagnostics without changing completed transcripts', asy
     await f.core.setMinutesRoute(f.id, notes.id);
     await expect(f.core.generateMinutes(f.id, { acknowledged: true, transcriptVersionId: f.project().selectedTranscriptVersionId!, consentToken: f.core.getSnapshot().minutesConsentToken!, partialAcknowledged: false })).rejects.toMatchObject({ code: 'context', status: 400 });
     await f.core.lock(); await f.core.unlock(secret);
-    expect(f.project().failedProviderResponses![0]).toMatchObject({ status: 400, failureCode: 'context', response: { code: 'context_length_exceeded', param: 'messages' } });
+    expect(f.project().failedProviderResponses![0]).toMatchObject({ status: 400, failureCode: 'context', response: { error: { code: 'context_length_exceeded', param: 'messages' } }, request:{method:'POST'} });
     expect(f.project().rawTranscripts).toHaveLength(2); expect(f.project().minutesRuns).toHaveLength(0); expect(f.minutesRequests).toHaveLength(1);
 });
 function rerunConsent(f: Awaited<ReturnType<typeof fixture>>, chunkIds: readonly string[], batchId?: string) {
@@ -172,16 +173,27 @@ it("preserves the old public selection on checkpoint failure and recovers one co
     expect(f.core.getSnapshot().busy).toBe(true); await f.core.lock(); await f.core.unlock(secret);
     expect(f.project().rawTranscripts).toHaveLength(3); expect(f.project().transcriptVersions).toHaveLength(before.transcriptVersions.length + 1); expect(f.project().selectedTranscriptVersionId).toBe(before.selectedTranscriptVersionId); expect(f.requests).toHaveLength(3);
 });
-it("preserves an initial partial selection on explicit failed-chunk retry and reloads exact frozen lineage", async () => {
+it("fills a missing chunk after explicit retry while preserving edited transcript lineage across reload", async () => {
     const f = await fixture({ respond: async attempt => attempt === 2 ? new Response(JSON.stringify({ error: { message: "TEST_ONLY_FAILURE" } }), { status: 429 }) : new Response(JSON.stringify({ text: `SYNTHETIC_RESULT_${attempt}`, usage: { type: "duration", seconds: 1 } })) });
     await expect(f.core.startSTT(f.id, initialConsent(f))).rejects.toMatchObject({ code: "rate-limit" });
-    const partial = f.project(), selected = partial.selectedTranscriptVersionId, batch = partial.sttBatches![0], chunks = [partial.preparedChunks[1].id];
-    expect(partial.transcriptVersions.find(version => version.id === selected)?.missingRanges.length).toBeGreaterThan(0); expect(batch.attemptRunIds).toHaveLength(2);
+    const partial = f.project(), selected = partial.transcriptVersions.find(version => version.id === partial.selectedTranscriptVersionId)!, batch = partial.sttBatches![0], chunks = [partial.preparedChunks[1].id];
+    expect(selected.missingRanges.length).toBeGreaterThan(0); expect(batch.attemptRunIds).toHaveLength(2);
+    await f.core.editTranscript(f.id, selected.id, selected.segments[0].id, 'SYNTHETIC_KEEP_EDIT');
+    const edited = structuredClone(f.project().transcriptVersions.find(version => version.id === f.project().selectedTranscriptVersionId)!);
     await f.core.startSTT(f.id, rerunConsent(f, chunks, batch.id), chunks, { purpose: "retry-failed", batchId: batch.id });
-    expect(f.requests).toHaveLength(3); expect(f.project().selectedTranscriptVersionId).toBe(selected); const complete = f.project().transcriptVersions.at(-1)!; expect(complete.missingRanges).toEqual([]);
-    const originalBatch = f.project().sttBatches![0]; await f.core.lock(); await f.core.unlock(secret); expect(f.project().sttBatches![0]).toEqual(originalBatch); expect(f.project().transcriptVersions.at(-1)).toEqual(complete);
-    f.core.getSnapshot().onSelectTranscript?.(f.id, complete.id); await vi.waitFor(() => expect(f.project().selectedTranscriptVersionId).toBe(complete.id)); expect(f.requests).toHaveLength(3);
+    expect(f.requests).toHaveLength(3);
+    const saved = f.project(), complete = saved.transcriptVersions.find(version => version.id === saved.selectedTranscriptVersionId)!;
+    expect(complete.id).not.toBe(edited.id); expect(complete.parentId).toBe(edited.id); expect(complete.missingRanges).toEqual([]);
+    expect(complete.segments.some(segment => segment.text === 'SYNTHETIC_KEEP_EDIT')).toBe(true);
+    expect(complete.rawIds).toEqual(expect.arrayContaining([...edited.rawIds]));
+    expect(saved.transcriptVersions.find(version => version.id === edited.id)).toEqual(edited);
+    expect(saved.transcriptVersions.find(version => version.id === selected.id)).toEqual(selected);
+    const originalBatch = saved.sttBatches![0]; await f.core.lock(); await f.core.unlock(secret);
+    expect(f.project().sttBatches![0]).toEqual(originalBatch); expect(f.project().selectedTranscriptVersionId).toBe(complete.id);
+    expect(f.project().transcriptVersions.find(version => version.id === complete.id)).toEqual(complete);
+    expect(f.project().transcriptVersions.find(version => version.id === edited.id)).toEqual(edited); expect(f.requests).toHaveLength(3);
 });
+
 it("retries a failed rerun with the original enabled model and language hints after current settings change", async () => {
     const f = await fixture({ respond: async attempt => attempt === 3 ? new Response(JSON.stringify({ error: { message: "TEST_ONLY_RETRY_FAILURE" } }), { status: 429 }) : new Response(JSON.stringify({ text: `SYNTHETIC_RESULT_${attempt}` })) });
     await f.core.startSTT(f.id, initialConsent(f)); const chunks = [f.project().preparedChunks[0].id];

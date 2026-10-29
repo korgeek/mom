@@ -107,6 +107,37 @@ function transaction<T>(db: IDBDatabase, names: string[], mode: IDBTransactionMo
 export function readHeader(db: IDBDatabase, guard: Guard = () => { }): Promise<VaultHeader | null> {
     return transaction(db, ["header"], "readonly", guard, (tx, result) => { const request = tx.objectStore("header").get("vault"); request.onsuccess = () => result(request.result ?? null); });
 }
+export type VaultAuthPolicy = Readonly<{ id: 'auth-policy'; vaultId: string; failures: number; pendingDeletion: boolean }>;
+export function readVaultAuthPolicy(db: IDBDatabase, vaultId: string): Promise<VaultAuthPolicy> {
+    return transaction(db, ['header'], 'readonly', () => {}, (tx, result) => {
+        const request = tx.objectStore('header').get('auth-policy');
+        request.onsuccess = () => {
+            const policy = request.result as VaultAuthPolicy | undefined;
+            if (policy && (policy.vaultId !== vaultId || !Number.isInteger(policy.failures) || policy.failures < 0 || policy.failures > 5 || typeof policy.pendingDeletion !== 'boolean' || policy.pendingDeletion !== (policy.failures === 5))) { tx.abort(); return; }
+            result(policy ?? { id: 'auth-policy', vaultId, failures: 0, pendingDeletion: false });
+        };
+    });
+}
+export function updateVaultAuthPolicy(db: IDBDatabase, vaultId: string, outcome: 'read' | 'failure' | 'success', guard: Guard, signal?: AbortSignal): Promise<VaultAuthPolicy> {
+    return transaction(db, ['header'], 'readwrite', guard, (tx, result) => {
+        const abort = () => { try { tx.abort(); } catch { /* Already committed. */ } };
+        signal?.addEventListener('abort', abort, { once: true });
+        const detach = () => signal?.removeEventListener('abort', abort);
+        tx.addEventListener('complete', detach, { once: true }); tx.addEventListener('abort', detach, { once: true });
+        if (signal?.aborted) { abort(); return; }
+        const store = tx.objectStore('header'), request = store.get('auth-policy');
+        request.onsuccess = () => {
+            try { guard(); } catch { tx.abort(); return; }
+            const prior = request.result as VaultAuthPolicy | undefined;
+            if (prior && (prior.vaultId !== vaultId || !Number.isInteger(prior.failures) || prior.failures < 0 || prior.failures > 5 || typeof prior.pendingDeletion !== 'boolean' || prior.pendingDeletion !== (prior.failures === 5))) { tx.abort(); return; }
+            const old = prior ?? { id: 'auth-policy' as const, vaultId, failures: 0, pendingDeletion: false };
+            const failures = old.pendingDeletion ? 5 : outcome === 'failure' ? Math.min(5, old.failures + 1) : outcome === 'success' ? 0 : old.failures;
+            const next: VaultAuthPolicy = { id: 'auth-policy', vaultId, failures, pendingDeletion: failures === 5 };
+            if (outcome === 'failure' || outcome === 'success' && prior) store.put(next);
+            result(next);
+        };
+    });
+}
 export async function readResetOwnerId(db: IDBDatabase, guard: Guard): Promise<string | null> {
     // A corrupt cryptographic header needs no decryption to reset, but its exact
     // ownership identity must still be known to exclude older active sessions.
@@ -128,7 +159,7 @@ export async function readResetOwnerId(db: IDBDatabase, guard: Guard): Promise<s
         return null;
     throw new Error("Unable to establish existing vault owner identity; reset is unavailable");
 }
-export function clearVaultDatabase(db: IDBDatabase, guard: Guard): Promise<void> {
+export function clearVaultDatabase(db: IDBDatabase, guard: Guard, expectedDeletionVaultId?: string): Promise<void> {
     // An abortable, atomic clear keeps the version-1 schema for fresh creation.
     // Unlike deleteDatabase(), no nonabortable deletion can finish after failure.
     // Settle only on the transaction's definitive complete/abort event, including
@@ -141,7 +172,18 @@ export function clearVaultDatabase(db: IDBDatabase, guard: Guard): Promise<void>
         tx.onabort = () => reject(new Error("Encrypted storage reset transaction failed"));
         tx.onerror = () => { }; // An error alone is not the durable outcome.
         try {
-            for (const name of ["header", "records", "nonces"]) tx.objectStore(name).clear();
+            const clear = () => { for (const name of ["header", "records", "nonces"]) tx.objectStore(name).clear(); };
+            if (!expectedDeletionVaultId) clear();
+            else {
+                const headers = tx.objectStore('header'), header = headers.get('vault'), policy = headers.get('auth-policy');
+                policy.onsuccess = () => {
+                    try {
+                        guard(); const h = header.result as VaultHeader | undefined, p = policy.result as VaultAuthPolicy | undefined;
+                        if (!h || h.vaultId !== expectedDeletionVaultId || !p || p.vaultId !== expectedDeletionVaultId || p.failures !== 5 || p.pendingDeletion !== true) { tx.abort(); return; }
+                        clear();
+                    } catch { tx.abort(); }
+                };
+            }
         }
         catch {
             try { tx.abort(); } catch { /* Complete/abort remains authoritative. */ }
@@ -381,6 +423,7 @@ export class VaultCoordinator {
         await verifyHeaderPassphrase(secret, header);
         guard();
     }
+    authPolicy(outcome: 'read' | 'failure' | 'success', guard: Guard, signal?: AbortSignal): Promise<VaultAuthPolicy> { return updateVaultAuthPolicy(this.db, this.header.vaultId, outcome, guard, signal); }
     loadSelectionLists(job: JobContext): Promise<SelectionLists> {
         return this.trackRead(async () => { const guard = this.guard(job); guard(); const catalog = await this.catalog(guard); guard(); return resolveSelectionLists(catalog.selectionLists); });
     }

@@ -117,3 +117,28 @@ it.each([
  await expect(provider.transcribe(request,createJobContext())).rejects.toMatchObject({code,...(status===401?{status}:{})});
  expect(fetch).toHaveBeenCalledOnce();
 });
+it('preserves saved provider hints without memo overrides and supports deliberate clearing',async()=>{
+ const preset=createModelPreset('router-whisper-large-v3'),model=validateRegistration({...preset,auth:'none',enabled:true,routerPolicy:{requireZdr:true,acknowledged:true},requestParameters:{provider:{options:{groq:{prompt:'SAVED CONTEXT'}}}}});
+ const bodies:{provider:{options:{groq:{prompt:string}}}}[]=[],fetch=vi.fn(async(_url:RequestInfo|URL,init?:RequestInit)=>{bodies.push(JSON.parse(init!.body as string));return response({text:'synthetic'});});
+ const provider=createRegisteredSTTProvider({model,getKey:()=>null,fetch});
+ await provider.transcribe({...request,modelId:model.modelId},createJobContext());
+ await provider.transcribe({...request,modelId:model.modelId,transcriptionHints:{terms:[],context:''}},createJobContext());
+ expect(bodies.map(body=>body.provider.options.groq.prompt)).toEqual(['SAVED CONTEXT','']);
+ expect(bodies[0].provider).not.toHaveProperty('require_parameters');
+});
+it('records the actual redacted request for success and failure without audio or credentials',async()=>{
+ const model=validateRegistration({...createModelPreset('openai-gpt-transcribe'),enabled:true,auth:'bearer',credentialOrigin:'https://api.openai.com'});
+ const req={...request,modelId:model.modelId,transcriptionHints:{terms:['SYNTHETIC_SECRET'],context:'fixture context'}};
+ const success=await createRegisteredSTTProvider({model,getKey:()=> 'SYNTHETIC_SECRET',fetch:async()=>response({text:'synthetic'})}).transcribe(req,createJobContext());
+ expect(success.request).toMatchObject({method:'POST',url:'https://api.openai.com/v1/audio/transcriptions',body:{file:{bytes:20,type:'audio/wav'},'keywords[]':'[redacted]',prompt:'fixture context'}});
+ expect(JSON.stringify(success.request)).not.toContain('SYNTHETIC_SECRET');
+ const failure=await createRegisteredSTTProvider({model,getKey:()=> 'SYNTHETIC_SECRET',fetch:async()=>new Response(JSON.stringify({error:{message:'bad SYNTHETIC_SECRET',code:'invalid',param:'model'}}),{status:400})}).transcribe(req,createJobContext()).catch(e=>e);
+ expect(failure.readSensitiveRequest()).toMatchObject({body:{file:{bytes:20}}});expect(failure.readSensitiveResponse()).toMatchObject({error:{message:'bad [redacted]',code:'invalid',param:'model'}});
+ expect(JSON.stringify(failure.readSensitiveRequest())).not.toContain('SYNTHETIC_SECRET');
+});
+it('redacts credential-like URL text and authorization fields from recorded data',async()=>{
+ const {requestRecord,redactRecordedValue}=await import('../src/react-app/providers/request-history');
+ const result=requestRecord({url:'https://example.test/SYNTHETIC_KEY/sk-secretvalue',body:JSON.stringify({context:'SYNTHETIC_KEY',authorization:'anything'})},'SYNTHETIC_KEY');
+ expect(JSON.stringify(result)).not.toContain('SYNTHETIC_KEY');expect(JSON.stringify(result)).not.toContain('sk-secretvalue');expect(result).toMatchObject({body:{authorization:'[redacted]'}});
+ expect(redactRecordedValue({headers:{x:'private'},api_key:'unknown',Authorization:'unrelated'},null)).toEqual({headers:'[redacted]',api_key:'[redacted]',Authorization:'[redacted]'});
+});

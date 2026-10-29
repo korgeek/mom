@@ -339,3 +339,13 @@ describe("OpenRouter bounded STT transport", () => {
   now = 3000; await adapter.transcribe(request(), createJobContext()); expect(posts).toBe(2); expect(keys).toBe(2);
  });
 });
+it('records legacy JSON audio metadata and masks key echoes without recording base64',async()=>{
+ const adapter=await provider(async()=>response({text:'synthetic-not-a-real-key speech'}));
+ const raw=await adapter.transcribe(request(),createJobContext());
+ expect(raw.request).toMatchObject({body:{input_audio:{data:{omitted:'audio base64',bytes:3},format:'mp3'}}});
+ expect(JSON.stringify(raw.request)).not.toContain('YWJj');expect(JSON.stringify(raw)).not.toContain('synthetic-not-a-real-key');
+ const failing=await provider(async()=>response({error:{message:'synthetic-not-a-real-key',code:'invalid',param:'model'}},400));
+ const failure=await failing.transcribe(request(),createJobContext()).catch(error=>error);
+ expect(failure.readSensitiveRequest()).toMatchObject({body:{input_audio:{data:{bytes:3}}}});
+ expect(failure.readSensitiveResponse()).toMatchObject({error:{message:'[redacted]',code:'invalid',param:'model'}});
+});

@@ -10,6 +10,7 @@ import { previewMinutesSelection } from '../src/react-app/minutes/selection';
 import { previewComparison } from '../src/react-app/minutes/compare';
 import { parseRouterEndpoints, parseRouterModels } from '../src/react-app/providers/catalog';
 import { resolveMinutesSettings } from '../src/react-app/minutes/preferences';
+import { createModelPreset } from '../src/react-app/providers/model-profiles';
 
 beforeAll(() => {
   HTMLDialogElement.prototype.showModal = function () { this.open = true; };
@@ -55,6 +56,30 @@ function Harness({ initial = meeting(), start = 'home' }: { initial?: MeetingPro
 }
 
 describe('reference UI navigation and local voice memo actions', () => {
+  it('opens the same completed memo stage from Home and the sidebar without starting work', async () => {
+    const p={...meeting(),transcriptVersions:[{id:'selected',parentId:null,rawIds:[],segments:[{id:'s',text:'Synthetic speech',sourceStartMs:0,sourceEndMs:1000,rawIds:[]}],issues:[],missingRanges:[]}],selectedTranscriptVersionId:'selected'};
+    const onNavigate=vi.fn(),onGenerateMinutes=vi.fn(),onStartSTT=vi.fn(),user=userEvent.setup();
+    render(<App controller={controller({projects:[p],screen:'home',onNavigate,onGenerateMinutes,onStartSTT})}/>);
+    await user.click(screen.getByRole('button',{name:`Open ${p.title}`}));
+    await user.click(screen.getByRole('button',{name:p.title}));
+    expect(onNavigate.mock.calls).toEqual([['minutes',p.id],['minutes',p.id]]);
+    expect(onGenerateMinutes).not.toHaveBeenCalled();expect(onStartSTT).not.toHaveBeenCalled();
+  });
+  it('saves a memo reasoning choice without generating and preserves an unsupported choice until replaced', async () => {
+    const model = createModelPreset('openai-text'); const user = userEvent.setup();
+    const p = { ...meeting(), minutesSettings: { ...meeting().minutesSettings, modelId: model.modelId, registrationId: model.id, reasoningEffort: 'minimal' } };
+    const onMinutesSettings = vi.fn(), onGenerateMinutes = vi.fn();
+    render(<App controller={controller({ screen: 'minutes', projects: [p], selectedProjectId: p.id, modelRegistrations: { version: 2, entries: [model] }, onMinutesSettings, onGenerateMinutes })} />);
+    const select = screen.getByRole('combobox', { name: 'Reasoning effort for this run' });
+    expect((select as HTMLSelectElement).value).toBe('minimal');
+    expect(screen.getByText('Choose a supported effort or the model default.')).toBeTruthy();
+    await user.selectOptions(select, 'high');
+    expect(onMinutesSettings).toHaveBeenCalledWith(p.id, { ...p.minutesSettings, reasoningEffort: 'high' });
+    expect(onGenerateMinutes).not.toHaveBeenCalled();
+    await user.selectOptions(select, '');
+    const { reasoningEffort: _ignored, ...defaults } = p.minutesSettings; void _ignored;
+    expect(onMinutesSettings).toHaveBeenLastCalledWith(p.id, defaults);
+  });
   it('opens one model manager from the legacy Settings route without discovery or connection calls', async () => {
     const onDiscover=vi.fn(), onSaveRegistration=vi.fn(async()=>{}), user=userEvent.setup();
     render(<App controller={controller({screen:'settings',onSaveRegistration,modelRegistrations:{version:2,entries:[]},modelManagement:{rows:[],language:'en',busy:false,discoveryAvailability:{openai:false,openrouter:true},onDiscover}})}/>);
@@ -238,10 +263,11 @@ describe('import configuration', () => {
     const p = meeting(); const onNavigate = vi.fn(), onLock = vi.fn();
     render(<App controller={controller({ projects: [p], selectedProjectId: p.id, screen: 'import', busy: true, onNavigate, onLock })} />);
     for (const button of [...within(screen.getByRole('navigation', { name: 'Memo steps' })).getAllByRole('button'),
-      ...within(screen.getByRole('complementary', { name: 'Voice memo navigation' })).getAllByRole('button').filter(button => button.textContent !== 'Lock now' && button.getAttribute('aria-label') !== 'Navigation menu')]) {
+      ...within(screen.getByRole('complementary', { name: 'Voice memo navigation' })).getAllByRole('button').filter(button => button.textContent !== 'Lock screen' && button.textContent !== 'Settings' && button.getAttribute('aria-label') !== 'Navigation menu')]) {
       expect((button as HTMLButtonElement).disabled).toBe(true);
     }
-    const lock = screen.getByRole('button', { name: 'Lock now' });
+    const settings=screen.getByRole('button',{name:'Settings'});expect((settings as HTMLButtonElement).disabled).toBe(false);fireEvent.click(settings);expect(onNavigate).toHaveBeenCalledWith('settings');
+    const lock = screen.getByRole('button', { name: 'Lock screen' });
     expect((lock as HTMLButtonElement).disabled).toBe(false); fireEvent.click(lock); expect(onLock).toHaveBeenCalledOnce();
   });
   it.each(['ko', 'en'] as const)('uses approved empty copy and a keyboard-accessible collapsed language explanation: %s', async uiLanguage => {
@@ -251,7 +277,7 @@ describe('import configuration', () => {
     const summary = screen.getByText(uiLanguage === 'ko' ? '언어 안내' : 'Language guidance', { selector: 'summary' });
     const details = summary.closest('details')!;
     expect(details).toBeTruthy(); expect(details.hasAttribute('open')).toBe(false);
-    expect(within(details).getByText(uiLanguage === 'ko' ? '선택한 언어는 가능한 경우 힌트로 제공돼요. 다른 언어의 발화도 제외하지 않아요. 모델에 따라 힌트가 지원되지 않을 수 있어요.' : 'Selected languages are provided as hints when possible. Speech in other languages is also retained. Some models may not support these hints.')).toBeTruthy();
+    expect(within(details).getByText(uiLanguage === 'ko' ? '전사 모델 선택 후 확인' : 'Choose a transcription model')).toBeTruthy();
     summary.focus(); expect(document.activeElement).toBe(summary);
     await user.click(summary); expect(details.hasAttribute('open')).toBe(true);
     await user.click(summary); expect(details.hasAttribute('open')).toBe(false);
@@ -277,8 +303,9 @@ describe('import configuration', () => {
   });
   it('surfaces indeterminate real file inspection without estimating a percentage', () => {
     const p = meeting(); render(<App controller={controller({ projects: [p], selectedProjectId: p.id, screen: 'import', preparation: { stage: 'inspecting', completed: 0, total: null }, busy: true })} />);
-    expect(screen.getByRole('status', { name: 'Audio file inspection' }).textContent).toBe('Inspecting audio file locally…');
-    expect(screen.getByRole('progressbar', { name: 'Audio file inspection' }).hasAttribute('value')).toBe(false);
+    const panel=screen.getByRole('region',{name:'Local audio preparation'});
+    expect(within(panel).getByText('Inspecting audio file locally…')).toBeTruthy();
+    const progress=within(panel).getByRole('progressbar', { name: 'Inspection audio processed:' });expect(progress.hasAttribute('value')).toBe(false);expect(progress.closest('details')).toBeNull();
   });
   it('selects all processing defaults exactly for future voice memos', async () => {
     const user = userEvent.setup(); const onDefaultAudioOptions = vi.fn(); const c = controller({ screen: 'settings', settingsTab: 'defaults', onDefaultAudioOptions });
@@ -318,26 +345,20 @@ describe('import configuration', () => {
     await user.click(within(screen.getByRole('group', { name: 'Spoken languages · select multiple' })).getByRole('button', { name: /日本語/ }));
     expect(onAudioOptions).toHaveBeenCalledWith(p.id, { ...p.audioOptions, expectedLanguages: ['ko', 'en', 'ja'] });
   });
-  it.each(['en', 'ko'] as const)('reselects an existing original without clearing completed work (%s)', async uiLanguage => {
+  it.each(['en', 'ko'] as const)('retains the original and completed work and blocks replacement (%s)', async uiLanguage => {
     const user = userEvent.setup(); const p = { ...meeting(), retainedAudio: { sourceIds: ['retained-source'], chunkIds: [] }, sourceAssets: [{ id: 'retained-source', fileName: 'original.wav', bytes: 4, container: 'wav', codec: 'pcm', durationMs: 1000, channels: 1, sampleRateHz: 16000 }],
       rawTranscripts: [{ id: 'saved-raw', chunkId: 'saved-chunk', runId: 'saved-run', text: 'Completed fixture transcript', response: {}, segments: [], timing: 'chunk' as const, speakerScope: 'none' as const, execution: null }] };
-    const onPickFile = vi.fn(); const onClearFile = vi.fn();
-    const c = controller({ projects: [p], selectedProjectId: p.id, screen: 'import', preferences: { ...defaultPreferences, uiLanguage }, onPickFile, onClearFile });
+    const onPickFile = vi.fn(), onClearFile = vi.fn();
+    const c = controller({ projects: [p], selectedProjectId: p.id, screen: 'import', preferences: { ...defaultPreferences, uiLanguage }, onPickFile, onClearFile,sourcePreviewUrl:'blob:synthetic-retained' });
     const { rerender } = render(<App controller={c} />);
-    const input = screen.getByLabelText(uiLanguage === 'ko' ? '음성 파일 선택' : 'Audio file') as HTMLInputElement;
-    const pickerClick = vi.spyOn(input, 'click');
     const upload = screen.getByRole('tabpanel', { name: uiLanguage === 'ko' ? '파일 업로드' : 'File upload' });
-    expect(within(upload).getByText('original.wav')).toBeTruthy();
-    expect(within(upload).getByText('4 B')).toBeTruthy();
-    expect(within(upload).queryByRole('button', { name: uiLanguage === 'ko' ? '원본 다시 선택' : 'Reselect original' })).toBeNull();
-    await user.click(screen.getByRole('button', { name: uiLanguage === 'ko' ? '미리듣기용 파일 선택' : 'Choose file for preview' }));
-    expect(pickerClick).toHaveBeenCalledTimes(1); expect(onClearFile).not.toHaveBeenCalled();
-    const file = new File(['test'], 'original.wav', { type: 'audio/wav' });
-    await user.upload(input, file);
-    expect(onPickFile).toHaveBeenCalledWith(p.id, file); expect(onClearFile).not.toHaveBeenCalled();
-    expect(p.sourceAssets[0].id).toBe('retained-source'); expect(p.rawTranscripts[0].id).toBe('saved-raw');
-    rerender(<App controller={{ ...c, busy: true }} />);
-    expect((screen.getByRole('button', { name: uiLanguage === 'ko' ? '미리듣기용 파일 선택' : 'Choose file for preview' }) as HTMLButtonElement).disabled).toBe(true);
+    expect(within(upload).getByText('original.wav')).toBeTruthy();expect(within(upload).getByText('4 B')).toBeTruthy();
+    const replace=within(upload).getByRole('button',{name:uiLanguage==='ko'?'교체':'Replace'}) as HTMLButtonElement;
+    expect(replace.disabled).toBe(true);await user.click(replace);expect(onPickFile).not.toHaveBeenCalled();expect(onClearFile).not.toHaveBeenCalled();
+    const details=screen.getByText(uiLanguage==='ko'?'음성 정보·미리듣기':'Audio details & playback',{selector:'summary'});await user.click(details);
+    expect(screen.getByLabelText(uiLanguage==='ko'?'원본 음성 미리듣기':'Source audio preview').getAttribute('src')).toBe('blob:synthetic-retained');
+    expect(p.sourceAssets[0].id).toBe('retained-source');expect(p.rawTranscripts[0].id).toBe('saved-raw');
+    rerender(<App controller={{ ...c, busy: true }} />);expect(replace.disabled).toBe(true);
   });
   it('keeps multiple and legacy spoken languages and uses minute/second units', async () => {
     const base = meeting(), initial = { ...base, audioOptions: { ...base.audioOptions, expectedLanguages: ['ko', 'en', 'sw'] } };
@@ -374,7 +395,7 @@ describe('transcript and notes state', () => {
     expect(screen.getByRole('progressbar', { name: label }).getAttribute('max')).toBe('300000');
     expect(screen.getByText(uiLanguage === 'ko' ? '암호화 저장된 음성 청크: 0 / 계획 2' : 'Encrypted audio chunks saved: 0 / planned 2')).toBeTruthy();
     const bytes = screen.getByText(uiLanguage === 'ko' ? '청크 용량: 0 B' : 'Chunk size: 0 B');
-    expect(bytes.closest('details')).toBeNull();
+    const details=bytes.closest('details')!;expect(details.open).toBe(false);fireEvent.click(within(details).getByText(uiLanguage==='ko'?'자세히 보기':'Show details',{selector:'summary'}));expect(details.open).toBe(true);
     rerender(<App controller={{ ...c, preparation: { ...c.preparation!, stage: 'saving', sourceProcessedMs: 300000 } }} />);
     expect(screen.getByText(uiLanguage === 'ko' ? '음성 청크 암호화 저장 중…' : 'Saving encrypted audio chunk…')).toBeTruthy();
     expect(screen.queryByText(uiLanguage === 'ko' ? '로컬 음성 준비 완료' : 'Local audio preparation complete')).toBeNull();
@@ -406,7 +427,7 @@ describe('transcript and notes state', () => {
     const card = screen.getByRole('region', { name: 'Model details' });
     expect(within(card).getByText('Context limit')).toBeTruthy();
     expect(within(card).queryByText(/Unknown|Unavailable|creator/)).toBeNull();
-    expect(card.closest('details')).toBeNull();
+    const details=card.closest('details')!;expect(details.open).toBe(false);fireEvent.click(within(details).getByText('Model and pricing details',{selector:'summary'}));expect(details.open).toBe(true);
   });
   it.each(['Returned Execution', null])('retains historical requested/returned model IDs and labels only the reported execution provider (%s)', async actualProvider => {
     const p = meeting(); const usage = { inputTokens: null, outputTokens: null, durationSeconds: null, audioInputTokens: null, textInputTokens: null, audioOutputTokens: null, textOutputTokens: null, elapsedMs: 1, cost: null, costKind: 'unavailable' as const, currency: null, rateSource: null, rateCheckedAt: null, rateSnapshot: null };
@@ -561,7 +582,7 @@ describe('transcript and notes state', () => {
     render(<App controller={controller({ projects: [p], selectedProjectId: p.id, screen: 'minutes', modelCatalog: [minutesModel], minutesSelection: preview })} />);
     const status = screen.getByRole('status', { name: 'Generation readiness' });
     expect(status.textContent).toBe('The full transcript exceeds the limits; all text is retained'); expect(status.closest('details')).toBeNull();
-    expect(screen.getByRole('region', {name:'Model details'}).closest('details')).toBeNull();
+    const detail=screen.getByRole('region', {name:'Model details'}).closest('details')!;expect(detail.open).toBe(false);fireEvent.click(within(detail).getByText('Model and pricing details',{selector:'summary'}));expect(detail.open).toBe(true);expect(status.closest('details')).toBeNull();
   });
   const transmissionLabel = 'I understand that the selected transcript and settings will be sent, and charges may apply. Audio will not be sent again.';
   const partialLabel = 'I reviewed generation of partial notes with missing ranges disclosed';
@@ -794,20 +815,20 @@ describe('settings and sensitive screen boundary', () => {
     expect(screen.queryByText('Private internal failure detail')).toBeNull(); expect(screen.queryByText(p.title)).toBeNull();
     expect(screen.getByRole('button', { name: 'Retry saving and lock' })).toBeTruthy(); expect(screen.getByRole('button', { name: 'Discard unsaved work and lock' })).toBeTruthy();
   });
-  it('keeps lock available during in-flight work so the controller can stop jobs', async () => {
+  it('keeps screen lock available during in-flight work', async () => {
     const user = userEvent.setup(); const onLock = vi.fn();
     render(<App controller={controller({ busy: true, onLock })} />);
-    await user.click(screen.getByRole('button', { name: 'Lock now' }));
+    await user.click(screen.getByRole('button', { name: 'Lock screen' }));
     expect(onLock).toHaveBeenCalledTimes(1);
   });
-  it('enforces the eight-character minimum, rejects numeric secrets and preserves exact spaces', async () => {
+  it('enforces the new-vault minimum and preserves exact spaces', async () => {
     const user = userEvent.setup(); const onCreateVault = vi.fn(); render(<App controller={controller({ session: 'new', onCreateVault })} />);
     const pass = screen.getByLabelText('Passphrase'); const confirm = screen.getByLabelText('Confirm passphrase');
-    for (const invalid of ['a'.repeat(7), '12345678', '१२३४५६७८', '😀'.repeat(7), 'a'.repeat(257)]) {
+    for (const invalid of ['Eight123', 'a'.repeat(15), '123456789012345', '१२३४५६७८९०१२३४५', '😀'.repeat(15), 'a'.repeat(257)]) {
       await user.clear(pass); await user.clear(confirm); await user.type(pass, invalid); await user.type(confirm, invalid);
       expect((screen.getByRole('button', { name: 'Create vault' }) as HTMLButtonElement).disabled).toBe(true);
     }
-    for (const valid of ['Eight123', '😀'.repeat(8), '  validphrase!  ']) {
+    for (const valid of ['Long distinct passphrase', '  validphrase!  ']) {
       await user.clear(pass); await user.clear(confirm);
       await user.type(pass, valid); await user.type(confirm, valid); await user.click(screen.getByRole('button', { name: 'Create vault' }));
       expect(onCreateVault).toHaveBeenLastCalledWith(valid);
@@ -844,9 +865,9 @@ describe('autofill isolation', () => {
 it('keeps saved-password autofill on the vault gate and exposes creation length requirements', () => {
   const { rerender } = render(<App controller={controller({ session: 'new' })} />);
   expect(screen.getByLabelText('Passphrase').getAttribute('autocomplete')).toBe('new-password');
-  expect(screen.getByLabelText('Passphrase').getAttribute('minlength')).toBe('8');
-  expect(screen.getByLabelText('Confirm passphrase').getAttribute('minlength')).toBe('8');
-  expect(screen.getByLabelText('Passphrase').getAttribute('passwordrules')).toBe('minlength: 8; maxlength: 256;');
+  expect(screen.getByLabelText('Passphrase').getAttribute('minlength')).toBe('15');
+  expect(screen.getByLabelText('Confirm passphrase').getAttribute('minlength')).toBe('15');
+  expect(screen.getByLabelText('Passphrase').getAttribute('passwordrules')).toBe('minlength: 15; maxlength: 256;');
   rerender(<App controller={controller({ session: 'locked' })} />);
   expect(screen.getByLabelText('Passphrase').getAttribute('autocomplete')).toBe('current-password');
   expect(screen.getByLabelText('Passphrase').getAttribute('name')).toBe('vault-passphrase');
@@ -888,7 +909,9 @@ it.each(['ko', 'en'] as const)('uses voice-memo terminology throughout app-owned
     const tabs = route === 'settings' ? ['connections', 'keys', 'models', 'defaults', 'appearance', 'security'] as const : ['connections'] as const;
     for (const settingsTab of tabs) {
       const view = render(<App controller={controller({ screen: route, settingsTab, projects: [p], selectedProjectId: p.id, preferences: { ...defaultPreferences, uiLanguage: language } })} />);
-      const ownedCopy = view.container.textContent + [...view.container.querySelectorAll('[aria-label]')].map(el => el.getAttribute('aria-label')).join(' ');
+      expect(view.container.querySelector('.brand strong')?.textContent).toBe('Minutes of Meeting');
+      const content=view.container.cloneNode(true) as HTMLElement;content.querySelector('.brand strong')?.remove();content.querySelector('.settings-footer')?.remove();
+      const ownedCopy = content.textContent + [...content.querySelectorAll('[aria-label]')].map(el => el.getAttribute('aria-label')).join(' ');
       expect(ownedCopy).not.toMatch(language === 'ko' ? /회의/ : /\bmeetings?\b|\bminutes\b/i);
       view.unmount();
     }

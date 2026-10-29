@@ -1,13 +1,13 @@
 import { ChevronUp, ChevronDown, ArrowRight } from 'lucide-react';
 import SourcePreview from '../components/SourcePreview';
 import RecordingControls from '../RecordingControls';
-import PreparationStatus, { PreparationDiagnosticControl } from '../PreparationStatus';
+import PreparationStatus from '../PreparationStatus';
 import CompletedStageDetails from '../components/CompletedStageDetails';
 import { useEffect, useEffectEvent, useId, useRef, useState } from 'react';
 import { MeetingIcon, type ProjectScreenProps } from '../../App';
 import type { AudioOptions } from '../../domain/types';
 import { defaultSelectionLists } from '../../settings/lists';
-import { copy, formatBytes, formatTime, memoIcons, preparedAudioReady, retainedSource, retainedChunks } from '../copy';
+import { copy, formatBytes, formatTime, memoIcons, preparedAudioReady, registeredLanguageHint, retainedSource, retainedChunks } from '../copy';
 import '../mobile-metadata.css';
 import { useSessionDraft } from '../useSessionDraft';
 import '../compact-work.css';
@@ -31,6 +31,7 @@ export default function Import({ controller: c, project: p, initiallyCollapsed }
   const filePicker = useRef<HTMLInputElement>(null); const t = (ko: string, en: string) => copy(c.preferences.uiLanguage, ko, en);
   const sourcePlayer = useRef<HTMLAudioElement>(null);
   const options = p.audioOptions; const source = p.sourceAssets[0]; const ready = preparedAudioReady(p);
+  const transcriptionModel=c.modelRegistrations?.entries.find(model=>model.id===c.sttModelId&&model.stage==='stt');
   const sourceAvailable = retainedSource(p);
   const loadPreview = useEffectEvent((id: string) => c.onLoadSourcePreview?.(id));
   const releasePreview = useEffectEvent((id: string) => c.onReleaseSourcePreview?.(id));
@@ -108,6 +109,8 @@ export default function Import({ controller: c, project: p, initiallyCollapsed }
   const selectedLanguages = [...lists.languages.map(({ code: id, name }) => ({ id, name })), ...options.expectedLanguages.filter(id => !lists.languages.some(row => row.code === id)).map(id => ({ id, name: id }))];
   const canPrepare = !!(sourceAvailable && c.onPrepareAudio && !editingBlocked && !ready && !encodingDirty);
   const acceptFile = (file?: File) => { if (file && (!source || sourceAvailable)) c.onPickFile?.(p.id, file); };
+  const prepareButton = <button key="prepare" className={`${ready ? '' : 'primary '}tall`} disabled={!canPrepare} onClick={() => c.onPrepareAudio?.(p.id)}>{t('전사 준비', 'Prepare transcription')}</button>;
+  const transcribeButton = <button key="transcribe" className={`${ready ? 'primary ' : ''}tall icon-label`} aria-label={t('전사하기 →', 'Transcribe →')} disabled={!ready || !c.onNavigate || c.busy} onClick={() => c.onNavigate?.('stt', p.id)}>{t('전사하기', 'Transcribe')}<ArrowRight aria-hidden="true" /></button>;
   return <><div className="import-grid" inert={!!resetPlan}>
     <section className="card preparation-metadata stack gap20" aria-label={t('메모 정보', 'Memo details')}>
       {compact && compactWork && <div className="compact-work-summary"><div className="stack"><strong>{p.title}</strong><span className="hint">{options.expectedLanguages.join(', ') || t('언어 힌트 없음', 'No language hints')}</span></div><button aria-label={metadataClosed ? t('메모 정보 펼치기', 'Show memo details') : t('메모 정보 접기', 'Hide memo details')} aria-expanded={!metadataClosed} aria-controls={metadataId} onClick={() => { if (!metadataClosed && metadataBody.current?.contains(document.activeElement)) return; setMetadataOpen(metadataClosed); }}>{metadataClosed ? t('펼치기', 'Show') : t('접기', 'Hide')}</button></div>}
@@ -118,7 +121,7 @@ export default function Import({ controller: c, project: p, initiallyCollapsed }
       <div className="stack"><span className="field-label">{t('색상', 'Color')}</span><div className="actions color-options">{colors.map(color => <button key={color} className={`color-option ${p.color === color ? 'selected' : ''}`} style={{ background: color }} aria-label={`${t('색상', 'Color')} ${color}`} aria-pressed={p.color === color} disabled={!c.onUpdateMeeting || c.busy} onClick={() => c.onUpdateMeeting?.(p.id, { color })} />)}</div></div></div>
       <div role="group" aria-label={t('사용 언어 · 복수 선택', 'Spoken languages · select multiple')} className="stack"><span className="field-label">{t('사용 언어 · 복수 선택', 'Spoken languages · select multiple')}</span><div className="actions">{selectedLanguages.map(({ id, name }) => { const index = options.expectedLanguages.indexOf(id); return <button key={id} className={`chip ${index >= 0 ? 'selected' : ''}`} aria-pressed={index >= 0} disabled={!c.onAudioOptions || c.busy} onClick={() => audioChange({ expectedLanguages: index >= 0 ? options.expectedLanguages.filter(code => code !== id) : [...options.expectedLanguages, id] })}>{index >= 0 ? `${index + 1} · ` : ''}{name}</button>; })}</div></div>
       <button className="plain accent-text align-start icon-label" aria-label={t('아이콘 · 색상 · 언어 관리 →', 'Manage icons, colors & languages →')} disabled={!c.onNavigate || !c.onSettingsTab || c.busy} onClick={() => { c.onSettingsTab?.('appearance'); c.onNavigate?.('settings', p.id); }}>{t('아이콘 · 색상 · 언어 관리', 'Manage icons, colors & languages')}<ArrowRight aria-hidden="true" /></button>
-      <details className="hint usage-stage-details"><summary>{t('언어 안내', 'Language guidance')}</summary><span>{t('선택한 언어는 가능한 경우 힌트로 제공돼요. 다른 언어의 발화도 제외하지 않아요. 모델에 따라 힌트가 지원되지 않을 수 있어요.', 'Selected languages are provided as hints when possible. Speech in other languages is also retained. Some models may not support these hints.')}</span></details>
+      <details className="hint usage-stage-details"><summary>{t('언어 안내', 'Language guidance')}</summary><span>{transcriptionModel?`${transcriptionModel.name} · `:''}{registeredLanguageHint(transcriptionModel,options.expectedLanguages,c.preferences.uiLanguage)}</span>{transcriptionModel?.adapter==='openai-compatible'&&<span>{t('등록 설정 기준이며 실제 서버 지원은 별도 확인이 필요해요.','Based on the registration; actual server support needs verification.')}</span>}</details>
       </div>
     </section>
   <CompletedStageDetails stage="preparation" language={c.preferences.uiLanguage} complete={ready} initiallyCollapsed={initiallyCollapsed}
@@ -154,23 +157,24 @@ export default function Import({ controller: c, project: p, initiallyCollapsed }
     <section className="card preparation-actions stack gap16" aria-label={t('전사 준비', 'Prepare transcription')}>
       <h2>{t('전사 준비', 'Prepare transcription')}</h2>
       <div id={sourceDetailsId} ref={sourceDetailsBody} className="compact-work-body stack gap16" hidden={sourceInputClosed} inert={sourceInputClosed} onFocusCapture={() => setSourceInputEditing(true)} onBlurCapture={sourceBlur}>
+      <details className="hint usage-stage-details" open={source&&!sourceAvailable?true:undefined}><summary>{t('음성 정보·미리듣기','Audio details & playback')}</summary><div className="stack gap12">
       <div className="preparation-source stack"><span className="field-label">{t('현재 음성', 'Current audio')}</span>{source ? <div className="stack gap16"><div className="row-between wrap"><div className="stack"><strong className="file-name">{source.fileName}</strong><div className="chips mono"><span>{formatTime(source.durationMs)}</span><span>{formatBytes(source.bytes)}</span><span>{source.container} · {source.codec}</span></div></div></div>
       {!sourceAvailable && <span className="warning">{p.retainedAudio ? t('암호화된 원본이 삭제됐어요. 원본 바이트가 없어 다시 선택한 파일의 일치를 확인할 수 없어요. 새 음성 메모에서 다시 가져오세요.', 'The encrypted original was deleted. Without its bytes, a reselected file cannot be verified. Create a new voice memo to import again.') : t('보관된 원본의 실제 저장 여부를 아직 확인하지 못했어요.', 'Retained original availability has not been verified yet.')}</span>}
       {deletedChunkHistory && <span className="hint">{t('삭제된 청크의 기록은 유지돼요. 원본이 남아 있으면 현재 압축 설정으로 새 청크를 준비할 수 있어요. 원본을 교체하려면 새 음성 메모를 만드세요.', 'Deleted chunk history remains. If the original is retained, prepare fresh chunks with the current encoding settings. Create a new voice memo to replace the original.')}</span>}
       {sourceAvailable ? <SourcePreview key={`${source.id}:${c.sourcePreviewUrl ?? ''}`} audioRef={sourcePlayer} url={c.sourcePreviewUrl ?? null} peaks={c.sourceWaveform} durationMs={source.durationMs} language={c.preferences.uiLanguage} loading={c.sourcePreviewLoading} error={c.sourcePreviewError} onPlay={c.onSourcePreviewPlay} onRetry={c.onLoadSourcePreview ? () => c.onLoadSourcePreview?.(p.id) : undefined} /> : <span className="hint">{t('음성 미리듣기 준비 안 됨', 'Audio preview unavailable')}</span>}
     </div> : <span>{t('음성 선택 대기', 'Awaiting audio')}</span>}</div>
       <p className="hint">{t('음성 준비는 로컬 브라우저에서 진행돼요. 전사는 다음 단계에서 지정된 STT를 이용해서 실행해요.', 'Audio preparation runs in your local browser. Transcription runs in the next step using the selected STT.')}</p>
+      </div></details>
       </div>
-      <PreparationStatus controller={c} />
+      <PreparationStatus controller={c} diagnostics />
       {ready && !c.preparation && <div className="stack preparation-status"><strong role="status">{t('로컬 음성 준비 완료', 'Local audio preparation complete')}</strong><div className="preparation-summary hint"><span>{retainedChunks(p).length} {t('청크 저장됨', 'chunks saved')}</span><span className="mono">{t('청크 용량:', 'Chunk size:')} {formatBytes(retainedChunks(p).reduce((bytes, chunk) => bytes + chunk.encodedBytes, 0))}</span></div></div>}
       {!ready && !c.preparation && savedPreparationChunks.length > 0 && <strong className="hint" role="status">{t('준비 미완료 · 저장된 청크', 'Preparation incomplete · saved audio chunks:')} {savedPreparationChunks.length}{t('개', '')}</strong>}
       {c.busy && c.preparation && <span className="hint">{t('취소해도 암호화 저장된 청크는 유지돼요. 취소가 끝난 뒤 다시 준비할 수 있어요.', 'Cancelling keeps encrypted saved chunks. Wait for cancellation to finish before preparing again.')}</span>}
       {!c.busy && (c.preparation?.stage === 'failed' || !c.preparation && !ready && savedPreparationChunks.length > 0) && <span className="hint">{t('디코딩·압축을 처음부터 다시 계산해요. 저장된 청크는 유지돼요.', 'Decoding and compression restart from the beginning. Saved chunks are kept.')}</span>}
       <div className="preparation-buttons actions">
-        <button className={`${ready ? '' : 'primary '}tall`} disabled={!canPrepare} onClick={() => c.onPrepareAudio?.(p.id)}>{t('전사 준비', 'Prepare transcription')}</button>
-        <button className={`${ready ? 'primary ' : ''}tall icon-label`} aria-label={t('전사하기 →', 'Transcribe →')} disabled={!ready || !c.onNavigate || c.busy} onClick={() => c.onNavigate?.('stt', p.id)}>{t('전사하기', 'Transcribe')}<ArrowRight aria-hidden="true" /></button>
         {c.busy && c.preparation && <button className="tall" disabled={!c.onCancelPreparation} onClick={c.onCancelPreparation}>{t('음성 준비 취소', 'Cancel preparation')}</button>}
-        <PreparationDiagnosticControl controller={c} />
+        {ready ? prepareButton : transcribeButton}
+        {ready ? transcribeButton : prepareButton}
       </div>
     <details ref={settings} className="processing-settings"><summary ref={settingsAnchor} className="accordion" id="preparation-encoding-settings"><span className="stack"><strong>{t('청크·압축', 'Chunks & compression')}</strong><span className="hint">MP3 · {t('모노', 'mono')}</span><span className="mono muted">{options.chunkMinutes} {t('분', 'min')} · {options.overlapSeconds} {t('초 겹침', 's overlap')} · {options.bitrateKbps} kbps</span></span><span>{t('처리 설정 펼치기', 'Expand processing settings')}</span></summary>
        <div className="processing-options stack gap16"><div className="notice row-between"><span>{t('여기서 바꾼 값은 이 음성 메모에만 적용돼요.', 'Changes here apply to this voice memo only.')}</span><div className="actions"><button disabled={!canEditEncoding} onClick={() => changeEncoding(encoding(c.defaultAudioOptions))}>{t('기본값으로 되돌리기', 'Reset to defaults')}</button><button className="plain accent-text" disabled={!c.onNavigate || !c.onSettingsTab || c.busy} onClick={() => { c.onSettingsTab?.('defaults'); c.onNavigate?.('settings'); }}>{t('기본값 설정 →', 'Edit defaults →')}</button></div></div>

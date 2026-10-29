@@ -6,6 +6,7 @@ import { buildMinutesMessages, MINUTES_PROMPT_VERSION } from "./prompt";
 import { previewMinutesSelection, previewRegisteredMinutesSelection, selectionConsentSnapshot } from "./selection";
 import type { MinutesSelectionPreview } from "./selection";
 import { defaultRegistrationOutputTokens, freezeExecutionModel, registrationEndpoint, type ModelRegistration } from '../providers/model-registrations';
+import { supportsMinutesReasoning } from './reasoning';
 
 export type MinutesChoice = RouterSelection | Readonly<{ registration: ModelRegistration }>;
 export type ComparisonChoices = readonly [MinutesChoice | null, MinutesChoice | null];
@@ -26,7 +27,8 @@ export function previewComparison(options: Readonly<{ transcript: TranscriptVers
  try { if (transcript) messages = options.messages ?? buildMinutesMessages(transcript, settings); } catch { /* Invalid input blocks dispatch below. */ }
  const members = choices.map(choice => choice && 'registration' in choice ? previewRegisteredMinutesSelection(choice.registration, transcript, { ...settings, ...(outputTokens !== null ? {outputTokens} : {}), modelId: choice.registration.modelId, registrationId: choice.registration.id }, options.messages) : previewMinutesSelection({ model: choice?.model ?? null, endpoint: choice?.endpoint ?? null, messages, outputTokens, reasoningReserveTokens: 0 })) as unknown as MinutesComparisonPreview["members"];
  const duplicate = choices[0] && choices[1] && minutesChoiceModelId(choices[0]) === minutesChoiceModelId(choices[1]);
- const status = duplicate ? "duplicate" : members.find(member => member.status !== "fits")?.status ?? "fits";
+ const invalidEffort = settings.reasoningEffort !== undefined && choices.some(choice => !choice || !('registration' in choice) || !supportsMinutesReasoning(choice.registration, settings.reasoningEffort));
+ const status = duplicate ? "duplicate" : invalidEffort ? 'invalid-input' : members.find(member => member.status !== "fits")?.status ?? "fits";
  const unknownTotal = members.some(member => member.projection.total === null);
  return freezeMetadata({ status, outputTokens, members, unknownTotal, combinedTotal: unknownTotal ? null : members[0].projection.total! + members[1].projection.total! });
 }

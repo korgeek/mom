@@ -1,3 +1,4 @@
+import { requestRecord, redactRecordedValue, recordedFailure } from './request-history';
 import type { JobContext, MinutesProvider, MinutesRequest, MinutesRun, MinutesSettings, TranscriptVersion, Usage } from "../domain/types";
 import { ProviderError, asObject, authHeaders, bodyProviderError, nonnegativeNumber, positiveInteger, readOnlyJson, readProviderJson, runPaidRequest } from "../domain/pipeline";
 import type { FetchTransport, RequestControlOptions, RuntimeKeyGetter } from "../domain/pipeline";
@@ -74,7 +75,7 @@ function usageFrom(body: Record<string, unknown>, selection: RouterSelection, el
 }
 function textLimitError(error: unknown): unknown {
  if (!(error instanceof ProviderError)) return error;
- const body = asObject(error.readSensitiveResponse()), metadata = asObject(body?.metadata);
+ const envelope = asObject(error.readSensitiveResponse()), body = asObject(envelope?.error) ?? envelope, metadata = asObject(body?.metadata);
  // Classify only recognizable limit errors; provider text stays in the sensitive
  // response and never appears in the UI. Other 400 errors keep their own category.
  const detail = [body?.message, body?.code, metadata?.error_type].filter(value => typeof value === 'string').join(' ').slice(0, 4096);
@@ -89,17 +90,18 @@ export function createOpenRouterProvider(options: OpenRouterProviderOptions): Op
  async function completeMinutes(request: MinutesRequest, job: JobContext): Promise<ProviderMinutesRun> {
   job.assertActive(); const frozenRequest = freezeMetadata(structuredClone(request)); const messages = build(frozenRequest); const prepared = prepare(frozenRequest, selection, messages, maxOutput, reasoning);
   const body = JSON.stringify({ model: selection.model.id, messages, [prepared.completionParameter]: prepared.completionCeilingTokens, stream: false, provider: { only: [selection.endpoint.tag], order: [selection.endpoint.tag], allow_fallbacks: false, require_parameters: true } });
-  return runPaidRequest("openrouter", job, async (signal, dispatched) => {
-   const headers = await authHeaders(options.getKey, job); headers.set("Content-Type", "application/json"); const start = now(); job.assertActive(); dispatched();
-   const response = await fetch("https://openrouter.ai/api/v1/chat/completions", { method: "POST", headers, body, signal, redirect: "error", credentials: "omit", cache: "no-store" }); job.assertActive(); const result = await readProviderJson(response, now()); job.assertActive();
+  let sent:unknown, secret:string|null=null;
+  try { return await runPaidRequest("openrouter", job, async (signal, dispatched) => {
+   const headers = await authHeaders(options.getKey, job); headers.set("Content-Type", "application/json"); const start = now(); job.assertActive(); secret=headers.get("Authorization")?.slice(7)??null; sent=requestRecord({url:"https://openrouter.ai/api/v1/chat/completions",body},secret); dispatched();
+   const response = await fetch("https://openrouter.ai/api/v1/chat/completions", { method: "POST", headers, body, signal, redirect: "error", credentials: "omit", cache: "no-store" }); job.assertActive(); const result = redactRecordedValue(await readProviderJson(response, now(), true),secret) as Record<string,unknown>; job.assertActive();
    const choices = result.choices; const choice = Array.isArray(choices) && choices.length === 1 ? asObject(choices[0]) : null; const message = asObject(choice?.message);
    if (choice?.error !== undefined) throw bodyProviderError(choice.error, 200, now(), response.headers);
    if (!choice || !message || typeof message.content !== "string" || !message.content.trim()) throw new ProviderError("malformed", { sensitiveResponse: result });
    if (choice.finish_reason !== "stop" || (choice.native_finish_reason != null && !["stop", "STOP", "end_turn", "stop_sequence", "eos_token", "completed"].includes(String(choice.native_finish_reason)))) throw new ProviderError("incomplete", { sensitiveResponse: result });
    const actualProvider = typeof result.provider === "string" ? result.provider : null;
    return freezeMetadata({ id: frozenRequest.runId || makeId(), transcriptVersionId: frozenRequest.transcript.id, settings: frozenRequest.settings, generatedMarkdown: message.content, usage: usageFrom(result, selection, now() - start),
-    requestedModel: selection.model.id, returnedModel: typeof result.model === "string" ? result.model : null, actualProvider, response: result, requestedEndpoint: selection.endpoint.tag });
-  }, options).catch(error => { throw textLimitError(error); });
+    requestedModel: selection.model.id, returnedModel: typeof result.model === "string" ? result.model : null, actualProvider, response: result, request: sent, requestedEndpoint: selection.endpoint.tag });
+  }, options); } catch(error) { throw recordedFailure(textLimitError(error),sent,secret); } finally {secret=null;}
  }
  return {
   completeMinutes, generate: completeMinutes,

@@ -87,11 +87,12 @@ it('retains explicitly opened preparation details across stop, retry and remount
 });
 
 it('keeps focused source controls visible on narrowing and leaves wide preparation expanded', () => {
-  const resize = viewport(1440), p = preparingProject(), c = { ...controller(p), preparation: { ...preparing, stage: 'stopped' as const }, onPickFile: vi.fn() };
+  const resize = viewport(1440), p = preparingProject(), c = { ...controller(p), preparation: { ...preparing, stage: 'stopped' as const }, onLoadSourcePreview: vi.fn(), sourcePreviewError:'Synthetic preview failure' };
   render(<Import project={p} controller={c} />);
   expect(screen.queryByRole('button', { name: 'Show memo details' })).toBeNull();
   expect(screen.queryByRole('button', { name: 'Show audio input' })).toBeNull();
-  const preview = screen.getByRole('button', { name: 'Choose file for preview' }); act(() => preview.focus()); resize(820);
+  fireEvent.click(screen.getByText('Audio details & playback'));
+  const preview = screen.getByRole('button', { name: 'Retry audio preview' }); act(() => preview.focus()); resize(820);
   expect(screen.getByRole('button', { name: 'Hide audio input' })).toBeTruthy();
   expect(document.activeElement).toBe(preview);
 });
@@ -134,6 +135,7 @@ it('collapses metadata after the normal title edit then Start recording flow', a
   const view = render(<Import project={p} controller={c} />);
   const input = screen.getByRole('textbox', { name: 'Memo title' });
   await user.click(input); fireEvent.change(input, { target: { value: 'EDITED_BEFORE_RECORDING' } });
+  await user.click(screen.getByRole('tab', { name: 'Microphone recording' }));
   await user.click(screen.getByRole('button', { name: 'Start recording' }));
   const active = { ...c, recordingActive: true, recording: { ...c.recording!, snapshot: { ...c.recording!.snapshot, state: 'recording' as const } } };
   view.rerender(<Import project={{ ...p, title: 'EDITED_BEFORE_RECORDING' }} controller={active} />);

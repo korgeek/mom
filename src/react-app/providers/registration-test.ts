@@ -1,5 +1,5 @@
 import { asObject, bodyProviderError, ProviderError, runPaidRequest, type FetchTransport, type RuntimeKeyGetter } from '../domain/pipeline';
-import { readBoundedResponse } from './registered-runtime';
+import { parseTranscriptionEvents, readBoundedResponse } from './registered-runtime';
 import type { JobContext } from '../domain/types';
 import { inspectAudioDetails } from '../media/inspect';
 import { buildRegistrationRequest, registrationEndpoint, registrationInputSummary, registrationSignature, validateRegistration, type ModelRegistration, type RegistrationTestInput, type RegistrationTestResult } from './model-registrations';
@@ -54,14 +54,14 @@ export async function runRegistrationTest(value: ModelRegistration, input: Regis
         const inputSignature = await digest(input);
         job.assertActive();
         result = { ...result, inputSignature };
-        let boundInput = input;
-        if (input.stage === 'stt' && r.adapter === 'openrouter') {
-            const bytes = new Uint8Array(await input.file.arrayBuffer());
+        let boundInput = input.stage === 'stt' ? { ...input, hintsProvided: input.hintsProvided ?? (input.glossary.length > 0 || input.context.length > 0) } : input;
+        if (boundInput.stage === 'stt' && r.adapter === 'openrouter') {
+            const bytes = new Uint8Array(await boundInput.file.arrayBuffer());
             job.assertActive();
             let binary = '';
             for (let i = 0; i < bytes.length; i += 32768)
                 binary += String.fromCharCode(...bytes.subarray(i, i + 32768));
-            boundInput = { ...input, encodedAudio: { data: btoa(binary), format: audioFormat } };
+            boundInput = { ...boundInput, encodedAudio: { data: btoa(binary), format: audioFormat } };
         }
         if (boundInput.stage === 'stt')
             boundInput = { ...boundInput, file: new File([boundInput.file], `test-audio.${audioFormat}`, { type: audioFormat === 'wav' ? 'audio/wav' : audioFormat === 'mp3' ? 'audio/mpeg' : 'audio/mp4' }) };
@@ -98,10 +98,11 @@ export async function runRegistrationTest(value: ModelRegistration, input: Regis
             };
             let body: Record<string, unknown> | null;
             try {
-                body = asObject(JSON.parse(raw));
-                raw = JSON.stringify(redact(body));
+                if (response.ok && r.stage === 'stt' && r.stt?.stream) { const parsed = parseTranscriptionEvents(raw); body = parsed.body; raw = JSON.stringify(redact({events:parsed.events})); }
+                else { body = asObject(JSON.parse(raw)); raw = JSON.stringify(redact(body)); }
             }
-            catch {
+            catch (error) {
+                if (error instanceof ProviderError) { raw = JSON.stringify(redact(error.readSensitiveResponse() ?? {})); throw error; }
                 raw = 'Unparseable response omitted';
                 throw new ProviderError('malformed');
             }

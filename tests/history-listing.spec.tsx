@@ -142,3 +142,18 @@ it.each([false, true])('shows recorded STT/LLM counts and the latest state, incl
   expect(screen.getByText(archived ? 'Before initialization · results deleted' : 'Failed')).toBeTruthy();
   expect(screen.queryByText('Saved')).toBeNull();
 });
+it('shows recorded request and response in each matching run and marks missing old records',()=>{
+ const memo=project('details');
+ const run={id:'recorded',projectId:memo.id,state:'saved' as const,checkpoint:null,intent:{kind:'stt' as const,chunkId:'chunk',requestedModel:'fixture/stt',expectedLanguages:[],requestedEndpoint:null,rateSnapshot:null}};
+ const enriched={...memo,runs:[run],rawTranscripts:[{id:'raw',runId:'recorded',chunkId:'chunk',response:{text:'SYNTHETIC RESPONSE'},request:{method:'POST',body:{file:{omitted:'audio bytes',bytes:12,type:'audio/wav'},model:'fixture/stt'}},text:'SYNTHETIC RESPONSE',segments:[],timing:'chunk' as const,speakerScope:'none' as const}]} as unknown as MeetingProject;
+ const c=controller([enriched]);c.historyProjectId=enriched.id;render(<History controller={c}/>);
+ const group=screen.getByRole('group',{name:'Run recorded'});expect(within(group).getByText('Request')).toBeTruthy();expect(within(group).getByText('Response')).toBeTruthy();expect(within(group).getByText('SYNTHETIC RESPONSE')).toBeTruthy();
+ expect(within(group).queryByText('Request content was not recorded.')).toBeNull();
+});
+it('labels raw request and response JSON distinctly for assistive technology',async()=>{
+ const JsonResponse=(await import('../src/react-app/ui/components/JsonResponse')).default;
+ render(<><JsonResponse value={{method:'POST'}} language="en" title="Request"/><JsonResponse value={{text:'fixture'}} language="en" title="Response"/></>);
+ const request=screen.getByRole('region',{name:'Request'}), response=screen.getByRole('region',{name:'Response'});
+ await userEvent.click(within(request).getByRole('button',{name:'View original JSON'}));await userEvent.click(within(response).getByRole('button',{name:'View original JSON'}));
+ expect(within(request).getByLabelText('Request JSON')).toBeTruthy();expect(within(response).getByLabelText('Response JSON')).toBeTruthy();
+});

@@ -42,6 +42,7 @@ h1:focus, main:focus { outline: none; }
 .row-between { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
 .wrap { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-start; }
 .actions { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+.actions:has(> button.primary):has(> button:not(.primary)) { justify-content: flex-end; }
 .align-start { align-self: flex-start; } .align-end { justify-content: flex-end; }
 .flex-one { flex: 1 1 120px; } .flex-two { flex: 2 1 180px; }
 .mono { font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; }
@@ -75,7 +76,7 @@ h1:focus, main:focus { outline: none; }
 .side-storage { margin-top: auto; padding: 12px 10px 0; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 6px; }
 .side-storage > span { font-size: 11.5px; line-height: 1.5; color: var(--ink3); }
 .side-storage button { font-size: 12.5px; margin-top: 4px; min-height: 32px; }
-.main { flex: 1; min-width: 0; overflow: auto; padding: 32px 40px 48px; }
+.main { flex: 1; min-width: 0; overflow: auto; scrollbar-gutter: stable; padding: 32px 40px 48px; }
 .main-content { --flow-gap: 20px; max-width: 1100px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
 .flow-header { display: flex; flex-direction: column; gap: 14px; }
 .flow-title { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; }
@@ -341,8 +342,7 @@ th { color: var(--ink4); font-weight: 600; }
   .mom .color-option { width: 44px; height: 44px; min-height: 44px; border: 9px solid var(--surface); }
 }
 
-/* Settings keeps the application's palette and rhythm in a narrower readable column. */
-.settings-content { width: 100%; max-width: 960px; margin-inline: auto; }
+/* Screen width comes from the shared .main-content container. */
 .settings-content .card { gap: 16px; }
 .settings-panel { gap: 18px; }
 .settings-content .settings-grid { gap: 18px; }
@@ -412,13 +412,19 @@ body:has(dialog[open]) { overflow:hidden; }
 .api-key-actions > summary:hover, .api-key-actions[open] > summary { background: var(--fill); }
 .api-key-actions > div { position: absolute; right: 0; top: 100%; z-index: 3; width: 140px; padding: 6px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); box-shadow: 0 6px 18px rgb(0 0 0 / .1); }
 
-.registration-head, .registration-row { display:grid; grid-template-columns:minmax(100px,1fr) 42px 82px 116px; align-items:center; gap:12px; }
+.registration-head, .registration-row { display:grid; grid-template-columns:minmax(100px,1fr) 42px 104px 116px; align-items:center; gap:12px; }
 .registration-head { color:var(--ink3); font-size:12px; border-block:1px solid var(--line); padding:10px 0; }
 .registration-row { border-bottom:1px solid var(--line); padding:18px 0; }
 .registration-row .actions { gap:8px; justify-content:end; }
 .registration-row .actions button, .text-button { border:0; background:transparent; padding:4px 0; font-size:12px; }
 .mom .text-button { color:var(--accentInk); background:transparent; border:0; padding:4px 0; }
 .text-danger { color:var(--errInk); }
+.model-statuses { display:flex; flex-direction:column; align-items:flex-start; gap:5px; }
+.model-status { display:inline-block; max-width:100%; padding:3px 6px; border-radius:5px; font-size:11px; font-weight:600; line-height:1.35; color:var(--ink3); background:var(--fill); word-break:keep-all; overflow-wrap:anywhere; }
+.model-status--setup { color:var(--warn); background:var(--warnSoft); }
+.model-status--active, .model-status--success { color:var(--ok); background:var(--okSoft); }
+.model-status--failed { color:var(--errInk); background:var(--errSoft); }
+.model-status--running { color:var(--accentInk); background:var(--accentSoft); }
 .model-stage { font-size:11px; padding:2px 5px; border:1px solid var(--line); border-radius:5px; text-align:center; }
 .model-sharing-hint { display:flex; gap:8px; align-items:center; flex-wrap:wrap; font-size:12px; color:var(--ink3); }
 @media(max-width:1100px) { .registration-row { grid-template-columns:minmax(0,1fr) 122px; } .registration-head { display:none; } .model-stage { justify-self:end; } .registration-row .actions { grid-column:2; grid-row:2; } }

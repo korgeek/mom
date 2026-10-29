@@ -1,3 +1,4 @@
+import { requestRecord, redactRecordedValue, recordedFailure } from './request-history';
 import { validateTranscriptionHints } from '../domain/stt-settings';
 import type { JobContext, RawTranscript, SourceSegment, STTProvider, STTRequest, Usage } from "../domain/types";
 import { ProviderError, asObject, authHeaders, nonnegativeNumber, readOnlyJson, readProviderJson, runPaidRequest } from "../domain/pipeline";
@@ -84,11 +85,12 @@ export function createOpenAIProvider(options: OpenAIProviderOptions): OpenAIProv
    }
    if (model.responseFormat === "verbose_json") form.append("timestamp_granularities[]", "segment");
    if (model.responseFormat === "diarized_json" && request.chunk.sourceEndMs - request.chunk.sourceStartMs > 30000) form.append("chunking_strategy", "auto");
-   return runPaidRequest("openai", job, async (signal, dispatched) => {
-    const headers = await authHeaders(options.getKey, job); job.assertActive(); const start = now(); dispatched();
+   let sent:unknown, secret:string|null=null;
+   try { return await runPaidRequest("openai", job, async (signal, dispatched) => {
+    const headers = await authHeaders(options.getKey, job); job.assertActive(); secret=headers.get("Authorization")?.slice(7)??null; const start = now(); sent=requestRecord({url:"https://api.openai.com/v1/audio/transcriptions",body:form},secret); dispatched();
     const response = await fetch("https://api.openai.com/v1/audio/transcriptions", { method: "POST", headers, body: form, signal, redirect: "error", credentials: "omit", cache: "no-store" }); job.assertActive();
-    const body = await readProviderJson(response, now()); job.assertActive(); return normalize(body, frozenRequest, model, makeId(), now() - start);
-   }, options);
+    const body = await readProviderJson(response, now(), true); job.assertActive(); return {...normalize(redactRecordedValue(body,secret) as Record<string,unknown>, frozenRequest, model, makeId(), now() - start),request:sent};
+   }, options); } catch(error) { throw recordedFailure(error,sent,secret); } finally {secret=null;}
   },
   async checkConnection(job) {
    const headers = await authHeaders(options.getKey, job); const endpoint = "https://api.openai.com/v1/models";

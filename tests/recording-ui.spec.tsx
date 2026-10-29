@@ -32,15 +32,15 @@ it('requests microphone capture only through explicit keyboard Start after the m
   expect(p.onStart).toHaveBeenCalledOnce(); expect(media).not.toHaveBeenCalled(); expect(fetch).not.toHaveBeenCalled();
   expect(screen.queryByRole('textbox')).toBeNull(); expect(screen.queryByRole('combobox')).toBeNull();
 });
-it('retains the disabled Start slot during permission while keeping a separate later Cancel action available', async () => {
+it('retains the disabled Start node during permission while keeping a separate earlier Cancel action available', async () => {
   const p = props(), user = userEvent.setup(), view = render(<RecordingControls {...p} />);
   const start = screen.getByRole('button', { name: 'Start recording' });
   view.rerender(<RecordingControls {...p} snapshot={snapshot({ state: 'permission' })} pendingAction="start" />);
   expect(screen.getByRole('status').textContent).toContain('Waiting for microphone permission');
   expect(screen.getByRole('button', { name: 'Start recording' })).toBe(start); expect(disabled('Start recording')).toBe(true);
   const cancel = screen.getByRole('button', { name: 'Cancel recording' });
-  expect(cancel).not.toBe(start); expect(start.parentElement!.firstElementChild).toBe(start);
-  expect(start.compareDocumentPosition(cancel) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  expect(cancel).not.toBe(start); expect(start.parentElement!.lastElementChild).toBe(start);
+  expect(cancel.compareDocumentPosition(start) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   expect(disabled('Cancel recording')).toBe(false); expect(screen.queryByRole('button', { name: 'Save and stop' })).toBeNull();
   await user.click(start); expect(p.onStart).not.toHaveBeenCalled();
   await user.click(cancel); expect(p.onAbort).toHaveBeenCalledOnce();

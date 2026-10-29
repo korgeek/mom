@@ -232,3 +232,14 @@ describe("additional provider failure and rate boundaries", () => {
   await expect(createOpenAIProvider({ getKey: () => "keyless-fixture-value", fetch: async () => { throw new TypeError("Private fixture failure"); } }).checkConnection(createJobContext())).rejects.toMatchObject({ code: "network" });
  });
 });
+it('records legacy STT and notes requests without audio bytes or reflected keys',async()=>{
+ const secret='SYNTHETIC_ONLY_KEY';
+ const sttProvider=createOpenAIProvider({getKey:()=>secret,fetch:async()=>response({text:'SYNTHETIC_ONLY_KEY speech'})});
+ const raw=await sttProvider.transcribe(stt(),createJobContext());
+ expect(raw.request).toMatchObject({body:{file:{omitted:'audio bytes',bytes:3,type:'audio/mpeg'},model:'gpt-transcribe'}});
+ expect(JSON.stringify(raw)).not.toContain(secret);
+ const fail=await createOpenAIProvider({getKey:()=>secret,fetch:async()=>response({error:{message:secret,code:'unsupported_value',param:'model'}},400)}).transcribe(stt(),createJobContext()).catch(e=>e);
+ expect(fail.readSensitiveRequest()).toMatchObject({body:{file:{bytes:3}}});expect(fail.readSensitiveResponse()).toMatchObject({error:{message:'[redacted]',code:'unsupported_value',param:'model'}});
+ const notes=await router(async()=>response(okMinutes)).generate(minutes,createJobContext());
+ expect(notes.request).toMatchObject({method:'POST',body:{messages:buildMessages()}});expect(JSON.stringify(notes.request)).not.toContain('keyless-fixture-value');
+});

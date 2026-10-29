@@ -1,5 +1,6 @@
 import { Check, Plus } from 'lucide-react';
-import { ScreenGate, AutoLockStatus } from './ui/ScreenLock';
+import { ScreenGate, AutoLockStatus, AuthenticationPolicyNotice } from './ui/ScreenLock';
+import { validateNewPassphrase } from './vault/passphrase-policy';
 import type { ScreenState } from './vault/screen-state';
 import type { PreparationResetPlan } from './vault/preparation-reset';
 import type { ApiCredential, ModelRegistration, ModelRegistrations, RegistrationKeyUpdate, RegistrationTestInput, RegistrationTestResult } from './providers/model-registrations';
@@ -24,7 +25,7 @@ import type { recommendRouterSTT } from './providers/stt-catalog';
 import type { STTConsent } from './transcript/batches';
 import MobileNavigation from './ui/components/MobileNavigation';
 import MemoDeletion from './ui/components/MemoDeletion';
-import { copy, formatBytes, formatTime, memoIcons, preparedAudioReady, steps, transcriptionComplete } from './ui/copy';
+import { copy, formatBytes, formatTime, memoIcons, memoEntryScreen, preparedAudioReady, steps, transcriptionComplete } from './ui/copy';
 import './ui/styles.css';
 import './ui/mobile-navigation.css';
 import './ui/mobile-stages.css';
@@ -66,6 +67,7 @@ export interface AppController {
   workReturnScreen?: AppScreen | null;
   screenAccess?: 'open' | 'locked' | 'verifying';
   screenUnlockError?: boolean;
+  authFailures?: number; authDeletionPending?: boolean; authDeleted?: boolean; authDeletionVaultId?: string | null;
   uiDrafts?: Readonly<Record<string, unknown>>;
   onUIDraft?: (key: string, value: unknown) => void;
   onScreenUnlock?: (passphrase: string) => void;
@@ -220,8 +222,8 @@ function VaultGate({ controller: c }: { controller: AppController }) {
   const [passphrase, setPassphrase] = useState(''); const [confirmation, setConfirmation] = useState('');
   const t = (ko: string, en: string) => copy(c.preferences.uiLanguage, ko, en);
   const isNew = c.session === 'new';
-  const codepoints = Array.from(passphrase).length;
-  const validNewSecret = codepoints >= 8 && codepoints <= 256 && new TextEncoder().encode(passphrase).byteLength <= 1024 && !/^\p{Nd}+$/u.test(passphrase);
+  let validNewSecret = true;
+  try { validateNewPassphrase(passphrase); } catch { validNewSecret = false; }
   const working = c.session === 'unlocking' || c.session === 'locking';
   const submit = () => {
     const secret = passphrase; setPassphrase(''); setConfirmation('');
@@ -230,7 +232,7 @@ function VaultGate({ controller: c }: { controller: AppController }) {
   return <div className="vault-gate"><section className="vault-card" aria-labelledby="vault-heading">
     <div className="brand-mark vault-mark">M</div>
     <strong className="centered">Minutes of Meeting</strong>
-    {c.session === 'save-failed' && (c.resetVaultError || c.resettingVault) ? <>
+    {c.authDeletionPending ? <><h1 id="vault-heading">{t('보관함 삭제 대기 중', 'Vault deletion pending')}</h1><AuthenticationPolicyNotice controller={c} /></> : c.session === 'save-failed' && (c.resetVaultError || c.resettingVault) ? <>
       <h1 id="vault-heading">{c.resettingVault ? t('보관함 초기화 처리 중', 'Resetting the vault') : t('보관함 초기화에 실패했어요', 'Vault reset failed')}</h1>
     </> : c.session === 'save-failed' ? <>
       <h1 id="vault-heading">{t('완료분 저장에 실패했어요', 'Completed work could not be saved')}</h1>
@@ -241,15 +243,16 @@ function VaultGate({ controller: c }: { controller: AppController }) {
       <h1 id="vault-heading">{isNew ? t('새 보관함 만들기', 'Create a new vault') : t('암호로 잠금 해제', 'Unlock with your passphrase')}</h1>
       {isNew && <div className="stack gap10"><strong>{t('내 음성 메모는 내 기기에.', 'My voice memos stay on my device.')}</strong><p>{t('MoM은 회원가입 없이 브라우저에서 사용하는 음성 메모 앱입니다. 녹음과 전사·요약은 지금 사용하는 기기의 브라우저에 암호화해 보관합니다.', 'MoM is a browser voice memo app with no sign-up. Recordings, transcripts and summaries are kept encrypted in this device’s browser.')}</p></div>}
       <p>{t('이 브라우저에 보관할 음성 메모와 API 키를 보호하는 암호예요. 잊으면 저장된 데이터를 복구할 수 없어요.', 'This passphrase protects voice memos and API keys stored in this browser. Forgotten passphrases cannot recover saved data.')}</p>
-      <form onSubmit={event => { event.preventDefault(); if (!working && passphrase && (isNew ? validNewSecret && passphrase === confirmation && c.onCreateVault : c.onUnlock)) submit(); }}>
-        <label>{t('암호', 'Passphrase')}<input autoFocus type="password" name="vault-passphrase" minLength={isNew ? 8 : undefined} {...(isNew ? { passwordrules: "minlength: 8; maxlength: 256;" } : {})} autoComplete={isNew ? 'new-password' : 'current-password'} value={passphrase} disabled={working} onChange={event => setPassphrase(event.target.value)} /></label>
-        {isNew && <><span className="hint">{t('8~256자의 고유한 암호를 사용하세요. 문자·숫자·특수문자를 조합해 사용하세요. 공백과 대소문자는 그대로 적용돼요.', 'Use a unique passphrase of 8–256 characters. Combine letters, numbers, and special characters. Spaces and capitalization are preserved.')}</span><label>{t('암호 확인', 'Confirm passphrase')}<input type="password" name="vault-passphrase-confirmation" minLength={8} autoComplete="new-password" value={confirmation} disabled={working} onChange={event => setConfirmation(event.target.value)} /></label></>}
+      <AuthenticationPolicyNotice controller={c} />
+      <form onSubmit={event => { event.preventDefault(); if (!working && !c.authDeletionPending && passphrase && (isNew ? validNewSecret && passphrase === confirmation && c.onCreateVault : c.onUnlock)) submit(); }}>
+        <label>{t('암호', 'Passphrase')}<input autoFocus type="password" name="vault-passphrase" minLength={isNew ? 15 : undefined} {...(isNew ? { passwordrules: "minlength: 15; maxlength: 256;" } : {})} autoComplete={isNew ? 'new-password' : 'current-password'} value={passphrase} disabled={working || c.authDeletionPending} onChange={event => setPassphrase(event.target.value)} /></label>
+        {isNew && <><span className="hint">{t('15~256자의 고유한 암호를 사용하세요. 공백만 있거나 숫자만 있는 암호, 단순 반복과 흔한 암호는 사용할 수 없어요. 공백과 대소문자는 그대로 적용돼요.', 'Use a unique passphrase of 15–256 characters. Whitespace-only, numeric-only, simple repeated and common passphrases are rejected. Spaces and capitalization are preserved.')}</span><label>{t('암호 확인', 'Confirm passphrase')}<input type="password" name="vault-passphrase-confirmation" minLength={15} autoComplete="new-password" value={confirmation} disabled={working} onChange={event => setConfirmation(event.target.value)} /></label></>}
         {c.error && <div role="alert" className="error">{t('보관함을 열 수 없어요. 암호와 브라우저 저장소 상태를 확인하세요.', 'The vault could not be opened. Check the passphrase and browser storage.')}</div>}
-        <button className="primary" disabled={working || !passphrase || (isNew ? !validNewSecret || confirmation !== passphrase || !c.onCreateVault : !c.onUnlock)} type="submit">{working ? t('처리 중…', 'Working…') : isNew ? t('보관함 만들기', 'Create vault') : t('잠금 해제', 'Unlock')}</button>
+        <button className="primary" disabled={working || c.authDeletionPending || !passphrase || (isNew ? !validNewSecret || confirmation !== passphrase || !c.onCreateVault : !c.onUnlock)} type="submit">{working ? t('처리 중…', 'Working…') : isNew ? t('보관함 만들기', 'Create vault') : t('잠금 해제', 'Unlock')}</button>
       </form>
       {!c.onCreateVault && isNew && <span className="hint">{t('보관함 연결을 준비하고 있어요.', 'Vault setup is not available yet.')}</span>}
     </>}
-    {!isNew && <ResetVaultControls controller={c} />}
+    {!isNew && !c.authDeletionPending && <ResetVaultControls controller={c} />}
   </section></div>;
 }
 function completedStepKey(project: MeetingProject, screen: AppScreen, progress: AppController['chunkStates']) {
@@ -286,7 +289,7 @@ function UnlockedApp({ controller: c }: { controller: AppController }) {
   useEffect(() => { if (preparationOwnsFocus) return; (heading.current ?? main.current?.querySelector<HTMLHeadingElement>('h1'))?.focus(); main.current?.scrollTo?.(0, 0); }, [currentScreen, c.selectedProjectId, preparationOwnsFocus]);
   const meetings = [...c.projects].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
   const recent = meetings.filter(p => !p.pinned).slice(0, 5);
-  const sidebarMeeting = (p: MeetingProject) => <div key={p.id}><button className={`side-meeting ${p.id === project?.id && flow ? 'active' : ''}`} aria-label={p.title} aria-describedby={p.sourceAssets[0] ? `side-duration-${p.id}` : undefined} disabled={!c.onNavigate || (c.busy && !c.recordingActive)} onClick={() => navigate('import', p.id)}><MeetingIcon icon={p.icon} color={p.color} /><span className="side-meeting-title">{p.title}</span>{p.sourceAssets[0] && <span id={`side-duration-${p.id}`} className="mono side-meeting-duration"><span className="visually-hidden">{t('전체 길이', 'Total duration')} </span>{formatTime(p.sourceAssets[0].durationMs)}</span>}</button>
+  const sidebarMeeting = (p: MeetingProject) => <div key={p.id}><button className={`side-meeting ${p.id === project?.id && flow ? 'active' : ''}`} aria-label={p.title} aria-describedby={p.sourceAssets[0] ? `side-duration-${p.id}` : undefined} disabled={!c.onNavigate || (c.busy && !c.recordingActive)} onClick={() => navigate(memoEntryScreen(p), p.id)}><MeetingIcon icon={p.icon} color={p.color} /><span className="side-meeting-title">{p.title}</span>{p.sourceAssets[0] && <span id={`side-duration-${p.id}`} className="mono side-meeting-duration"><span className="visually-hidden">{t('전체 길이', 'Total duration')} </span>{formatTime(p.sourceAssets[0].durationMs)}</span>}</button>
     {p.id === project?.id && flow && <div className="side-steps">{steps.map((step, index) => <button key={step.id} className={currentScreen === step.id ? 'active' : ''} disabled={!c.onNavigate || (c.busy && !c.recordingActive)} onClick={() => navigate(step.id, p.id)}><span>{index + 1}</span>{t(step.ko, step.en)}</button>)}</div>}</div>;
   return <div className="app-shell">
     <aside className="sidebar" aria-label={t('음성 메모 탐색', 'Voice memo navigation')}>
@@ -322,6 +325,6 @@ function UnlockedApp({ controller: c }: { controller: AppController }) {
 }
 export default function App({ controller = emptyController }: { controller?: AppController }) {
   return <div className="mom" data-theme={controller.preferences.theme} data-palette={controller.preferences.palette} lang={controller.preferences.uiLanguage}>
-    {controller.screenAccess && controller.screenAccess !== 'open' && !['save-failed', 'new'].includes(controller.session) ? <ScreenGate controller={controller}>{controller.session === 'locked' && <ResetVaultControls controller={controller} />}</ScreenGate> : controller.session === 'unlocked' ? <UnlockedApp controller={controller} /> : <VaultGate key={controller.session} controller={controller} />}
+    {controller.screenAccess && controller.screenAccess !== 'open' && !['save-failed', 'new'].includes(controller.session) ? <ScreenGate controller={controller}>{controller.session === 'locked' && !controller.authDeletionPending && <ResetVaultControls controller={controller} />}</ScreenGate> : controller.session === 'unlocked' ? <UnlockedApp controller={controller} /> : <VaultGate key={controller.session} controller={controller} />}
   </div>;
 }

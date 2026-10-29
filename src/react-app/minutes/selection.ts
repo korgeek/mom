@@ -5,6 +5,7 @@ import type { ChatMessage, MinutesFit } from "../providers/openrouter";
 import type { MinutesSettings, TranscriptVersion } from '../domain/types';
 import { defaultRegistrationOutputTokens, freezeExecutionModel, registrationEndpoint, type ModelRegistration } from '../providers/model-registrations';
 import { registeredMinutesFit } from '../providers/registered-runtime';
+import { reasoningBudgetConflict, supportsMinutesReasoning, withMinutesReasoning } from './reasoning';
 
 export type MinutesSelectionOptions = Readonly<{
  model: RouterModel | null; endpoint: RouterEndpoint | null; messages: readonly ChatMessage[] | null;
@@ -29,6 +30,7 @@ export type MinutesSelectionPreview = Readonly<{
   modelSupportedParameters: readonly string[]; endpointSupportedParameters: readonly string[];
  }>;
  fit: MinutesFit | null;
+ reasoningBudgetConflict?: boolean;
 }>;
 const unknownPricing: TextPricingMetadata = { rates: { prompt: null, completion: null, request: null }, complete: false, missingDimensions: ["prompt", "completion", "request"], unsupportedDimensions: [], conditionalDimensions: [], raw: null };
 const minimum = (first: number | null | undefined, second: number | null | undefined) => first != null && second != null ? Math.min(first, second) : null;
@@ -71,7 +73,7 @@ export function selectionConsentSnapshot(model: RouterModel, endpoint: RouterEnd
 /** The same registered request preflight as dispatch; only counts and public metadata reach UI. */
 export function previewRegisteredMinutesSelection(value: ModelRegistration | null, transcript: TranscriptVersion | null, settings: MinutesSettings, messages?: readonly ChatMessage[]): MinutesSelectionPreview {
  if (!value) return previewMinutesSelection({ model: null, endpoint: null, messages: null, outputTokens: null, reasoningReserveTokens: 0 });
- const model = freezeExecutionModel(value), endpoint = registrationEndpoint(model);
+ const model = freezeExecutionModel(supportsMinutesReasoning(value, settings.reasoningEffort) ? withMinutesReasoning(value, settings.reasoningEffort) : value), endpoint = registrationEndpoint(model);
  let fit: MinutesFit | null = null;
  try { if (transcript) fit = registeredMinutesFit(model, { transcript, settings, runId: 'preview' }, messages); } catch { /* Invalid prompt is blocked below. */ }
  const context = model.llm?.contextTokens ?? null, output = settings.outputTokens ?? defaultRegistrationOutputTokens(model) ?? null;
@@ -86,7 +88,7 @@ export function previewRegisteredMinutesSelection(value: ModelRegistration | nul
  const projectedInput = fit && inputPrice !== null ? fit.inputTokenEstimate * inputPrice : null;
  const projectedOutput = output !== null && outputPrice !== null ? output * outputPrice : null;
  const total = projectedInput !== null && projectedOutput !== null && requestPrice !== null ? projectedInput + projectedOutput + requestPrice : null;
- return freezeMetadata({ status: !transcript ? 'choose-transcript' : fit?.status ?? 'invalid-input',
+ return freezeMetadata({ status: !supportsMinutesReasoning(model, settings.reasoningEffort) ? 'invalid-input' : !transcript ? 'choose-transcript' : fit?.status ?? 'invalid-input', reasoningBudgetConflict: reasoningBudgetConflict(model, output, undefined),
   route: { modelId: model.modelId, modelName: model.name, endpointTag: endpoint, providerName: new URL(endpoint).host },
   modalities: { input: ['text'], output: ['text'] },
   completion: { parameter: model.llm?.tokenField ?? null, ceilingTokens: output, visibleOutputTokens: null, scope: 'full-provider-completion' },

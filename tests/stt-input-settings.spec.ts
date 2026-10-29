@@ -6,10 +6,11 @@ import { createRegisteredSTTProvider } from '../src/react-app/providers/register
 import { createJobContext } from '../src/react-app/domain/jobs';
 import { createOpenAIProvider } from '../src/react-app/providers/openai';
 
+const legacyOpenAI = () => validateRegistration({ ...createModelPreset('openai-gpt-transcribe'), modelId:'whisper-1', stt:{ ...createModelPreset('openai-gpt-transcribe').stt, responseFormat:'verbose_json', languageMode:'none', termMode:'prompt', timestamps:'word' } });
 const hints = { terms: ['SYNTHETIC_PRODUCT', 'MoM'], context: 'Synthetic project planning meeting' };
 const input = { stage: 'stt', file: new File(['abc'], 'synthetic.mp3', { type: 'audio/mpeg' }), languages: ['ko'], glossary: hints.terms, context: hints.context, encodedAudio: { data: 'YWJj', format: 'mp3' } } as const;
 it('maps reviewed native prompts and declared keyword support without inventing context support', () => {
-  const openai = createModelPreset('openai-stt');
+  const openai = legacyOpenAI();
   const body = buildRegistrationRequest(openai, input).body as FormData;
   expect(body.get('prompt')).toBe('SYNTHETIC_PRODUCT, MoM\nSynthetic project planning meeting');
   const keywords = validateRegistration({ ...createModelPreset('compatible-stt'), stt: { termMode: 'keywords' } });
@@ -17,7 +18,9 @@ it('maps reviewed native prompts and declared keyword support without inventing 
   expect(keywordBody.getAll('keywords[]')).toEqual(hints.terms); expect(keywordBody.has('prompt')).toBe(false);
   expect(sttInputSupport(keywords).context).toBe(false);
   const diarize = validateRegistration({ ...openai, modelId: 'gpt-4o-transcribe-diarize', stt: { termMode: 'prompt' } });
-  expect(sttInputSupport(diarize).termMode).toBe('none'); expect((buildRegistrationRequest(diarize, input).body as FormData).has('prompt')).toBe(false);
+  expect(sttInputSupport(diarize).termMode).toBe('none'); expect(()=>buildRegistrationRequest(diarize, input)).toThrow();
+  const compatibleDiarize=validateRegistration({...diarize,stt:{...diarize.stt,termMode:'none'}});
+  expect((buildRegistrationRequest(compatibleDiarize, input).body as FormData).has('prompt')).toBe(false);
 });
 it('maps MAI vocabulary to Azure phrases, permits clearing, and preserves retention and other options', () => {
   const model = createModelPreset('mai-transcribe-2');
@@ -63,7 +66,7 @@ it('uses the direct GPT Transcribe contract and preserves incompatible saved set
   expect(body.getAll('keywords[]')).toEqual(hints.terms);
   expect(body.get('prompt')).toBe(hints.context);
   expect(body.has('timestamp_granularities[]')).toBe(false);
-  const stale = validateRegistration({...createModelPreset('openai-stt'), modelId:'gpt-transcribe'});
+  const stale = validateRegistration({...legacyOpenAI(), modelId:'gpt-transcribe'});
   expect(stale.stt?.responseFormat).toBe('verbose_json');
   expect(registrationReadiness(stale)).toContain('stt-model-format');
 });
@@ -83,7 +86,7 @@ it('checks direct model language and diarization formats without changing saved 
   expect(registrationReadiness(diarize)).not.toContain('stt-model-format');
   expect(registrationReadiness(validateRegistration({...diarize,stt:{...diarize.stt,responseFormat:'diarized_json'}}))).not.toContain('stt-model-format');
   expect(registrationReadiness(validateRegistration({...diarize,stt:{...diarize.stt,responseFormat:'verbose_json'}}))).toContain('stt-model-format');
-  const legacy = validateRegistration({...createModelPreset('openai-stt'),stt:{...createModelPreset('openai-stt').stt,termMode:'none'}});
+  const legacy = validateRegistration({...legacyOpenAI(),stt:{...legacyOpenAI().stt,termMode:'none'}});
   expect(sttInputSupport(legacy).termMode).toBe('none');
   expect((buildRegistrationRequest(legacy,input).body as FormData).has('prompt')).toBe(false);
   const absent = validateRegistration({...legacy,stt:{...legacy.stt,termMode:undefined}});

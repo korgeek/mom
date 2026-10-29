@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { IDBFactory, IDBObjectStore } from "fake-indexeddb";
-import { createVaultSession, type VaultSession, type VaultSessionOptions } from "../src/react-app/vault/session";
+import { createVaultSession, VaultAttemptError, type VaultSession, type VaultSessionOptions } from "../src/react-app/vault/session";
 import { cancelJobs, createJobContext } from "../src/react-app/domain/jobs";
 import type { RecordEnvelope } from "../src/react-app/vault/crypto";
 import type { MeetingProject } from "../src/react-app/domain/types";
@@ -30,7 +30,7 @@ describe("vault lock boundary", () => {
             const s = make({ testOnlyOwnership: undefined });
             await s.create(secret, secret);
             await s.lock('manual');
-            await expect(s.unlock('a different synthetic vault phrase')).rejects.toThrow(/unlock vault/i);
+            await expect(s.unlock('a different synthetic vault phrase')).rejects.toBeInstanceOf(VaultAttemptError);
             await expect(s.unlock(secret)).resolves.toBeUndefined();
             await s.lock('manual');
             await expect(s.unlock(secret)).resolves.toBeUndefined();

@@ -8,6 +8,7 @@ import {previewRegisteredMinutesSelection} from '../src/react-app/minutes/select
 import Minutes from '../src/react-app/ui/screens/Minutes';
 import Review from '../src/react-app/ui/screens/Review';
 import {createModelPreset} from '../src/react-app/providers/model-profiles';
+import {buildRegistrationRequest} from '../src/react-app/providers/model-registrations';
 import type {AppController} from '../src/react-app/App';
 import type {MeetingProject} from '../src/react-app/domain/types';
 vi.mock('../src/react-app/media/prepare',()=>({planChunkRanges:(durationMs:number)=>[{sourceStartMs:0,sourceEndMs:durationMs}]}));
@@ -24,9 +25,48 @@ it('shows custom STT endpoint/model and enables a confirmed ready recording',()=
  expect(screen.getByRole('option',{name:stt.name})).toBeTruthy();
  expect(screen.queryByText(/Unknown creator|Preflight total|Processor/)).toBeNull();
  expect(screen.queryByText('Details',{selector:'summary'})).toBeNull();
- expect(screen.getByText('http://localhost:8000/v1/audio/transcriptions')).toBeTruthy();
+ expect(screen.getByText('http://localhost:8000').closest('dd')?.textContent).toBe('http://localhost:8000/v1/audio/transcriptions');
  expect(screen.getAllByText('whisper-local').some(element=>!element.closest('details'))).toBe(true);
  fireEvent.click(screen.getByRole('checkbox',{name:"I've reviewed the above"}));expect((screen.getByRole('button',{name:'Transcribe'}) as HTMLButtonElement).disabled).toBe(false);
+});
+it('hides STT models without an API key and preserves the saved selection as setup required',()=>{
+ const missing={...createModelPreset('openai-gpt-transcribe'),id:'missing-key',name:'Unconfigured API model',enabled:true};
+ const c=controller({modelRegistrations:{version:2,entries:[missing,stt]},registrationKeyReady:[],sttModelId:missing.id,onSTTModel:vi.fn(),onStartSTT:vi.fn(),modelCatalog:[{id:missing.id,label:missing.name,provider:'openai',kind:'stt',enabled:true},{id:stt.id,label:stt.name,provider:'openai-compatible',kind:'stt',enabled:true}]});
+ render(<STT controller={c} project={p}/>);
+ const select=screen.getByRole('combobox',{name:'Transcription model'}) as HTMLSelectElement;
+ expect(select.value).toBe(missing.id);
+ expect(screen.queryByRole('option',{name:missing.name})).toBeNull();
+ expect((within(select).getByRole('option',{name:'API setup required · choose a model'}) as HTMLOptionElement).disabled).toBe(true);
+ expect((within(select).getByRole('option',{name:stt.name}) as HTMLOptionElement).disabled).toBe(false);
+ fireEvent.click(screen.getByRole('checkbox',{name:"I've reviewed the above"}));
+ expect((screen.getByRole('button',{name:'Transcribe'}) as HTMLButtonElement).disabled).toBe(true);
+ expect(c.onSTTModel).not.toHaveBeenCalled();expect(c.onStartSTT).not.toHaveBeenCalled();
+});
+it('maps edited GPT Transcribe inputs into language, keyword and context request fields without sending audio',()=>{
+ const model={...createModelPreset('openai-gpt-transcribe'),enabled:true},save=vi.fn(),start=vi.fn();
+ render(<STT controller={controller({modelRegistrations:{version:2,entries:[model]},registrationKeyReady:[model.id],sttModelId:model.id,modelCatalog:[{id:model.id,label:model.name,provider:'openai',kind:'stt',enabled:true}],onAudioOptions:save,onStartSTT:start})} project={p}/>);
+ const before=screen.getByRole('region',{name:'Before sending'});
+ fireEvent.click(within(before).getByRole('button',{name:'Edit transcription input'}));
+ fireEvent.change(screen.getByLabelText('Spoken languages · comma-separated'),{target:{value:'ko, en'}});
+ fireEvent.change(screen.getByLabelText('Vocabulary · one per line'),{target:{value:'MoM\nAC-42'}});
+ fireEvent.change(screen.getByLabelText('Context'),{target:{value:'Synthetic customer support call'}});
+ fireEvent.click(screen.getByRole('button',{name:'Apply input settings'}));
+ const options=save.mock.calls[0][1];
+ const body=buildRegistrationRequest(model,{stage:'stt',file:new File(['synthetic'],'synthetic.mp3',{type:'audio/mpeg'}),languages:options.expectedLanguages,glossary:options.transcriptionHints.terms,context:options.transcriptionHints.context}).body as FormData;
+ expect(body.getAll('languages[]')).toEqual(['ko','en']);expect(body.getAll('keywords[]')).toEqual(['MoM','AC-42']);expect(body.get('prompt')).toBe('Synthetic customer support call');
+ expect(start).not.toHaveBeenCalled();
+});
+it('rejects provider-invalid GPT keywords and language codes before applying or sending',()=>{
+ const model={...createModelPreset('openai-gpt-transcribe'),enabled:true},save=vi.fn(),start=vi.fn();
+ render(<STT controller={controller({modelRegistrations:{version:2,entries:[model]},registrationKeyReady:[model.id],sttModelId:model.id,modelCatalog:[{id:model.id,label:model.name,provider:'openai',kind:'stt',enabled:true}],onAudioOptions:save,onStartSTT:start})} project={p}/>);
+ fireEvent.click(screen.getByRole('button',{name:'Edit transcription input'}));
+ fireEvent.change(screen.getByLabelText('Vocabulary · one per line'),{target:{value:'<forbidden>'}});
+ const apply=screen.getByRole('button',{name:'Apply input settings'}) as HTMLButtonElement;
+ expect(apply.disabled).toBe(true);expect(screen.getByText('Vocabulary: < and > are not allowed.')).toBeTruthy();
+ fireEvent.change(screen.getByLabelText('Vocabulary · one per line'),{target:{value:'MoM'}});
+ fireEvent.change(screen.getByLabelText('Spoken languages · comma-separated'),{target:{value:'en-US'}});expect(apply.disabled).toBe(true);
+ fireEvent.change(screen.getByLabelText('Spoken languages · comma-separated'),{target:{value:'en, zh-cn'}});expect(apply.disabled).toBe(false);
+ fireEvent.click(apply);expect(save.mock.calls[0][1].expectedLanguages).toEqual(['en','zh-cn']);expect(start).not.toHaveBeenCalled();
 });
 it('distinguishes custom STT endpoint aliases without showing registration IDs',()=>{
  const other={...stt,id:'other-registration',endpointUrl:'http://localhost:9000/v1/audio/transcriptions'};
@@ -80,10 +120,11 @@ it('omits unavailable model facts and keeps the frozen generated model name afte
  const selected={...p,minutesRuns:[run],minutesRevisions:[{id:'revision',runId:run.id,parentId:null,markdown:run.generatedMarkdown}],selectedMinutesRevisionId:'revision'};
  const preview=previewRegisteredMinutesSelection(text,null,p.minutesSettings);
  render(<Minutes controller={controller({minutesSelection:preview})} project={selected}/>);
+ const detail=screen.getByText('Model and pricing details').closest('details')!;expect(detail.open).toBe(false);fireEvent.click(screen.getByText('Model and pricing details'));
  const facts=screen.getByRole('region',{name:'Model details'});
- expect(facts.closest('details')).toBeNull(); expect(within(facts).queryByText(/Unknown|Unavailable|creator|Duration|Input · USD/)).toBeNull();
+ expect(facts.closest('details')?.open).toBe(true); expect(within(facts).queryByText(/Unknown|Unavailable|creator|Duration|Input · USD/)).toBeNull();
  expect(within(screen.getByText('Notes result').closest('.minutes-results')!).getByText('SYNTHETIC_FROZEN_ALIAS')).toBeTruthy();
- expect(screen.queryByText('Details · model prices and limits')).toBeNull();
+ expect(screen.getByText('Model and pricing details')).toBeTruthy();
 });
 it('keeps output budget edits local until Apply, blocks invalid limits and clears prior consent',()=>{
  const version={id:'speech',parentId:null,rawIds:[],segments:[{id:'s',text:'Synthetic speech',sourceStartMs:0,sourceEndMs:1000,rawIds:[]}],issues:[],missingRanges:[]};
@@ -141,4 +182,17 @@ it('supports instructions-only notes and shows the missing condition beside the 
  fireEvent.click(screen.getByRole('checkbox',{name:'I understand that the selected transcript and settings will be sent, and charges may apply. Audio will not be sent again.'}));
  const button=screen.getByRole('button',{name:'Generate notes'});expect((button as HTMLButtonElement).disabled).toBe(false);fireEvent.click(button);expect(generate).toHaveBeenCalledOnce();
  expect(screen.queryByText('Uses the selected transcript. Audio is not sent again.')).toBeNull();
+});
+it('shows saved Groq context and refreshes the editor when the saved model settings change',()=>{
+ const model={...createModelPreset('router-whisper-large-v3'),enabled:true,auth:'none' as const,requestParameters:{provider:{options:{groq:{prompt:'SYNTHETIC SAVED CONTEXT'}}}}};
+ const makeController=(entry:typeof model)=>controller({modelRegistrations:{version:2,entries:[entry]},sttModelId:entry.id,modelCatalog:[{id:entry.id,label:entry.name,provider:'openrouter',kind:'stt',enabled:true}],onAudioOptions:vi.fn(),onStartSTT:vi.fn()});
+ const view=render(<STT controller={makeController(model)} project={p}/>);
+ expect(screen.getByText('SYNTHETIC SAVED CONTEXT')).toBeTruthy();
+ fireEvent.click(screen.getByRole('button',{name:'Edit transcription input'}));
+ expect((screen.getByLabelText('Context') as HTMLTextAreaElement).value).toBe('SYNTHETIC SAVED CONTEXT');
+ fireEvent.change(screen.getByLabelText('Context'),{target:{value:'UNSAVED DRAFT'}});
+ const changed={...model,requestParameters:{provider:{options:{groq:{prompt:'UPDATED SAVED CONTEXT'}}}}};
+ view.rerender(<STT controller={makeController(changed)} project={p}/>);
+ expect((screen.getByLabelText('Context') as HTMLTextAreaElement).value).toBe('UPDATED SAVED CONTEXT');
+ expect(screen.getByText('UPDATED SAVED CONTEXT',{selector:'dd'})).toBeTruthy();
 });

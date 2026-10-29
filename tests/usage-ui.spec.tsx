@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { useState } from 'react';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
-import { cleanup, render, screen, within } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import App, { defaultPreferences, type AppController, type AppScreen } from '../src/react-app/App';
 import type { MeetingProject, Usage } from '../src/react-app/domain/types';
@@ -43,6 +43,8 @@ describe('independent History and stage usage UI', () => {
   });
   it('shows STT/notes stages and independent currency components in the final notes statement', () => {
     render(<App controller={controller()} />); const statement = screen.getByRole('region', { name: 'Usage statement' });
+    expect(within(statement).queryByRole('table')).toBeNull();
+    fireEvent.click(within(statement).getByRole('button', { name: 'Show usage and cost details' }));
     expect(within(statement).getByRole('row', { name: /STT.*1.*1.*1.*USD/ })).toBeTruthy();
     expect(within(statement).getByRole('row', { name: /Notes.*2.*1.*credits/ })).toBeTruthy();
     expect(within(statement).getByText('Combined known components')).toBeTruthy();
@@ -66,6 +68,7 @@ describe('independent History and stage usage UI', () => {
     render(<App controller={controller({ screen: current, projects: [enriched] })} />);
     if (current === 'stt') await userEvent.setup().click(screen.getByRole('button', { name: 'View statement & request history →' }));
     const statement = screen.getByRole('region', { name: current === 'stt' ? 'STT usage statement' : 'Usage statement' });
+    if (current === 'minutes') fireEvent.click(within(statement).getByRole('button', { name: 'Show usage and cost details' }));
     await userEvent.setup().click(within(statement).getByText('STT · Token, timing and state details'));
     for (const id of ['s', 'stt-old', 'stt-retry']) {
       const attempt = within(statement).getByRole('group', { name: `Statement run ${id}` });
@@ -91,6 +94,7 @@ describe('independent History and stage usage UI', () => {
     const enriched: MeetingProject = { ...p, minutesRuns: [...p.minutesRuns, member], runs: [...p.runs, { ...p.runs[1], id: 'b', intent: { ...p.runs[1].intent!, requestedModel: member.requestedModel, requestedEndpoint: 'SavedB/region', rateSnapshot: member.usage.rateSnapshot } }], minutesComparisons: [{ id: 'comparison', projectId: p.id, createdAt: '', inputSignature: '', promptVersion: '', transcript: { id: 'v', parentId: null, rawIds: [], segments: [], issues: [], missingRanges: [] }, settings: p.minutesSettings, messages: [], outputTokens: 1, reasoningReserveTokens: 0, members: [{ modelId: p.minutesRuns[0].requestedModel, endpointTag: 'Requested/region', providerName: null, selectionSnapshot: {}, attempts: [{ runId: 'old', revisionId: null, consentToken: '', selectionSnapshot: {} }, { runId: 'm', revisionId: 'revision', consentToken: '', selectionSnapshot: {} }] }, { modelId: member.requestedModel, endpointTag: 'SavedB/region', providerName: null, selectionSnapshot: {}, attempts: [{ runId: 'b', revisionId: null, consentToken: '', selectionSnapshot: {} }] }] }] };
     render(<App controller={controller({ projects: [enriched] })} />);
     const statement = screen.getByRole('region', { name: 'Usage statement' });
+    fireEvent.click(within(statement).getByRole('button', { name: 'Show usage and cost details' }));
     await userEvent.setup().click(within(statement).getByText('Notes · Token, timing and state details'));
     expect(within(statement).getAllByRole('group', { name: /^Statement run/ })).toHaveLength(3);
     const b = within(statement).getByRole('group', { name: 'Statement run b' });
@@ -148,16 +152,17 @@ it('summarizes unique STT runs with honest partial cost coverage and keeps all r
   const enriched = { ...p, rawTranscripts: [p.rawTranscripts[0], { ...p.rawTranscripts[0], id: 'same-run-copy' }, missing], runs: [p.runs[0], p.runs[0], { ...p.runs[0], id: 'missing' }, { ...p.runs[0], id: 'failed', state: 'failed' as const }, { ...p.runs[0], id: 'unknown', state: 'outcome-unknown' as const }] };
   render(<App controller={controller({ screen: 'stt', projects: [enriched] })} />);
   const summary = screen.getByRole('region', { name: 'Transcription usage summary' });
-  expect(within(summary).getByText('Cost unavailable')).toBeTruthy();
-  expect(within(summary).getByText('0.01 USD · Estimated known partial subtotal (1 results)')).toBeTruthy();
-  expect(within(summary).getByText('1 results have no cost information')).toBeTruthy();
-  expect(within(summary).getByText('Preserved responses').nextElementSibling?.textContent).toBe('2');
-  expect(within(summary).getByText('Request records').nextElementSibling?.textContent).toBe('4');
-  expect(within(summary).getByText('Failed / unknown outcome').nextElementSibling?.textContent).toBe('1 / 1');
+  expect(summary.textContent).toContain('Request records 4');
+  expect(summary.textContent).toContain('Cost unavailable');
+  expect(summary.textContent).toContain('0.01 USD · Estimated known partial subtotal');
+  expect(within(summary).queryByText('Preserved responses')).toBeNull();
+  expect(within(summary).queryByText('Failed / unknown outcome')).toBeNull();
   expect(screen.queryByRole('region', { name: 'STT usage statement' })).toBeNull();
   await userEvent.setup().click(within(summary).getByRole('button', { name: 'View statement & request history →' }));
   const modal = within(screen.getByRole('dialog', { name: 'Usage statement · request history' }));
+  expect(modal.getByRole('row', { name: /STT.*4.*2/ })).toBeTruthy();
   await userEvent.setup().click(modal.getByText('STT · Token, timing and state details'));
+  expect(modal.getByText(/Failed 1/)).toBeTruthy();
   expect(modal.getAllByRole('group', { name: /^Statement run/ })).toHaveLength(4);
   const unknown = modal.getByRole('group', { name: 'Statement run unknown' });
   expect(unknown.querySelector('summary')?.textContent).toContain('Outcome unknown');

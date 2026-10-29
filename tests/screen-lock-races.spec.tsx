@@ -61,7 +61,14 @@ it('fences nested recording callbacks retained before screen locking', async () 
 });
 
 it('stages the latest unsaved UI draft on page departure before vault locking', async () => {
-  const config = options(), hook = renderHook(() => useMeetingController(config));
+  const barrier = hold(); let loads = 0, restoreWaiting = false;
+  const config = options({ sessionFactory: hooks => {
+    const session = createVaultSession({ ...hooks, testOnlyOwnership: { acquire: async () => () => {} } }); sessions.push(session);
+    const load = session.loadScreenState.bind(session);
+    const wrapper = Object.create(session) as VaultSession;
+    Object.defineProperty(wrapper, 'loadScreenState', { value: async (job: Parameters<VaultSession['loadScreenState']>[0]) => { if (++loads === 2) { restoreWaiting = true; await barrier.promise; } return load(job); } });
+    return wrapper;
+  } }), hook = renderHook(() => useMeetingController(config));
   await vi.waitFor(() => expect(hook.result.current.session).toBe('new'));
   act(() => hook.result.current.onCreateVault!(phrase));
   await vi.waitFor(() => expect(hook.result.current.session).toBe('unlocked'));
@@ -74,7 +81,13 @@ it('stages the latest unsaved UI draft on page departure before vault locking', 
   await vi.waitFor(() => expect(hook.result.current.session).toBe('locked'));
   act(() => window.dispatchEvent(new Event('pageshow')));
   act(() => hook.result.current.onUnlock!(phrase));
-  await vi.waitFor(() => expect(hook.result.current.session).toBe('unlocked'));
+  await vi.waitFor(() => expect(restoreWaiting).toBe(true));
+  expect(hook.result.current.session).toBe('unlocked');
+  expect(hook.result.current.screenAccess).toBe('verifying');
+  expect(hook.result.current.uiDrafts?.[key]).toBeUndefined();
+  act(() => hook.result.current.onUIDraft!(key, 'MUST_NOT_REPLACE_SAVED_DRAFT'));
+  barrier.release();
+  await vi.waitFor(() => expect(hook.result.current.screenAccess).toBe('open'));
   expect(hook.result.current.uiDrafts?.[key]).toBe('UNSAVED_PAGE_DEPARTURE_DRAFT');
 });
 

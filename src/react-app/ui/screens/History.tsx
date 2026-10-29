@@ -6,7 +6,8 @@ import { asObject } from '../../domain/pipeline';
 import type { UsageHistoryItem } from '../../usage/statement';
 import { currentPage, PAGE_SIZE, newestFirst, projectHistory } from '../../usage/history';
 import Pagination from '../Pagination';
-import { copy, formatTime } from '../copy';
+import JsonResponse from '../components/JsonResponse';
+import { copy, formatTime, memoEntryScreen } from '../copy';
 import './history-listing.css';
 
 type Language = 'ko' | 'en';
@@ -43,10 +44,19 @@ function FailureDetails({ project, item, language }: { project: MeetingProject; 
     {!saved && <span className="hint">{copy(language, '이 요청에는 오류 상세가 저장되지 않았어요.', 'Failure details were not saved for this request.')}</span>}
   </section>;
 }
+function safeHistoryValue(value:unknown):unknown {
+  if (typeof value === 'string') return value.replace(/\bsk-[a-zA-Z0-9_-]+|Bearer\s+\S+/gu, '[redacted]');
+  if (Array.isArray(value)) return value.map(safeHistoryValue);
+  const object=asObject(value); if (!object) return value;
+  return Object.fromEntries(Object.entries(object).map(([key,item]) => [key, /^(?:audio|audio_data|api[_-]?key|authorization|headers|credentials?)$/iu.test(key) ? '[omitted]' : safeHistoryValue(item)]));
+}
 function Call({ project, item, language }: { project: MeetingProject; item: UsageHistoryItem; language: Language }) {
   const t = (ko: string, en: string) => copy(language, ko, en);
   const archive = item.archivedAt ? project.processingArchives?.find(archive => archive.resetAt === item.archivedAt && archive.items.some(entry => entry.id === item.id)) : null;
   const chunk = (archive?.chunks ?? project.preparedChunks).find(chunk => chunk.id === item.chunkId);
+  const failure = !item.archivedAt ? project.failedProviderResponses?.find(entry => entry.runId === item.id) : undefined;
+  const result = !item.archivedAt ? item.kind === 'stt' ? project.rawTranscripts.find(raw => raw.runId === item.id) : project.minutesRuns.find(run => run.id === item.id) : undefined;
+  const recordedRequest = failure?.request ?? result?.request, recordedResponse = failure?.response ?? result?.response;
   const dimensions = [
     ['inputTokens', '총 입력 토큰', 'Aggregate input tokens'], ['outputTokens', '총 출력 토큰', 'Aggregate output tokens'],
     ['audioInputTokens', '음성 입력 토큰', 'Audio input tokens'], ['textInputTokens', '텍스트 입력 토큰', 'Text input tokens'],
@@ -70,6 +80,7 @@ function Call({ project, item, language }: { project: MeetingProject; item: Usag
     {item.kind && <span className="badge idle">{item.kind === 'stt' ? 'STT' : 'LLM'}</span>}
     <strong>{item.modelName ?? item.model ?? t('요청 기록', 'Request record')}</strong>
     {item.state && <span className={`badge ${item.state === 'failed' ? 'failed' : item.state === 'saved' ? 'done' : 'idle'}`}>{item.archivedAt ? t('당시 ', 'Previously ') : ''}{states[item.state][language === 'ko' ? 0 : 1]}</span>}
+    {failure?.status!=null&&<span className="badge failed">HTTP {failure.status}</span>}
     {chunk && <span className="hint">{t('청크', 'Chunk')} {chunk.index + 1} · {formatTime(chunk.sourceStartMs)}–{formatTime(chunk.sourceEndMs)}</span>}
     <Timestamp value={item.date} language={language} />
     {known(item.usage?.elapsedMs) && <span className="hint">{count(item.usage.elapsedMs / 1000)}s</span>}
@@ -79,8 +90,13 @@ function Call({ project, item, language }: { project: MeetingProject; item: Usag
     {item.archivedAt && <span className="history-archived">{t('초기화 이전 · 결과 삭제됨', 'Before initialization · results deleted')}</span>}
     {item.conflict && <span className="history-archived">{t('저장된 증거 상충', 'Conflicting saved evidence')}</span>}
   </span></summary><div className="history-call-facts stack gap12">
-    {facts.filter(([, value]) => value).map(([label, value]) => <span key={label}>{label}: {value}</span>)}
     <FailureDetails project={project} item={item} language={language} />
+    {facts.filter(([, value]) => value).map(([label, value]) => <span key={label}>{label}: {value}</span>)}
+    <details><summary>{t('요청 · 응답 상세', 'Request and response details')}</summary><div className="stack gap12">
+      <span className="hint">{t('요청의 음성 바이너리·base64 대신 크기와 형식만 기록해요. 인증 정보는 마스킹해요.', 'The request records audio size and format instead of bytes or base64. Authentication information is masked.')}</span>
+      {recordedRequest === undefined ? <span>{t('요청 내용이 기록되지 않았어요.', 'Request content was not recorded.')}</span> : <JsonResponse value={safeHistoryValue(recordedRequest)} language={language} title={t('요청', 'Request')}/>}
+      {recordedResponse === undefined ? <span>{t('응답 내용이 기록되지 않았어요.', 'Response content was not recorded.')}</span> : <JsonResponse value={safeHistoryValue(recordedResponse)} language={language} title={t('응답', 'Response')}/>}
+    </div></details>
     {item.archivedAt && <span>{t('초기화 시각', 'Initialization time')}: <Timestamp value={item.archivedAt} language={language} /></span>}
     {dimensions.map(([key, ko, en]) => known(item.usage?.[key]) && <span key={key}>{t(ko, en)}: {count(item.usage![key]!)}</span>)}
     <Rates snapshot={item.usage?.rateSnapshot ?? null} label={t('결과 요금 스냅샷', 'Result rate snapshot')} language={language} />
@@ -94,7 +110,7 @@ function Detail({ controller: c, project }: { controller: AppController; project
   const language = c.preferences.uiLanguage; const t = (ko: string, en: string) => copy(language, ko, en);
   const [filter, setFilter] = useState<'all' | 'stt' | 'minutes'>('all'); const [requestedPage, setPage] = useState(1);
   const items = projectHistory(project).filter(item => filter === 'all' || item.kind === filter); const page = currentPage(requestedPage, items.length);
-  return <><div className="row-between"><h2>{project.title}</h2><button disabled={!c.onNavigate} onClick={() => c.onNavigate?.('import', project.id)}>{t('음성 메모 열기', 'Open voice memo')}</button></div>
+  return <><div className="row-between"><h2>{project.title}</h2><button disabled={!c.onNavigate} onClick={() => c.onNavigate?.(memoEntryScreen(project), project.id)}>{t('음성 메모 열기', 'Open voice memo')}</button></div>
     <div className="history-filters" role="group" aria-label={t('처리 종류', 'Processing type')}>{(['all', 'stt', 'minutes'] as const).map(value => <button key={value} aria-pressed={filter === value} onClick={() => { setFilter(value); setPage(1); }}>{value === 'all' ? t('전체', 'All') : value === 'stt' ? 'STT' : 'LLM'}</button>)}</div>
     <section className="card flush" aria-label={t('실행별 처리 기록', 'Processing records by run')}>
       {!items.length && <div className="empty">{t('처리 기록이 없어요.', 'No processing records.')}</div>}
