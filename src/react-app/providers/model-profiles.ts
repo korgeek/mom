@@ -39,6 +39,7 @@ export const MODEL_PRESETS = [
  {id:'scribe-v2',name:'Scribe v2',stage:'stt',...router,modelId:'elevenlabs/scribe-v2',stt:{...stt,responseFormat:'json',timestamps:'none'}},
  {id:'whisper-large-v3-turbo',name:'Whisper large v3 turbo',stage:'stt',...router,modelId:'openai/whisper-large-v3-turbo',stt:{...stt,responseFormat:'json',timestamps:'none'}},
  ...[
+  ['router-gpt-transcribe','GPT Transcribe','openai/gpt-transcribe'],
   ['router-qwen3-asr-1.7b','Qwen3 ASR 1.7B','qwen/qwen3-asr-1.7b'],
   ['router-qwen3-asr-0.6b','Qwen3 ASR 0.6B','qwen/qwen3-asr-0.6b'],
   ['router-whisper-large-v3','Whisper Large V3','openai/whisper-large-v3'],
@@ -50,7 +51,8 @@ export const MODEL_PRESETS = [
   ['router-parakeet-tdt-0.6b-v3','Parakeet TDT 0.6B v3','nvidia/parakeet-tdt-0.6b-v3'],
   ['router-nemotron-3.5-asr-streaming-multilingual-0.6b','Nemotron 3.5 ASR Streaming Multilingual 0.6B','nvidia/nemotron-3.5-asr-streaming-multilingual-0.6b'],
  ].map(([id,name,modelId])=>({id,name,modelId,stage:'stt' as const,...router,stt:{...stt,responseFormat:'json' as const,timestamps:'none' as const}})),
- {id:'openai-stt',name:'OpenAI STT',stage:'stt',baseUrl:'https://api.openai.com/v1',endpointUrl:'https://api.openai.com/v1/audio/transcriptions',adapter:'openai',modelId:'whisper-1',stt:{...stt,maxBytes:25_000_000,responseFormat:'verbose_json',timestamps:'word'}},
+ {id:'openai-gpt-transcribe',name:'GPT Transcribe',stage:'stt',baseUrl:'https://api.openai.com/v1',endpointUrl:'https://api.openai.com/v1/audio/transcriptions',adapter:'openai',modelId:'gpt-transcribe',stt:{...stt,maxBytes:25_000_000,responseFormat:'json',timestamps:'none',languageMode:'multiple',termMode:'prompt-and-keywords'}},
+ {id:'openai-stt',name:'OpenAI STT',stage:'stt',baseUrl:'https://api.openai.com/v1',endpointUrl:'https://api.openai.com/v1/audio/transcriptions',adapter:'openai',modelId:'whisper-1',stt:{...stt,maxBytes:25_000_000,responseFormat:'verbose_json',timestamps:'word',termMode:'prompt'}},
  // Published output ceilings checked 2026-10-19; the default request stays at 4K.
  {id:'openai-text',name:'GPT-6 Luna',stage:'llm',baseUrl:'https://api.openai.com/v1',endpointUrl:'https://api.openai.com/v1/chat/completions',adapter:'openai',modelId:'gpt-6-luna',llm:{tokenField:'max_completion_tokens',maxTokens:128_000,contextTokens:922_000},requestParameters:{reasoning_effort:'none'}},
  {id:'openrouter-text',name:'GPT-6 Luna',stage:'llm',baseUrl:'https://openrouter.ai/api/v1',endpointUrl:'https://openrouter.ai/api/v1/chat/completions',adapter:'openrouter',modelId:'openai/gpt-6-luna',routerPolicy:{requireZdr:true,acknowledged:false},llm:{tokenField:'max_tokens',maxTokens:128_000,contextTokens:922_000},requestParameters:{reasoning_effort:'none'}},

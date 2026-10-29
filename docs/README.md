@@ -47,6 +47,7 @@ MoM은 브라우저에서 음성을 준비하고, 사용자가 선택한 외부 
 | 변경 주제 | 구현·검증·배포 근거 |
 | --- | --- |
 | 보관 정책 거절·명시적 정책 검토·새 전송 동의 | [전사 정책 복구](superpowers/evidence/2026-10-19-stt-policy-recovery/README.md) |
+| OpenAI/OpenRouter 전사 설정과 실패 요청 상세 | [STT 표준화·오류 기록](superpowers/evidence/2026-10-29-stt-standardization/README.md) |
 | 저장소 목록의 얇은 행·우측 삭제 버튼 | [저장소 목록](superpowers/evidence/2026-10-19-storage-rows/README.md) |
 | 예정된 겹침 처리·선택 전사·정리 입력 | [겹침과 회의록](superpowers/evidence/2026-10-19-overlap-minutes/README.md) |
 | 공통 접기 설명·정리 출력 한도 | [접기 설명](superpowers/evidence/2026-10-19-shared-disclosures/README.md), [출력 한도](superpowers/evidence/2026-10-19-notes-output-limits/README.md) |

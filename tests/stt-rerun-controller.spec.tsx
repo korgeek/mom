@@ -14,7 +14,7 @@ const routerModel = { id: "fixture/rerun-minutes", name: "TEST_ONLY_TEXT_MODEL",
 const routerEndpoint = { tag: "TestOnlyEndpoint/region", provider_name: "TestOnlyEndpoint", context_length: 32000, max_prompt_tokens: 28000, max_completion_tokens: 4096, supported_parameters: ["max_tokens"], pricing: routerModel.pricing };
 const secret = "synthetic STT rerun integration phrase", cores: MeetingController[] = [];
 afterEach(async () => { vi.restoreAllMocks(); for (const core of cores.splice(0)) await core.dispose(); cancelJobs(); });
-async function fixture(options: { respond?: (attempt: number, init?: RequestInit) => Promise<Response>; checkpoint?: (project: MeetingProject, runId: string | null) => Promise<void> } = {}) {
+async function fixture(options: { respond?: (attempt: number, init?: RequestInit) => Promise<Response>; respondMinutes?: () => Promise<Response>; checkpoint?: (project: MeetingProject, runId: string | null) => Promise<void> } = {}) {
     const indexedDB = new IDBFactory(), databaseName = crypto.randomUUID(), held = new Set<string>(), requests: RequestInit[] = [], minutesRequests: RequestInit[] = []; let keyReads = 0;
     let session!: VaultSession;
     const make = () => {
@@ -27,7 +27,7 @@ async function fixture(options: { respond?: (attempt: number, init?: RequestInit
                 requests.push(init!);
                 return options.respond?.(requests.length, init) ?? new Response(JSON.stringify({ text: `SYNTHETIC_STT_ANSWER_${requests.length}`, usage: { type: "duration", seconds: 1 } }));
             }
-            if (String(url).endsWith("/chat/completions")) { minutesRequests.push(init!); return new Response(JSON.stringify({ model: routerModel.id, choices: [{ message: { content: "# SYNTHETIC_ORIGINAL_MINUTES" }, finish_reason: "stop" }], usage: { prompt_tokens: 40, completion_tokens: 10 } })); }
+            if (String(url).endsWith("/chat/completions")) { minutesRequests.push(init!); return options.respondMinutes?.() ?? new Response(JSON.stringify({ model: routerModel.id, choices: [{ message: { content: "# SYNTHETIC_ORIGINAL_MINUTES" }, finish_reason: "stop" }], usage: { prompt_tokens: 40, completion_tokens: 10 } })); }
             if (String(url) === "https://api.openai.com/v1/models") return new Response(JSON.stringify({ data: [{ id: "gpt-transcribe" }, { id: "gpt-4o-mini-transcribe" }] }));
             if (String(url).endsWith("/endpoints")) return new Response(JSON.stringify({ data: { id: routerModel.id, endpoints: [routerEndpoint] } }));
             if (String(url).startsWith("https://openrouter.ai/api/v1/models")) return new Response(JSON.stringify({ data: [routerModel] }));
@@ -42,7 +42,7 @@ async function fixture(options: { respond?: (attempt: number, init?: RequestInit
     await session.store.checkpoint({ project: seeded, runId: null, audioRecords: [{ recordId: sourceId, audio }, ...preparedChunks.map(chunk => ({ recordId: chunk.audioRecordId, audio }))] }, createJobContext());
     await core.lock(); await core.unlock(secret); await core.saveKey("openai", "SYNTHETIC_FAKE_KEY_NO_NETWORK", "encrypted");
     for (const id of ['gpt-transcribe', 'gpt-4o-mini-transcribe']) {
-        const model = validateRegistration({ ...createModelPreset('openai-stt', () => id), modelId: id, enabled: true, stt: { formats: ['mp3'], maxBytes: 25000000, responseFormat: 'json', languageMode: 'multiple', timestamps: 'none' } });
+        const model = validateRegistration({ ...createModelPreset('openai-stt', () => id), modelId: id, enabled: true, stt: { formats: ['mp3'], maxBytes: 25000000, responseFormat: 'json', languageMode: id === 'gpt-transcribe' ? 'multiple' : 'none', timestamps: 'none' } });
         await core.getSnapshot().onSaveRegistration!(model, { action: 'replace', value: 'SYNTHETIC_REGISTRATION_KEY_NO_NETWORK' });
     }
     await core.getSnapshot().onSetRegistrationDefault!('stt', 'gpt-transcribe');
@@ -69,6 +69,30 @@ function deferred<T = void>() { let resolve!: (value: T) => void; const promise 
 function initialConsent(f: Awaited<ReturnType<typeof fixture>>) {
     return { modelId: 'gpt-transcribe', acknowledged: true as const, consentToken: sttActionToken(f.core.getSnapshot().sttConsentToken, f.project(), { purpose: 'initial', chunkIds: f.project().preparedChunks.map(chunk => chunk.id), modelId: 'gpt-transcribe' }) };
 }
+
+it.each([true, false])('retains encrypted failure diagnostics after reload with JSON=%s without retrying', async json => {
+    const f = await fixture({ respond: async () => new Response(json ? JSON.stringify({ error: { message: 'Unsupported format verbose_json SYNTHETIC_REGISTRATION_KEY_NO_NETWORK', code: 'unsupported_value', param: 'response_format', type: 'invalid_request_error' } }) : 'Synthetic non-JSON failure', { status: 400 }) });
+    await expect(f.core.startSTT(f.id, initialConsent(f))).rejects.toMatchObject({ code: 'invalid-input', status: 400 });
+    await f.core.lock(); await f.core.unlock(secret);
+    const saved = f.project() as import('../src/react-app/controller').ControllerProject;
+    expect(saved.failedProviderResponses).toHaveLength(1);
+    expect(saved.failedProviderResponses![0]).toMatchObject({ runId: saved.runs[0].id, status: 400, failureCode: 'invalid-input' });
+    if (json) expect(saved.failedProviderResponses![0].response).toMatchObject({ message: 'Unsupported format verbose_json [redacted]', code: 'unsupported_value', param: 'response_format' });
+    expect(JSON.stringify(saved.failedProviderResponses)).not.toContain('SYNTHETIC_REGISTRATION_KEY_NO_NETWORK');
+    expect(saved.rawTranscripts).toHaveLength(0); expect(f.requests).toHaveLength(1);
+});
+
+it('retains LLM failure diagnostics without changing completed transcripts', async () => {
+    const f = await fixture({ respondMinutes: async () => new Response(JSON.stringify({ error: { message: 'Synthetic context limit', code: 'context_length_exceeded', param: 'messages' } }), { status: 400 }) });
+    await f.core.startSTT(f.id, initialConsent(f));
+    const notes = validateRegistration({ ...createModelPreset('openrouter-text', () => 'diagnostic-notes'), modelId: routerModel.id, enabled: true, routerPolicy: { requireZdr: true, acknowledged: true }, llm: { tokenField: 'max_tokens', contextTokens: 32000, maxTokens: 4096 } });
+    await f.core.getSnapshot().onSaveRegistration!(notes, { action: 'replace', value: 'SYNTHETIC_ROUTER_KEY_NO_NETWORK' });
+    await f.core.setMinutesRoute(f.id, notes.id);
+    await expect(f.core.generateMinutes(f.id, { acknowledged: true, transcriptVersionId: f.project().selectedTranscriptVersionId!, consentToken: f.core.getSnapshot().minutesConsentToken!, partialAcknowledged: false })).rejects.toMatchObject({ code: 'context', status: 400 });
+    await f.core.lock(); await f.core.unlock(secret);
+    expect(f.project().failedProviderResponses![0]).toMatchObject({ status: 400, failureCode: 'context', response: { code: 'context_length_exceeded', param: 'messages' } });
+    expect(f.project().rawTranscripts).toHaveLength(2); expect(f.project().minutesRuns).toHaveLength(0); expect(f.minutesRequests).toHaveLength(1);
+});
 function rerunConsent(f: Awaited<ReturnType<typeof fixture>>, chunkIds: readonly string[], batchId?: string) {
     const purpose = batchId ? "retry-failed" : "rerun-successful", modelId = batchId ? f.project().sttBatches!.find(batch => batch.id === batchId)!.modelId : f.core.getSnapshot().sttModelId;
     return { modelId, acknowledged: true as const, additionalChargeAcknowledged: true, ...(batchId ? { batchId } : {}), consentToken: sttActionToken(f.core.getSnapshot().sttConsentToken, f.project(), { purpose, chunkIds, modelId, ...(batchId ? { batchId } : {}) }) };
@@ -188,7 +212,7 @@ it("chooses a new transcript for minutes consent without extra STT and counts ea
     const notesModel = validateRegistration({ ...createModelPreset('openrouter-text', () => 'synthetic-notes-model'), modelId: routerModel.id, enabled: true, routerPolicy: { requireZdr: true, acknowledged: true }, llm: { tokenField: 'max_tokens', contextTokens: 32000, maxTokens: 4096 } });
     await f.core.getSnapshot().onSaveRegistration!(notesModel, { action: 'replace', value: 'SYNTHETIC_ROUTER_KEY_NO_NETWORK' });
     await f.core.setMinutesRoute(f.id, notesModel.id); const prior = f.core.getSnapshot().minutesConsentToken; expect(prior).toBeTruthy();
-    await f.core.generateMinutes(f.id, { acknowledged: true, transcriptVersionId: f.project().selectedTranscriptVersionId!, consentToken: prior!, partialAcknowledged: true });
+    await f.core.generateMinutes(f.id, { acknowledged: true, transcriptVersionId: f.project().selectedTranscriptVersionId!, consentToken: prior!, partialAcknowledged: false });
     const minutes = f.project().minutesRuns, revisions = f.project().minutesRevisions, selectedMinutes = f.project().selectedMinutesRevisionId;
     const chunks = [f.project().preparedChunks[0].id]; await f.core.startSTT(f.id, rerunConsent(f, chunks), chunks, { purpose: "rerun-successful" });
     expect(f.core.getSnapshot().minutesConsentToken).toBe(prior); expect(f.project().minutesRuns).toEqual(minutes); expect(f.project().minutesRevisions).toEqual(revisions); expect(f.project().selectedMinutesRevisionId).toBe(selectedMinutes); const candidate = f.project().transcriptVersions.at(-1)!;

@@ -210,6 +210,9 @@ export type MeetingProject = Readonly<{
 	minutesComparisons?: readonly MinutesComparison[];
 	sttBatches?: readonly STTBatch[];
 	processingArchives?: readonly ProcessingArchive[];
+	failedProviderResponses?: readonly Readonly<{
+		runId: string; response?: unknown; failureCode?: string; status?: number | null;
+	}>[];
 	// Absence is legacy/unknown until the vault verifies owned manifests.
 	retainedAudio?: RetainedAudio;
 	sttRegistrationId?: string;

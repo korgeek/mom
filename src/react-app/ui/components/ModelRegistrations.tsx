@@ -4,7 +4,7 @@ import { copy } from '../copy';
 import SettingsDialog from './SettingsDialog';
 import { CredentialForm } from './ApiKeys';
 import { MODEL_PRESETS, createModelPreset, exportModelProfiles, importModelProfiles } from '../../providers/model-profiles';
-import { buildRegistrationRequest, registrationEndpoint, registrationInputSummary, registrationSignature, validateRegistration, validateRequestParameters, validateInstructionTemplate, withCredentialPolicy, type ApiCredential, type ModelRegistration, type RegistrationTestInput, type RegistrationTestResult } from '../../providers/model-registrations';
+import { buildRegistrationRequest, registrationEndpoint, registrationInputSummary, registrationSignature, registrationReadiness, sttCapabilities, validateRegistration, validateRequestParameters, validateInstructionTemplate, withCredentialPolicy, type ApiCredential, type ModelRegistration, type RegistrationTestInput, type RegistrationTestResult } from '../../providers/model-registrations';
 const list=(value:string)=>value.split(',').map(s=>s.trim()).filter(Boolean);
 function downloadModels(entries:readonly ModelRegistration[]) {
     const url=URL.createObjectURL(new Blob([exportModelProfiles(entries)],{type:'application/json'}));
@@ -68,7 +68,7 @@ function RegistrationForm({ initial, mode, controller: c, onClose }: {
     const t = (ko: string, en: string) => copy(c.preferences.uiLanguage, ko, en);
     const [newKey,setNewKey]=useState<ApiCredential|null>(null);
     const [draft, setDraft] = useState(initial), [error, setError] = useState(''), [notice, setNotice] = useState(''), [working, setWorking] = useState(false);
-    const [presetId,setPresetId]=useState(MODEL_PRESETS.find(p=>p.modelId===initial.modelId&&p.adapter===initial.adapter)?.id??'');
+    const [presetId,setPresetId]=useState(c.modelRegistrations?.entries.some(r=>r.id===initial.id) ? '' : MODEL_PRESETS.find(p=>p.modelId===initial.modelId&&p.adapter===initial.adapter)?.id??'');
     const testedInput = useRef<RegistrationTestInput | null>(null);
     const [file, setFile] = useState<File | null>(null), [audioInfo, setAudioInfo] = useState<{
         bytes: number;
@@ -104,6 +104,8 @@ function RegistrationForm({ initial, mode, controller: c, onClose }: {
         preview = t('이름·주소·모델 ID와 호환 설정을 확인하세요.', 'Check name, URL, model ID and compatibility settings.');
         if(!fieldError)fieldError=!draft.name.trim()?t('이름을 입력하세요.','Enter a name.'):!draft.modelId.trim()?t('모델 ID를 입력하세요.','Enter a model ID.'):t('엔드포인트 URL·API 종류·고급 설정을 확인하세요. 공식 API는 지정 경로를 사용하며 사용자 서버는 호환 API로 선택하세요.','Check endpoint URL, API kind and advanced settings. Official APIs require their exact route; use Compatible API for a custom server.');
     }
+    const sttOptions = sttCapabilities(draft);
+    const sttCompatibility = valid ? registrationReadiness(valid).filter(issue => issue === 'stt-model-format' || issue === 'stt-model-language' || issue === 'stt-model-terms') : [];
     const ipv6Http = valid && new URL(valid.baseUrl).protocol === 'http:' && new URL(valid.baseUrl).hostname === '[::1]';
     const same = saved && valid && registrationSignature(saved) === registrationSignature(valid);
     const hasKey = draft.auth === 'none' || !!c.registrationKeyReady?.includes(draft.id) && !!same;
@@ -175,28 +177,31 @@ function RegistrationForm({ initial, mode, controller: c, onClose }: {
    </div>
    <label className="checkbox-line"><input type="checkbox" checked={draft.enabled===true} onChange={e=>change({enabled:e.target.checked})}/><span>{t('이 모델 활성화','Enable this model')}</span></label>
    <span className="hint">{t('프리셋도 실제 모델 지원·CORS 통과를 보장하지 않아요. 원격 HTTPS와 로컬 localhost·127.0.0.1 HTTP를 지원해요. 브라우저 CORS·로컬 네트워크 권한 제한 시 서버 설정을 확인하세요.', 'Presets do not verify model support or CORS. Remote HTTPS and local localhost/127.0.0.1 HTTP are supported. If CORS or local network permissions block access, check your server configuration.')}</span>
+   {sttCompatibility.length > 0 && <span role="alert" className="warning">{t('모델과 응답 형식·언어 힌트·용어 설정이 맞지 않아 실행할 수 없어요. 해당 모델 프리셋을 선택하거나 고급 설정을 수정하세요.', 'The response format, language hint or vocabulary setting is incompatible with this model. Select its preset or adjust advanced settings before running.')}</span>}
    <details>
     <summary className="touch-summary">{t('고급 설정', 'Advanced settings')}</summary>
     <div className="registration-fields">
     {draft.stage === 'stt' ? <>
-     <label>{t('응답 형식', 'Response format')}<select value={draft.stt?.responseFormat ?? 'json'} onChange={e => change({ stt: { ...draft.stt, responseFormat: e.target.value as 'json', timestamps: 'none' } })}>{['json', 'verbose_json', 'diarized_json'].filter(v => !router || v !== 'diarized_json').map(v => <option key={v}>{v}</option>)}</select>
+     <label>{t('응답 형식', 'Response format')}<select value={draft.stt?.responseFormat ?? 'json'} onChange={e => change({ stt: { ...draft.stt, responseFormat: e.target.value as 'json', timestamps: 'none' } })}>{(['json', 'verbose_json', 'diarized_json'] as const).map(v => <option key={v} disabled={!sttOptions.formats.includes(v)}>{v}</option>)}</select>
         </label>
      <label>{t('언어 힌트 필드', 'Language hint field')}<select value={draft.stt?.languageMode ?? 'none'} onChange={e => change({ stt: { ...draft.stt, languageMode: e.target.value as 'none' } })}>
         <option value="none">{t('전송 안 함', 'Omit')}</option>
-        <option value="single">language</option>{!router && <option value="multiple">languages[]</option>}</select>
+        <option value="single" disabled={!sttOptions.languages.includes('single')}>language</option><option value="multiple" disabled={!sttOptions.languages.includes('multiple')}>languages[]</option></select>
         </label>
      <label>{t('용어·맥락 필드', 'Vocabulary / context field')}<select value={draft.stt?.termMode ?? 'none'} onChange={e => change({ stt: { ...draft.stt, termMode: e.target.value as 'none' } })}>
-        <option value="none">{t('전송 안 함', 'Omit')}</option>{!router && <>
-            <option value="prompt">prompt</option>
-            <option value="keywords">keywords[]</option>
-            </>}</select>
+        <option value="none">{t('전송 안 함', 'Omit')}</option>
+        <option value="prompt" disabled={!sttOptions.terms.includes('prompt')}>prompt</option>
+        <option value="keywords" disabled={!sttOptions.terms.includes('keywords')}>keywords[]</option>
+        <option value="prompt-and-keywords" disabled={!sttOptions.terms.includes('prompt-and-keywords')}>prompt + keywords[]</option></select>
         </label>
-     <label>{t('시간 정보', 'Timestamps')}<select value={draft.stt?.timestamps ?? 'none'} disabled={(draft.stt?.responseFormat ?? 'json') !== 'verbose_json'} onChange={e => change({ stt: { ...draft.stt, timestamps: e.target.value as 'none' } })}>
+     <label>{t('시간 정보', 'Timestamps')}<select value={draft.stt?.timestamps ?? 'none'} disabled={(draft.stt?.responseFormat ?? 'json') !== 'verbose_json' || !sttOptions.formats.includes('verbose_json')} onChange={e => change({ stt: { ...draft.stt, timestamps: e.target.value as 'none' } })}>
         <option value="none">{t('전송 안 함', 'Omit')}</option>
         <option value="segment">segment</option>
         <option value="word">word</option>
         </select>
         </label>
+     <label>Temperature<input type="number" min={0} max={1} step="0.1" value={draft.stt?.temperature ?? ''} onChange={e => change({ stt: { ...draft.stt, temperature: numeric(e.target.value) } })}/></label>
+     {router && <span className="hint">{t('OpenRouter 공통 언어 힌트는 1개만 지원하며 용어·맥락은 공통 필드로 전송하지 않아요. 일부 제공사별 옵션은 해당 제공사에서만 적용돼요.', 'OpenRouter common transcription supports one language hint; vocabulary and context are not sent as common fields. Provider-specific options apply only to that provider.')}</span>}
      <label>{t('파일 한도 (bytes)', 'File limit (bytes)')}<input type="number" min={1} value={draft.stt?.maxBytes ?? ''} onChange={e => change({ stt: { ...draft.stt, maxBytes: numeric(e.target.value) } })}/>
         </label>
      <label>{t('시간 한도 (초)', 'Duration limit (seconds)')}<input type="number" min={0.01} step="any" value={draft.stt?.maxSeconds ?? ''} onChange={e => change({ stt: { ...draft.stt, maxSeconds: numeric(e.target.value) } })}/>
@@ -279,7 +284,7 @@ function RegistrationForm({ initial, mode, controller: c, onClose }: {
         </span>
         </label>}
    <div className="actions wrap">
-    <button type="button" className="primary" disabled={busy || !!ipv6Http || !same || !hasKey || !input || !valid || !c.onTestRegistration || router && !routerAcknowledged || draft.stage === 'stt' && !audioInfo} onClick={() => { testedInput.current = input; void act(() => c.onTestRegistration!(valid!, input!, routerAcknowledged)); }}>{test?.running ? t('호출 중…', 'Calling…') : t('테스트 호출', 'Test call')}</button>{test?.running && <button type="button" onClick={c.onCancelRegistrationTest}>{t('호출 취소', 'Cancel call')}</button>}</div>
+    <button type="button" className="primary" disabled={busy || sttCompatibility.length > 0 || !!ipv6Http || !same || !hasKey || !input || !valid || !c.onTestRegistration || router && !routerAcknowledged || draft.stage === 'stt' && !audioInfo} onClick={() => { testedInput.current = input; void act(() => c.onTestRegistration!(valid!, input!, routerAcknowledged)); }}>{test?.running ? t('호출 중…', 'Calling…') : t('테스트 호출', 'Test call')}</button>{test?.running && <button type="button" onClick={c.onCancelRegistrationTest}>{t('호출 취소', 'Cancel call')}</button>}</div>
    {ipv6Http && <span role="alert" className="warning">{t('HTTP [::1] 직접 호출은 지원하지 않아요. localhost로 주소를 바꾸고 저장하세요. 인증 키를 사용한다면 새 origin에 키를 다시 저장해야 해요.', 'Direct HTTP [::1] calls are unsupported. Change the address to localhost and save it. If authentication is enabled, save the key again for the new origin.')}</span>}
    {!same && <span className="hint">{t('테스트 전에 현재 설정을 저장하세요.', 'Save the current configuration before testing.')}</span>}{same && !hasKey && <span className="hint">{t('저장된 키가 필요해요. 미저장 키는 사용하지 않아요.', 'A saved key is required. Unsaved key input is not used.')}</span>}
   </section>

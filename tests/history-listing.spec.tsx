@@ -66,6 +66,32 @@ describe('paginated memo lists', () => {
 });
 
 describe('memo processing detail', () => {
+  it('shows saved provider diagnostics only on the matching failed run and masks credential-like text', async () => {
+    const p = project('p', { runs: [run('failed', null, 'stt', 'failed'), run('other', null)],
+      failedProviderResponses: [{ runId: 'failed', status: 400, failureCode: 'invalid-input', response: {
+        message: 'Unsupported format verbose_json. sk-proj-SYNTHETIC_SECRET_VALUE', code: 'unsupported_value', type: 'invalid_request_error', param: 'response_format', audio: 'PRIVATE_AUDIO_SHOULD_NOT_RENDER',
+      } }] });
+    render(<History controller={controller([p], { historyProjectId: 'p' })} />);
+    const failed = screen.getByRole('group', { name: 'Run failed' });
+    await userEvent.setup().click(within(failed).getByText('fixture/failed'));
+    expect(within(failed).getByText('HTTP status: 400')).toBeTruthy();
+    expect(within(failed).getByText('error.code: unsupported_value')).toBeTruthy();
+    expect(within(failed).getByText('error.type: invalid_request_error')).toBeTruthy();
+    expect(within(failed).getByText('error.param: response_format')).toBeTruthy();
+    expect(within(failed).getByText('error.message: Unsupported format verbose_json. [redacted]')).toBeTruthy();
+    expect(document.body.textContent).not.toContain('SYNTHETIC_SECRET_VALUE');
+    expect(document.body.textContent).not.toContain('PRIVATE_AUDIO_SHOULD_NOT_RENDER');
+    expect(within(screen.getByRole('group', { name: 'Run other' })).queryByText(/HTTP status/)).toBeNull();
+  });
+  it('shows legacy provider messages without inventing an HTTP status', async () => {
+    const p = project('p', { runs: [run('failed', null, 'minutes', 'failed')], failedProviderResponses: [{ runId: 'failed', response: { error: { message: 'Synthetic legacy failure', code: 429 } } }] });
+    render(<History controller={controller([p], { historyProjectId: 'p' })} />);
+    const failed = screen.getByRole('group', { name: 'Run failed' });
+    await userEvent.setup().click(within(failed).getByText('fixture/failed'));
+    expect(within(failed).getByText('HTTP status: Not recorded')).toBeTruthy();
+    expect(within(failed).getByText('error.message: Synthetic legacy failure')).toBeTruthy();
+    expect(within(failed).getByText('error.code: 429')).toBeTruthy();
+  });
   it('sorts calls newest first and paginates each selected STT/LLM filter independently', async () => {
     const p = project('p', { runs: Array.from({ length: 18 }, (_, index) => run(String(index), `2026-10-${String(index + 1).padStart(2, '0')}T00:00:00Z`, index === 17 ? 'minutes' : 'stt')) });
     const onNavigate = vi.fn(); render(<History controller={controller([p], { historyProjectId: 'p', onNavigate })} />);

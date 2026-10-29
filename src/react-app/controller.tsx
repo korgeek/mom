@@ -11,7 +11,7 @@ import { defaultPreferences } from "./App";
 import type { AppController, AppPreferences, AppScreen, SettingsTab, UIConnection, UIHistoryItem, UIPreparation } from "./App";
 import { cancelJobs, createJobContext, snapshotProject, transitionRunState } from "./domain/jobs";
 import type { AudioOptions, CheckpointWrite, JobContext, MeetingProject, MinutesComparison, MinutesSettings, RunRecord, STTBatchPurpose, TranscriptVersion, ModelRegistry, ModelRegistryRoute, DeletionPlan, RetainedAudio, StorageInventory, RouterSTTPreference, RouterSTTSelection } from "./domain/types";
-import { ProviderError, asObject, authHeaders, readOnlyJson, runTranscriptionQueue, type ProviderFailureCode } from "./domain/pipeline";
+import { ProviderError, asObject, authHeaders, readOnlyJson, runTranscriptionQueue } from "./domain/pipeline";
 import { createVaultSession } from "./vault/session";
 import type { VaultSession, VaultSessionOptions, VaultState } from "./vault/session";
 import { openVaultDatabase, readHeader } from "./vault/store";
@@ -57,11 +57,6 @@ import type { RecordingAction } from './ui/RecordingControls';
 import { preparedAudioReady, retainedChunks, retainedSource, retainedInitialChunkIds } from './ui/copy';
 export type ControllerProject = MeetingProject & Readonly<{
     minutesEndpointTag?: string | null;
-    failedProviderResponses?: readonly Readonly<{
-        runId: string;
-        response: unknown;
-        failureCode?: ProviderFailureCode;
-    }>[];
 }>;
 export type GenerationConsent = Readonly<{
     acknowledged: true;
@@ -1142,7 +1137,7 @@ export function createMeetingController(options: ControllerOptions = {}): Meetin
                 const current = getProject(id);
                 const failed = transitionRunState(record, error instanceof ProviderError && error.outcomeUnknown ? "outcome-unknown" : "failed");
                 const response = error instanceof ProviderError ? error.readSensitiveResponse() : undefined;
-                const failureProject: ControllerProject = { ...current, runs: current.runs.map(item => item.id === failed.id ? failed : item), ...(response === undefined ? {} : { failedProviderResponses: [...(current.failedProviderResponses ?? []), { runId: failed.id, response }] }) };
+                const failureProject: ControllerProject = { ...current, runs: current.runs.map(item => item.id === failed.id ? failed : item), failedProviderResponses: [...(current.failedProviderResponses ?? []), { runId: failed.id, ...(response === undefined ? {} : { response }), ...(error instanceof ProviderError ? { failureCode: error.code, status: error.httpStatus } : {}) }] };
                 const snapshot = snapshotProject(failureProject);
                 if (error instanceof ProviderError) error.clearSensitiveResponse();
                 await saveProject(snapshot, job); job.assertActive();
@@ -1878,8 +1873,8 @@ export function createMeetingController(options: ControllerOptions = {}): Meetin
                 if (result.failure) {
                     const failedRun = [...p.runs].reverse().find((run) => run.intent?.kind === "stt" && selected.includes(run.intent.chunkId ?? "") && run.state !== "saved");
                     const response = result.failure.readSensitiveResponse();
-                    if (failedRun && response !== undefined) {
-                        const next = snapshotProject({ ...p, failedProviderResponses: [...((p as ControllerProject).failedProviderResponses ?? []), { runId: failedRun.id, response, failureCode: result.failure.code }] } as ControllerProject);
+                    if (failedRun) {
+                        const next = snapshotProject({ ...p, failedProviderResponses: [...(p.failedProviderResponses ?? []), { runId: failedRun.id, ...(response === undefined ? {} : { response }), failureCode: result.failure.code, status: result.failure.httpStatus }] });
                         result.failure.clearSensitiveResponse();
                         p = await saveProject(next, job);
                     }

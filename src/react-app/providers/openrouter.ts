@@ -79,7 +79,7 @@ function textLimitError(error: unknown): unknown {
  // response and never appears in the UI. Other 400 errors keep their own category.
  const detail = [body?.message, body?.code, metadata?.error_type].filter(value => typeof value === 'string').join(' ').slice(0, 4096);
  const limit = error.code === 'too-large' || error.code === 'invalid-input' && /context[_ -]length|maximum.{0,32}context|prompt.{0,32}(?:too long|limit|tokens)|max[_ -](?:prompt|completion|tokens).{0,32}(?:exceed|limit)/iu.test(detail);
- return limit ? new ProviderError('context', { status: error.status ?? undefined, sensitiveResponse: error.readSensitiveResponse(), outcomeUnknown: error.outcomeUnknown }) : error;
+ return limit ? new ProviderError('context', { status: error.status ?? undefined, httpStatus: error.httpStatus, sensitiveResponse: error.readSensitiveResponse(), outcomeUnknown: error.outcomeUnknown }) : error;
 }
 export function createOpenRouterProvider(options: OpenRouterProviderOptions): OpenRouterProvider {
  // One pinned model/endpoint/rate snapshot for every run through this factory.

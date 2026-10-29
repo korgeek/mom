@@ -141,3 +141,23 @@ it('adopts the saved shared binding and revision before an immediate explicit mo
  expect(c.onTestRegistration).not.toHaveBeenCalled();await user.click(screen.getByRole('button',{name:'테스트 호출'}));
  expect(c.onTestRegistration).toHaveBeenCalledWith(expect.objectContaining({credentialId:key.id,revision:1,credentialVersion:1}),expect.objectContaining({stage:'llm'}),false);
 });
+it('shows incompatible saved STT settings and limits choices for known models',()=>{
+ const c=controller(),entry={...createModelPreset('openai-stt'),modelId:'gpt-transcribe'};
+ c.modelRegistrations={version:2,entries:[entry]};render(<ModelRegistrations controller={c}/>);
+ fireEvent.click(screen.getByRole('button',{name:'수정'}));
+ expect(screen.getByRole('alert').textContent).toContain('맞지 않아');
+ expect((screen.getByLabelText('프리셋') as HTMLSelectElement).value).toBe('');
+ fireEvent.click(screen.getByText('고급 설정'));
+ const format=screen.getByLabelText('응답 형식') as HTMLSelectElement, language=screen.getByLabelText('언어 힌트 필드') as HTMLSelectElement;
+ expect((screen.getByLabelText('시간 정보') as HTMLSelectElement).disabled).toBe(true);
+ expect(format.value).toBe('verbose_json');expect((within(format).getByRole('option',{name:'verbose_json'}) as HTMLOptionElement).disabled).toBe(true);
+ expect((within(language).getByRole('option',{name:'language'}) as HTMLOptionElement).disabled).toBe(true);
+ expect((within(language).getByRole('option',{name:'languages[]'}) as HTMLOptionElement).disabled).toBe(false);
+ fireEvent.change(screen.getByLabelText('프리셋'),{target:{value:'openai-gpt-transcribe'}});
+ expect(format.value).toBe('json'); expect((screen.getByLabelText('시간 정보') as HTMLSelectElement).value).toBe('none');
+ expect((screen.getByLabelText('용어·맥락 필드') as HTMLSelectElement).value).toBe('prompt-and-keywords');
+ expect(c.onSaveRegistration).not.toHaveBeenCalled(); expect(c.modelRegistrations.entries[0].stt?.responseFormat).toBe('verbose_json');
+ fireEvent.change(screen.getByLabelText('모델 ID'),{target:{value:'whisper-1'}});
+ expect((within(format).getByRole('option',{name:'verbose_json'}) as HTMLOptionElement).disabled).toBe(false);
+ expect((within(language).getByRole('option',{name:'languages[]'}) as HTMLOptionElement).disabled).toBe(true);
+});

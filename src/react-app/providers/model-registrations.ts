@@ -60,7 +60,8 @@ export type ModelRegistration = Readonly<{
         formats?: readonly ('mp3' | 'wav')[];
         responseFormat?: 'json' | 'verbose_json' | 'diarized_json';
         languageMode?: 'none' | 'single' | 'multiple';
-        termMode?: 'none' | 'prompt' | 'keywords';
+        termMode?: 'none' | 'prompt' | 'keywords' | 'prompt-and-keywords';
+        temperature?: number;
         timestamps?: 'none' | 'segment' | 'word';
         maxBytes?: number;
         maxSeconds?: number;
@@ -169,8 +170,9 @@ export function validateRegistration(value: unknown): ModelRegistration {
         if (r.stt !== undefined && !asObject(r.stt))
             invalid();
         const s = asObject(r.stt) ?? {};
-        fields(s, ['responseFormat', 'languageMode', 'termMode', 'timestamps', 'maxBytes', 'maxSeconds', 'routerRequireZdr', 'formats']);
-        const termMode = choice(s.termMode, ['none', 'prompt', 'keywords'] as const, 'none');
+        fields(s, ['responseFormat', 'languageMode', 'termMode', 'timestamps', 'maxBytes', 'maxSeconds', 'routerRequireZdr', 'formats', 'temperature']);
+        const legacyPrompt = adapter === 'openai' && ['whisper-1', 'gpt-4o-transcribe', 'gpt-4o-mini-transcribe', 'gpt-4o-mini-transcribe-2025-12-15'].includes(result.modelId);
+        const termMode = choice(s.termMode, ['none', 'prompt', 'keywords', 'prompt-and-keywords'] as const, legacyPrompt ? 'prompt' : 'none');
         const router = adapter === 'openrouter';
         if (s.formats !== undefined && (!Array.isArray(s.formats) || !s.formats.length || s.formats.some(f => f !== 'mp3' && f !== 'wav'))) invalid();
         if (router && (termMode !== 'none' || s.languageMode === 'multiple' || s.responseFormat === 'diarized_json'))
@@ -181,7 +183,7 @@ export function validateRegistration(value: unknown): ModelRegistration {
         const timestamps = choice(s.timestamps, ['none', 'segment', 'word'] as const, 'none');
         if (timestamps !== 'none' && responseFormat !== 'verbose_json')
             invalid();
-        return { ...result, stt: defined({ formats: s.formats === undefined ? ['mp3', 'wav'] as const : [...new Set(s.formats as ('mp3' | 'wav')[])], responseFormat, languageMode: choice(s.languageMode, ['none', 'single', 'multiple'] as const, 'none'), termMode, timestamps, maxBytes: number(s.maxBytes, 1, 1024 * 1024 * 1024, true), maxSeconds: number(s.maxSeconds, 0.01, 86400), ...(router ? { routerRequireZdr: s.routerRequireZdr !== false } : {}) }), ...(r.lastTest ? { lastTest: validateTestResult(r.lastTest) } : {}) };
+        return { ...result, stt: defined({ temperature: number(s.temperature, 0, 1), formats: s.formats === undefined ? ['mp3', 'wav'] as const : [...new Set(s.formats as ('mp3' | 'wav')[])], responseFormat, languageMode: choice(s.languageMode, ['none', 'single', 'multiple'] as const, 'none'), termMode, timestamps, maxBytes: number(s.maxBytes, 1, 1024 * 1024 * 1024, true), maxSeconds: number(s.maxSeconds, 0.01, 86400), ...(router ? { routerRequireZdr: s.routerRequireZdr !== false } : {}) }), ...(r.lastTest ? { lastTest: validateTestResult(r.lastTest) } : {}) };
     }
     if (r.llm !== undefined && !asObject(r.llm))
         invalid();
@@ -236,13 +238,25 @@ export function registrationSignature(r: ModelRegistration): string { const sett
 export function registrationInputSummary(input: RegistrationTestInput): string {
     return input.stage === 'stt' ? JSON.stringify({ stage: input.stage, bytes: input.file.size, type: input.file.type, languages: input.languages, glossary: input.glossary, context: input.context }) : JSON.stringify(input);
 }
+// Known provider contracts; custom endpoints retain their declared options.
+export function sttCapabilities(model: ModelRegistration) {
+    type S = NonNullable<ModelRegistration['stt']>;
+    type Capabilities = { formats: NonNullable<S['responseFormat']>[]; languages: NonNullable<S['languageMode']>[]; terms: NonNullable<S['termMode']>[] };
+    const all: Capabilities = { formats: ['json', 'verbose_json', 'diarized_json'], languages: ['none', 'single', 'multiple'], terms: ['none', 'prompt', 'keywords', 'prompt-and-keywords'] };
+    if (model.adapter === 'openrouter') return { formats: ['openai/gpt-transcribe', 'openai/gpt-4o-transcribe'].includes(model.modelId) ? ['json'] : ['json', 'verbose_json'], languages: ['none', 'single'], terms: ['none'] } satisfies Capabilities;
+    if (model.adapter !== 'openai') return all;
+    if (model.modelId === 'gpt-transcribe') return { formats: ['json'], languages: ['none', 'multiple'], terms: all.terms } satisfies Capabilities;
+    if (model.modelId === 'gpt-4o-transcribe-diarize') return { formats: ['json', 'diarized_json'], languages: ['none', 'single'], terms: ['none'] } satisfies Capabilities;
+    if (['whisper-1', 'gpt-4o-transcribe', 'gpt-4o-mini-transcribe', 'gpt-4o-mini-transcribe-2025-12-15'].includes(model.modelId)) return { formats: model.modelId === 'whisper-1' ? ['json', 'verbose_json'] : ['json'], languages: ['none', 'single'], terms: ['none', 'prompt'] } satisfies Capabilities;
+    return all;
+}
 // Reviewed request mappings; compatible servers still require their own capability settings.
 export function sttInputSupport(model: ModelRegistration) {
     const nativePrompt = model.adapter === 'openai' && ['whisper-1', 'gpt-4o-transcribe', 'gpt-4o-mini-transcribe', 'gpt-4o-mini-transcribe-2025-12-15'].includes(model.modelId);
     const azure = model.adapter === 'openrouter' && model.modelId === 'microsoft/mai-transcribe-2';
     const phrases = asObject(asObject(asObject(asObject(model.requestParameters?.provider)?.options)?.azure)?.phraseList)?.phrases;
-    const termMode = model.adapter === 'openai' && model.modelId === 'gpt-4o-transcribe-diarize' ? 'none' as const : azure ? 'azure-phrases' as const : nativePrompt ? 'prompt' as const : model.stt?.termMode ?? 'none';
-    return { languageMode: model.stt?.languageMode ?? 'none', termMode, context: termMode === 'prompt', defaultTerms: azure && Array.isArray(phrases) ? phrases.filter((v): v is string => typeof v === 'string') : [] };
+    const termMode = model.adapter === 'openai' && model.modelId === 'gpt-4o-transcribe-diarize' ? 'none' as const : azure ? 'azure-phrases' as const : model.stt?.termMode ?? (nativePrompt ? 'prompt' : 'none');
+    return { languageMode: model.stt?.languageMode ?? 'none', termMode, context: termMode === 'prompt' || termMode === 'prompt-and-keywords', defaultTerms: azure && Array.isArray(phrases) ? phrases.filter((v): v is string => typeof v === 'string') : [] };
 }
 export function defaultRegistrationOutputTokens(model: ModelRegistration): number | undefined {
     return model.llm?.maxTokens === undefined ? undefined : Math.min(4096, model.llm.maxTokens, model.catalogEvidence?.limits.maxOutputTokens ?? Infinity);
@@ -277,15 +291,15 @@ export function buildRegistrationRequest(value: ModelRegistration, input: Regist
             fields.push('languages[]: {{languages}}');
             data?.languages.forEach(v => form.append('languages[]', v));
         }
-        if (support.termMode === 'prompt') {
+        if (support.termMode === 'prompt' || support.termMode === 'prompt-and-keywords') {
             fields.push('prompt: {{glossary_and_context}}');
             if (data) {
-                const prompt = [data.glossary.join(', '), data.context].filter(Boolean).join('\n');
+                const prompt = [support.termMode === 'prompt' ? data.glossary.join(', ') : '', data.context].filter(Boolean).join('\n');
                 if (prompt)
                     form.set('prompt', prompt);
             }
         }
-        if (support.termMode === 'keywords') {
+        if (support.termMode === 'keywords' || support.termMode === 'prompt-and-keywords') {
             fields.push('keywords[]: {{glossary}}');
             data?.glossary.forEach(v => form.append('keywords[]', v));
         }
@@ -299,10 +313,11 @@ export function buildRegistrationRequest(value: ModelRegistration, input: Regist
                 const options = asObject(provider.options), azure = asObject(options?.azure);
                 provider.options = { ...options, azure: { ...azure, phraseList: { ...asObject(azure?.phraseList), phrases: data.glossary } } };
             }
-            const body = { ...r.requestParameters, model: input === 'preview' ? '{{model}}' : r.modelId, input_audio: data?.encodedAudio ?? { data: '{{audio_base64}}', format: '{{audio_format}}' }, response_format: s.responseFormat, ...(s.languageMode === 'single' ? { language: data?.languages[0] ?? '{{language}}' } : {}), ...(s.timestamps !== 'none' ? { timestamp_granularities: [s.timestamps] } : {}), provider };
+            const body = { ...r.requestParameters, ...(s.temperature !== undefined ? { temperature: s.temperature } : {}), model: input === 'preview' ? '{{model}}' : r.modelId, input_audio: data?.encodedAudio ?? { data: '{{audio_base64}}', format: '{{audio_format}}' }, response_format: s.responseFormat, ...(s.languageMode === 'single' ? { language: data?.languages[0] ?? '{{language}}' } : {}), ...(s.timestamps !== 'none' ? { timestamp_granularities: [s.timestamps] } : {}), provider };
             const previewBody = { ...body, model: '{{model}}', input_audio: { data: '{{audio_base64}}', format: '{{audio_format}}' }, ...(s.languageMode === 'single' ? { language: '{{language}}' } : {}) };
             return { url, body: JSON.stringify(body), contentType: 'application/json', preview: `POST ${url}\n${auth}Content-Type: application/json\n${JSON.stringify(previewBody, null, 2)}\n\nresponse.text / response.segments / response.words / response.usage` };
         }
+        if (s.temperature !== undefined) { form.set('temperature', String(s.temperature)); fields.push(`temperature: ${s.temperature}`); }
         for (const [key, value] of Object.entries(r.requestParameters ?? {})) { form.set(key, typeof value === 'string' ? value : JSON.stringify(value)); fields.push(`${key}: ${JSON.stringify(value)}`); }
         return { url, body: form, contentType: null, preview: `POST ${url}\n${auth}multipart/form-data (boundary: browser)\n${fields.join('\n')}\n\nresponse.text / response.segments / response.words / response.usage` };
     }
@@ -364,6 +379,12 @@ export function registrationReadiness(value: ModelRegistration): readonly string
     if (endpoint.hostname === '[::1]') issues.push('ipv6-csp');
     if (r.auth === 'bearer' && r.credentialOrigin !== endpoint.origin) issues.push('credential-origin');
     if (r.adapter === 'openrouter' && !r.routerPolicy?.acknowledged) issues.push('router-disclosure');
+    if (r.stage === 'stt') {
+        const capabilities = sttCapabilities(r), s = r.stt!;
+        if (!capabilities.formats.includes(s.responseFormat!)) issues.push('stt-model-format');
+        if (!capabilities.languages.includes(s.languageMode!)) issues.push('stt-model-language');
+        if (!capabilities.terms.includes(s.termMode!)) issues.push('stt-model-terms');
+    }
     if (r.stage === 'stt' && (!r.stt?.maxBytes || !r.stt.formats?.length)) issues.push('stt-limits');
     if (r.stage === 'llm' && (!r.llm?.contextTokens || !r.llm.maxTokens || r.llm.maxTokens >= r.llm.contextTokens)) issues.push('llm-limits');
     return issues;

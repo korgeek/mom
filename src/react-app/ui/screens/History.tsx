@@ -2,6 +2,7 @@ import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { useState } from 'react';
 import type { AppController } from '../../App';
 import type { MeetingProject, RateSnapshot } from '../../domain/types';
+import { asObject } from '../../domain/pipeline';
 import type { UsageHistoryItem } from '../../usage/statement';
 import { currentPage, PAGE_SIZE, newestFirst, projectHistory } from '../../usage/history';
 import Pagination from '../Pagination';
@@ -24,6 +25,23 @@ function Rates({ snapshot, label, language }: { snapshot: RateSnapshot | null; l
   return snapshot && <div className="stack"><strong>{label}</strong><span>{snapshot.source} · {snapshot.checkedAt}</span>
     {snapshot.rates.map((rate, index) => <span key={index}>{rate.unit}: {count(rate.price)} {snapshot.currency} / {count(rate.units)} {copy(language, '단위', 'units')}</span>)}
   </div>;
+}
+function FailureDetails({ project, item, language }: { project: MeetingProject; item: UsageHistoryItem; language: Language }) {
+  if (item.archivedAt || item.state !== 'failed' && item.state !== 'outcome-unknown') return null;
+  const saved = project.failedProviderResponses?.find(failure => failure.runId === item.id);
+  const body = asObject(saved?.response), error = asObject(body?.error) ?? body;
+  const text = (value: unknown) => typeof value === 'string' || typeof value === 'number'
+    ? String(value).replace(/\bsk-[a-zA-Z0-9_-]+|Bearer\s+\S+/gu, '[redacted]').slice(0, 2000) : null;
+  const fields = [
+    [copy(language, '앱 오류 분류', 'App failure code'), text(saved?.failureCode)],
+    ...['code', 'type', 'param', 'message'].map(key => [`error.${key}`, text(error?.[key])]),
+  ];
+  return <section className="stack gap12" aria-label={copy(language, '오류 상세', 'Failure details')}>
+    <strong>{copy(language, '오류 상세', 'Failure details')}</strong>
+    <span>{copy(language, 'HTTP 상태', 'HTTP status')}: {saved?.status ?? copy(language, '기록 없음', 'Not recorded')}</span>
+    {fields.filter(([, value]) => value !== null && value !== '').map(([label, value]) => <span key={label}>{label}: {value}</span>)}
+    {!saved && <span className="hint">{copy(language, '이 요청에는 오류 상세가 저장되지 않았어요.', 'Failure details were not saved for this request.')}</span>}
+  </section>;
 }
 function Call({ project, item, language }: { project: MeetingProject; item: UsageHistoryItem; language: Language }) {
   const t = (ko: string, en: string) => copy(language, ko, en);
@@ -62,6 +80,7 @@ function Call({ project, item, language }: { project: MeetingProject; item: Usag
     {item.conflict && <span className="history-archived">{t('저장된 증거 상충', 'Conflicting saved evidence')}</span>}
   </span></summary><div className="history-call-facts stack gap12">
     {facts.filter(([, value]) => value).map(([label, value]) => <span key={label}>{label}: {value}</span>)}
+    <FailureDetails project={project} item={item} language={language} />
     {item.archivedAt && <span>{t('초기화 시각', 'Initialization time')}: <Timestamp value={item.archivedAt} language={language} /></span>}
     {dimensions.map(([key, ko, en]) => known(item.usage?.[key]) && <span key={key}>{t(ko, en)}: {count(item.usage![key]!)}</span>)}
     <Rates snapshot={item.usage?.rateSnapshot ?? null} label={t('결과 요금 스냅샷', 'Result rate snapshot')} language={language} />
