@@ -58,11 +58,11 @@ export default function RecordingControls({ snapshot, language, supported, start
     <span className="hint">{t('기기의 마이크 소리만 녹음해요. 시작을 누르면 마이크 권한을 요청해요.', 'Capture uses the microphone only. Start requests microphone permission.')}</span>
     <span role="status" aria-live="polite" aria-atomic="true">{statuses[state]}</span>
     {error && <span role="alert">{error}</span>}
-    <div className="actions recording-actions">
-      {(canStartState || state === 'permission') && <button type="button" className="primary tall" disabled={!canStartState || !supported || !!blocker || pendingAction !== null} onClick={onStart}>{t('녹음 시작', 'Start recording')}</button>}
+    <div className="actions recording-actions align-end">
       {capture && <button type="button" className="tall" disabled={pendingAction !== null} onClick={state === 'paused' ? onResume : onPause}>{state === 'paused' ? t('계속 녹음', 'Resume') : t('일시정지', 'Pause')}</button>}
-      {capture && <button type="button" className="primary tall" disabled={pendingAction !== null && pendingAction !== 'pause' && pendingAction !== 'resume'} onClick={onStop}>{t('저장 후 종료', 'Save and stop')}</button>}
       {canAbortState && <button type="button" className="tall recording-cancel" disabled={pendingAction === 'abort'} onClick={onAbort}>{t('녹음 취소', 'Cancel recording')}</button>}
+      {(canStartState || state === 'permission') && <button type="button" className="primary tall" disabled={!canStartState || !supported || !!blocker || pendingAction !== null} onClick={onStart}>{t('녹음 시작', 'Start recording')}</button>}
+      {capture && <button type="button" className="primary tall" disabled={pendingAction !== null && pendingAction !== 'pause' && pendingAction !== 'resume'} onClick={onStop}>{t('저장 후 종료', 'Save and stop')}</button>}
     </div>
     {inactiveDraft ? <span className="hint">{t('현재 진행 중인 녹음은 없어요.', 'No recording is running.')}</span> : <div className="recording-monitor">
       <dl className="recording-metrics">

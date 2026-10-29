@@ -97,6 +97,35 @@ it('uses a compact shared key list and requires explicit deletion confirmation',
   await user.click(screen.getByRole('button', { name: '키 영구 삭제' }));
   expect(c.onDeleteApiCredential).toHaveBeenCalledWith(shared.id);
 });
+it.each([
+  [undefined, '확인 전', 'neutral'],
+  [{ state: 'checking', message: '' }, '확인 중', 'running'],
+  [{ state: 'verified', message: '인증을 확인했어요. 실제 모델 실행은 별도 테스트가 필요해요.' }, '인증 확인', 'success'],
+  [{ state: 'failed', message: '인증에 실패했어요. API 키를 확인하세요.' }, '확인 실패', 'failed'],
+  [{ state: 'unsupported', message: '등록한 모델에서 테스트하세요.' }, '확인 불가', 'setup'],
+] as const)('shows compact authentication chips with optional details: %s', async (check, label, tone) => {
+  const c = controller(); c.modelRegistrations = { version: 2, entries: [], credentials: [shared] }; c.credentialKeyReady = [shared.id];
+  c.onCheckApiCredential = vi.fn(async () => {}); if (check) c.apiCredentialChecks = { [shared.id]: check };
+  await openKeys(c);
+  const status = within(screen.getByRole('list', { name: '저장된 API 키' })).getByRole('status');
+  expect(status.textContent).toBe(label); expect(status.closest(`.model-status--${tone}`)).toBeTruthy();
+  if (check?.message) {
+    const details = status.closest('details')!;
+    expect(details.open).toBe(false); fireEvent.click(status.closest('summary')!); expect(details.open).toBe(true);
+    expect(within(details).getByText(check.message)).toBeTruthy();
+  }
+  expect(c.onCheckApiCredential).not.toHaveBeenCalled(); expect(c.onSaveApiCredential).not.toHaveBeenCalled();
+});
+it('shows a key-required chip instead of a stale authentication result when its secret is unavailable', async () => {
+  const c = controller(); c.preferences = { ...defaultPreferences, uiLanguage: 'en' };
+  c.modelRegistrations = { version: 2, entries: [], credentials: [shared] };
+  c.apiCredentialChecks = { [shared.id]: { state: 'verified', message: 'Previous authentication result' } };
+  await openKeys(c);
+  const status = within(screen.getByRole('list', { name: 'Saved API keys' })).getByRole('status');
+  expect(status.textContent).toBe('Key required'); expect(status.classList.contains('model-status--setup')).toBe(true);
+  expect(screen.queryByText('Previous authentication result')).toBeNull();
+  expect((screen.getByRole('button', { name: 'Check connection' }) as HTMLButtonElement).disabled).toBe(true);
+});
 it('cancels the key modal without losing the model draft and restores focus', async () => {
   const { c } = await openKeys(), user = userEvent.setup();
   expect(screen.queryByRole('tab', { name: 'API 키' })).toBeNull();
@@ -114,6 +143,7 @@ it('cancels the key modal without losing the model draft and restores focus', as
 it('keeps the model draft when a newly saved key becomes available and shares keys across STT and LLM', async () => {
   const { c, rerender } = await openKeys(), user = userEvent.setup();
   await user.click(screen.getByRole('button', { name: '새 모델' }));
+  await user.selectOptions(screen.getByLabelText('API 종류'), 'openrouter');
   fireEvent.change(screen.getByLabelText('이름'), { target: { value: 'Keep this draft' } });
   await user.click(within(screen.getByRole('dialog',{name:'새 모델 등록'})).getByRole('button', { name: 'API 키 추가' }));
   await user.type(screen.getByLabelText('키 이름'), shared.name); await user.selectOptions(screen.getByLabelText('제공사'), 'openrouter');

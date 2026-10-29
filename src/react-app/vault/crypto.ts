@@ -3,6 +3,7 @@ export const CRYPTO_VERSION = 1;
 export const SCHEMA_VERSION = 1;
 export const ITERATIONS = 600000;
 export const OPERATION_LIMIT = 2 ** 20;
+export class VaultAuthenticationError extends Error { constructor() { super('Unable to unlock vault'); } }
 export type VaultHeader = Readonly<{
     id: "vault";
     cryptoVersion: number;
@@ -56,6 +57,9 @@ export function validatePassphrase(secret: string): void {
         throw new Error("Use a unique passphrase of 8–256 characters; numeric passphrases are unsupported");
     }
 }
+export function validateAuthenticationCandidate(secret: string): void {
+    if (typeof secret !== 'string' || [...secret].length > 256 || encoder.encode(secret).byteLength > 1024) throw new Error('Passphrase input is too long');
+}
 function validateHeader(header: VaultHeader): void {
     if (!header || header.id !== "vault" || header.cryptoVersion !== CRYPTO_VERSION || header.schemaVersion !== SCHEMA_VERSION ||
         header.kdf !== "PBKDF2" || header.hash !== "SHA-256" || header.iterations !== ITERATIONS ||
@@ -73,7 +77,7 @@ function recordAAD(header: VaultHeader, recordId: string): Uint8Array<ArrayBuffe
     return encoder.encode(JSON.stringify(["mom-record", CRYPTO_VERSION, SCHEMA_VERSION, header.vaultId, recordId, header.keyId]));
 }
 async function wrappingKey(secret: string, salt: string): Promise<CryptoKey> {
-    validatePassphrase(secret);
+    validateAuthenticationCandidate(secret);
     const bytes = encoder.encode(secret);
     try {
         const material = await nativeCrypto().subtle.importKey("raw", bytes, "PBKDF2", false, ["deriveKey"]);
@@ -105,13 +109,14 @@ export async function createHeader(secret: string, vaultId: string): Promise<{
 }
 async function unwrapBytes(secret: string, header: VaultHeader): Promise<Uint8Array<ArrayBuffer>> {
     validateHeader(header);
+    const key = await wrappingKey(secret, header.salt);
     try {
-        const key = await wrappingKey(secret, header.salt);
         const bytes = await nativeCrypto().subtle.decrypt({ name: "AES-GCM", iv: decodeBase64(header.iv, 12), additionalData: wrapAAD(header), tagLength: 128 }, key, decodeBase64(header.wrappedKey, 48));
         return new Uint8Array(bytes);
     }
-    catch {
-        throw new Error("Unable to unlock vault");
+    catch (error) {
+        if (error instanceof DOMException && error.name === 'OperationError') throw new VaultAuthenticationError();
+        throw error;
     }
 }
 export async function unwrapHeader(secret: string, header: VaultHeader): Promise<CryptoKey> {

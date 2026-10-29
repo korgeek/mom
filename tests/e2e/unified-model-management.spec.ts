@@ -202,8 +202,8 @@ test('one named key is saved before models, then reused, rotated, detached and d
   expect(calls).toEqual([]);
   expect((await inspectVaultSentinels(page, [fakeKey, 'SYNTHETIC_BROWSER_ROTATED_KEY'])).leakedSentinelIndices).toEqual([]);
   await page.reload(); await unlock(page); await openModels(page);
-  await expect(manager.locator('.registration-row').filter({ has: page.getByText(stt.name, { exact: true }) })).toContainText('키 필요');
-  await manager.getByRole('tab', { name: 'LLM', exact: true }).click(); await expect(notesRow).toContainText('키 필요');
+  await expect(manager.locator('.registration-row').filter({ has: page.getByText(stt.name, { exact: true }) })).toContainText('설정 전');
+  await manager.getByRole('tab', { name: 'LLM', exact: true }).click(); await expect(notesRow).toContainText('설정 전');
 });
 
 test('locking a registered local request fences its late result and does not replay after reload', async ({ page }) => {
@@ -326,7 +326,7 @@ test('saving a key modal preserves an unsaved model and makes the key immediatel
   await page.screenshot({ path: testInfo.outputPath('model-draft-after-key-save.png'), fullPage: true });
   await form.getByRole('button', { name: '저장', exact: true }).click();
   await expect(form).toHaveCount(0);
-  await expect(models.locator('.registration-row').filter({ has: page.getByText('SYNTHETIC unsaved model', { exact: true }) })).not.toContainText('키 필요');
+  await expect(models.locator('.registration-row').filter({ has: page.getByText('SYNTHETIC unsaved model', { exact: true }) })).not.toContainText('설정 전');
   expect(calls).toEqual([]);
 });
 
@@ -350,7 +350,8 @@ for(const [width,language] of [[1440,'ko'],[360,'en']] as const) {
     await manager.getByRole('tab',{name:'STT',exact:true}).click();await expect(rows).toHaveCount(1);await expect(rows).toContainText(stt.name);
     await manager.getByRole('tab',{name:'LLM',exact:true}).click();await expect(rows).toHaveCount(1);await expect(rows).toContainText(llm.name);
     await manager.getByRole('tab',{name:'LLM',exact:true}).press('Home');await expect(rows).toHaveCount(2);
-    await keys.getByRole('button',{name:t('연결 확인','Check connection'),exact:true}).click();await expect(keys.getByRole('listitem').getByRole('status')).toContainText(t('실제 모델 실행은 별도','Model inference has not been tested'));
+    await keys.getByRole('button',{name:t('연결 확인','Check connection'),exact:true}).click();await expect(keys.getByRole('listitem').getByRole('status')).toHaveText(t('인증 확인','Authenticated'));
+    await keys.getByText(t('인증 확인','Authenticated'),{exact:true}).click();await expect(keys.getByText(t('인증을 확인했어요. 실제 모델 실행은 별도 테스트가 필요해요.','Authentication verified. Model inference has not been tested.'),{exact:true})).toBeVisible();
     expect(calls).toEqual([{url:'https://openrouter.ai/api/v1/key',method:'GET'}]);
     await page.screenshot({path:testInfo.outputPath(`unified-model-list-${width}-${language}.png`),fullPage:true});
     await manager.getByRole('button',{name:t('전송·공유 안내','Transmission & sharing details'),exact:true}).click();

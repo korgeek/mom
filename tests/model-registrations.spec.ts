@@ -56,7 +56,7 @@ it.each([
  ['router-qwen3-asr-1.7b','qwen/qwen3-asr-1.7b','stt'],['router-qwen3-asr-0.6b','qwen/qwen3-asr-0.6b','stt'],
  ['router-whisper-large-v3','openai/whisper-large-v3','stt'],['whisper-large-v3-turbo','openai/whisper-large-v3-turbo','stt'],
  ['scribe-v2','elevenlabs/scribe-v2','stt'],['router-scribe-v2-medical','elevenlabs/scribe-v2-medical','stt'],
- ['mai-transcribe-2','microsoft/mai-transcribe-2','stt'],['router-mai-transcribe-1.5','microsoft/mai-transcribe-1.5','stt'],
+ ['mai-transcribe-2','microsoft/mai-transcribe-2','stt'],
  ['router-voxtral-mini-transcribe','mistralai/voxtral-mini-transcribe','stt'],['router-voxtral-mini-3b-2507','mistralai/voxtral-mini-3b-2507','stt'],['router-voxtral-small-24b-2507-stt','mistralai/voxtral-small-24b-2507-stt','stt'],
  ['router-parakeet-tdt-0.6b-v3','nvidia/parakeet-tdt-0.6b-v3','stt'],['router-nemotron-3.5-asr-streaming-multilingual-0.6b','nvidia/nemotron-3.5-asr-streaming-multilingual-0.6b','stt'],
  ['router-deepseek-v4.1-flash','deepseek/deepseek-v4.1-flash','llm'],['router-glm-5.3-flash','z-ai/glm-5.3-flash','llm'],['router-muse-spark-1.3-contributor','meta/muse-spark-1.3-contributor','llm'],['router-claude-haiku-5.5','anthropic/claude-haiku-5.5','llm'],
@@ -66,7 +66,7 @@ it.each([
  const request=buildRegistrationRequest(model,input),body=JSON.parse(request.body as string);
  expect(request.url).toBe(stage==='stt'?'https://openrouter.ai/api/v1/audio/transcriptions':'https://openrouter.ai/api/v1/chat/completions');expect(body.model).toBe(modelId);expect(model.auth).toBe('bearer');
  expect(body.provider).toMatchObject({data_collection:'deny',zdr:true});
- if(stage==='stt')expect(body.input_audio).toEqual({data:'c3ludGhldGlj',format:'wav'});else{expect(body.messages[1].content).toContain('Synthetic');expect(body.max_tokens).toBe(4096);expect(body.reasoning).toEqual(id==='router-muse-spark-1.3-contributor'?{effort:'medium'}:{enabled:true});}
+ if(stage==='stt')expect(body.input_audio).toEqual({data:'c3ludGhldGlj',format:'wav'});else{expect(body.messages[1].content).toContain('Synthetic');expect(body.max_tokens).toBe(4096);expect(body.reasoning).toEqual({effort:'low'});expect(body.provider.require_parameters).toBe(true);}
 });
 
 it.each([
@@ -78,7 +78,33 @@ it.each([
  const body=JSON.parse(request.body as string);
  expect(model.name).toBe('GPT-6 Luna');
  expect(model.llm).toMatchObject({contextTokens:922_000,maxTokens:128000,tokenField});
- expect(body).toMatchObject({model:modelId,[tokenField]:4096,reasoning_effort:'none'});
+ expect(body).toMatchObject({model:modelId,[tokenField]:4096,...(id==='openai-text'?{reasoning_effort:'low'}:{reasoning:{effort:'low'}})});
  expect(request.url).toBe(id==='openai-text'?'https://api.openai.com/v1/chat/completions':'https://openrouter.ai/api/v1/chat/completions');
  if(id==='openrouter-text')expect(body.provider).toMatchObject({data_collection:'deny',zdr:true,allow_fallbacks:false});
+});
+
+it.each([
+ ['openai-text','gpt-6-luna','low'],
+ ['openai-gpt-6.1-terra','gpt-6.1-terra','low'],
+] as const)('builds the current direct OpenAI preset %s with supported reasoning and a 4K request', (id,modelId,effort)=>{
+ const model=createModelPreset(id),request=buildRegistrationRequest(model,{stage:'llm',transcript:'Synthetic meeting',outputLanguage:'ko',sections:['summary'],instructions:''});
+ const body=JSON.parse(request.body as string);
+ expect(model.enabled).toBe(false);expect(model.credentialOrigin).toBeNull();expect(model.credentialId).toBeUndefined();
+ expect(model.llm).toMatchObject({contextTokens:922000,maxTokens:128000,tokenField:'max_completion_tokens'});
+ expect(request.url).toBe('https://api.openai.com/v1/chat/completions');
+ expect(body).toMatchObject({model:modelId,max_completion_tokens:4096,reasoning_effort:effort,stream:false});
+ expect(body).not.toHaveProperty('temperature');expect(body).not.toHaveProperty('top_p');
+});
+
+it.each([
+ ['router-gpt-6.1-sol','openai/gpt-6.1-sol','low'],
+ ['router-gpt-6.1-terra','openai/gpt-6.1-terra','low'],
+] as const)('builds the current OpenRouter preset %s with the verified model and retention policy', (id,modelId,effort)=>{
+ const model=createModelPreset(id),request=buildRegistrationRequest(model,{stage:'llm',transcript:'Synthetic meeting',outputLanguage:'ko',sections:['summary'],instructions:''});
+ const body=JSON.parse(request.body as string);
+ expect(model.enabled).toBe(false);expect(model.credentialOrigin).toBeNull();expect(model.credentialId).toBeUndefined();
+ expect(model.llm).toMatchObject({contextTokens:922000,maxTokens:128000,tokenField:'max_tokens'});
+ expect(request.url).toBe('https://openrouter.ai/api/v1/chat/completions');
+ expect(body).toMatchObject({model:modelId,max_tokens:4096,reasoning:{effort},provider:{data_collection:'deny',zdr:true,allow_fallbacks:false}});
+ expect(body).not.toHaveProperty('temperature');expect(body).not.toHaveProperty('top_p');
 });

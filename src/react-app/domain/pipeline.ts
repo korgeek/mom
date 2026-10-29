@@ -8,17 +8,21 @@ export type ProviderFailureCode = "invalid-input" | "authentication" | "data-pol
 export class ProviderError extends Error {
  readonly code: ProviderFailureCode;
  readonly status: number | null;
+ readonly httpStatus: number | null;
  readonly retryAt: number | null;
  readonly outcomeUnknown: boolean;
  #sensitiveResponse: unknown;
- constructor(code: ProviderFailureCode, options: { status?: number; retryAt?: number | null; outcomeUnknown?: boolean; sensitiveResponse?: unknown } = {}) {
+ #sensitiveRequest: unknown;
+ constructor(code: ProviderFailureCode, options: { status?: number; httpStatus?: number | null; retryAt?: number | null; outcomeUnknown?: boolean; sensitiveResponse?: unknown; sensitiveRequest?: unknown } = {}) {
   super(`Provider operation failed: ${code}`); this.name = "ProviderError"; this.code = code;
   this.status = options.status ?? null; this.retryAt = options.retryAt ?? null; this.outcomeUnknown = options.outcomeUnknown ?? false;
-  this.#sensitiveResponse = options.sensitiveResponse;
+  this.httpStatus = options.httpStatus === undefined ? this.status : options.httpStatus;
+  this.#sensitiveResponse = options.sensitiveResponse; this.#sensitiveRequest = options.sensitiveRequest;
  }
  // Call only from the unlocked owner's encrypted-save path, never UI/logging/export.
  readSensitiveResponse(): unknown { return this.#sensitiveResponse; }
- clearSensitiveResponse(): void { this.#sensitiveResponse = undefined; }
+ readSensitiveRequest(): unknown { return this.#sensitiveRequest; }
+ clearSensitiveResponse(): void { this.#sensitiveResponse = undefined; this.#sensitiveRequest = undefined; }
 }
 export type RuntimeKeyGetter = () => string | null | Promise<string | null>;
 export type FetchTransport = typeof globalThis.fetch;
@@ -40,15 +44,17 @@ export function bodyProviderError(value: unknown, status: number, at: number, he
  const timedOut = errorStatus === 408 || errorStatus === 504 || ["timeout", "provider_timeout", "request_timeout"].includes(String(errorType));
  const policyBlocked = errorStatus === 404 && asObject(error?.metadata)?.failed_routing_step === "Filter by Data Policy";
  const code = policyBlocked ? "data-policy" : timedOut ? "timeout" : errorType === "context_length_exceeded" ? "context" : errorType === "insufficient_quota" ? "payment" : statusCode(errorStatus);
- return new ProviderError(code, { status: errorStatus, retryAt: retryAfter(headers?.get("Retry-After") ?? null, at), sensitiveResponse: value });
+ return new ProviderError(code, { status: errorStatus, httpStatus: status, retryAt: retryAfter(headers?.get("Retry-After") ?? null, at), sensitiveResponse: value });
 }
-export async function readProviderJson(response: Response, now: number): Promise<Record<string, unknown>> {
+export async function readProviderJson(response: Response, now: number, preserveEnvelope = false): Promise<Record<string, unknown>> {
  let value: unknown; let rawBody: string | undefined;
  try { rawBody = await response.text(); value = JSON.parse(rawBody); }
  catch { throw new ProviderError(response.ok ? "malformed" : statusCode(response.status), { status: response.status, retryAt: retryAfter(response.headers.get("Retry-After"), now), outcomeUnknown: response.ok, sensitiveResponse: rawBody }); }
  const body = asObject(value);
  if (!response.ok || body?.error !== undefined) {
-  throw bodyProviderError(body?.error ?? value, response.status, now, response.headers);
+  const error = bodyProviderError(body?.error ?? value, response.status, now, response.headers);
+  if (preserveEnvelope) throw new ProviderError(error.code, { status:error.status ?? undefined, httpStatus:error.httpStatus, retryAt:error.retryAt, sensitiveResponse:value });
+  throw error;
  }
  if (!body) throw new ProviderError("malformed", { sensitiveResponse: value }); return body;
 }
@@ -86,7 +92,7 @@ export async function runPaidRequest<T>(provider: string, job: JobContext, opera
    if (error.retryAt !== null) cooldowns.set(provider, error.retryAt);
    // A timeout response after dispatch cannot prove remote work/charges stopped.
    // Read-only and pre-dispatch errors never pass through this upgrade.
-   if (dispatched && error.code === "timeout" && !error.outcomeUnknown) throw new ProviderError(error.code, { status: error.status ?? undefined, retryAt: error.retryAt, outcomeUnknown: true, sensitiveResponse: error.readSensitiveResponse() });
+   if (dispatched && error.code === "timeout" && !error.outcomeUnknown) throw new ProviderError(error.code, { status: error.status ?? undefined, httpStatus: error.httpStatus, retryAt: error.retryAt, outcomeUnknown: true, sensitiveResponse: error.readSensitiveResponse() });
    throw error;
   }
   throw new ProviderError("network", { outcomeUnknown: dispatched });

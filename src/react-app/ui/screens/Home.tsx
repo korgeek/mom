@@ -2,7 +2,7 @@ import { History, Pin, PinOff, Pencil, Trash2, Plus } from 'lucide-react';
 import { useState } from 'react';
 import type { AppController } from '../../App';
 import { MeetingIcon } from '../../App';
-import { copy, formatBytes, formatTime, savedChunkIds } from '../copy';
+import { copy, formatBytes, formatTime, memoEntryScreen, savedChunkIds } from '../copy';
 import type { MeetingProject } from '../../domain/types';
 import Pagination from '../Pagination';
 import { currentPage, PAGE_SIZE, newestFirst } from '../../usage/history';
@@ -41,11 +41,11 @@ function Row({ controller: c, project: p }: { controller: AppController; project
       {unknownAttempts && <span className="hint">{t('이전 요청의 결과를 알 수 없으며 요금이 발생했을 수 있어요.', 'An earlier request has an unknown outcome and may have incurred a charge.')}</span>}
       {p.preparedChunks.length > 0 && <><div className="meter"><span style={{ width: `${Math.min(100, saved / p.preparedChunks.length * 100)}%` }} /></div><span className="hint">{saved} / {p.preparedChunks.length} {t('청크 저장', 'chunks saved')}</span></>}
     </div>
-    <div className="actions"><button className="primary" aria-label={`${t('열기', 'Open')} ${p.title}`} disabled={!c.onNavigate} onClick={() => c.onNavigate?.(ready ? 'minutes' : p.transcriptVersions.length ? 'review' : running ? 'stt' : 'import', p.id)}>{t('열기', 'Open')}</button>
-      <button className="icon-button home-history-action" aria-label={`${t('처리 기록', 'Processing history')} ${p.title}`} title={t('처리 기록', 'Processing history')} disabled={!c.onNavigate} onClick={() => c.onNavigate?.('history', p.id)}><History aria-hidden="true" /></button>
+    <div className="actions"><button className="icon-button home-history-action" aria-label={`${t('처리 기록', 'Processing history')} ${p.title}`} title={t('처리 기록', 'Processing history')} disabled={!c.onNavigate} onClick={() => c.onNavigate?.('history', p.id)}><History aria-hidden="true" /></button>
       <button className={`icon-button ${p.pinned ? 'selected' : ''}`} style={{ color: p.pinned ? 'var(--accent)' : 'var(--ink3)' }} aria-label={`${p.pinned ? t('고정 해제', 'Unpin') : t('고정', 'Pin')} ${p.title}`} aria-pressed={p.pinned} disabled={!c.onUpdateMeeting || c.busy} onClick={() => c.onUpdateMeeting?.(p.id, { pinned: !p.pinned })}>{p.pinned ? <PinOff aria-hidden="true" /> : <Pin aria-hidden="true" />}</button>
       <button className="icon-button" aria-label={`${t('이름 변경', 'Rename')} ${p.title}`} disabled={!c.onUpdateMeeting || c.busy} onClick={() => { setName(p.title); setRenaming(true); }}><Pencil aria-hidden="true" /></button>
       <button className="icon-button danger-text" aria-label={`${t('삭제', 'Delete')} ${p.title}`} disabled={!c.onDeleteMeeting || c.busy} onClick={() => setDeleting(true)}><Trash2 aria-hidden="true" /></button>
+      <button className="primary" aria-label={`${t('열기', 'Open')} ${p.title}`} disabled={!c.onNavigate} onClick={() => c.onNavigate?.(memoEntryScreen(p), p.id)}>{t('열기', 'Open')}</button>
     </div>
     {deleting && <div className="delete-confirm" role="group" aria-label={t('음성 메모 삭제 확인', 'Confirm voice memo deletion')}><span>{t('삭제하면 음성·청크·전사문·정리 노트가 이 브라우저에서 지워지고 되돌릴 수 없어요.', "Deleting removes the audio, chunks, transcript and notes from this browser. This can't be undone.")}</span><div className="actions"><button autoFocus onClick={() => setDeleting(false)}>{t('취소', 'Cancel')}</button><button className="danger" aria-label={`${t('삭제 확인', 'Confirm delete')} ${p.title}`} disabled={!c.onDeleteMeeting || c.busy} onClick={() => c.onDeleteMeeting?.(p.id)}>{t('삭제', 'Delete')}</button></div></div>}
   </div>;
@@ -61,7 +61,7 @@ export default function Home({ controller: c }: { controller: AppController }) {
       {!c.projects.length && <div className="empty">{t('저장된 음성 메모가 없어요. 새 음성 메모를 만들어 파일을 가져오세요.', 'No saved voice memos yet. Create a voice memo and import a file.')}</div>}
     </section>
     <section className="card storage-card"><div className="stack"><div className="row-between"><strong>{t('저장 공간', 'Storage')}</strong><span className="mono">{storage ? `${formatBytes(storage.usage)} / ~${formatBytes(storage.quota)}` : t('추정치 없음', 'Estimate unavailable')}</span></div><div className="meter thick"><span style={{ width: `${storage && storage.quota > 0 ? Math.min(100, storage.usage / storage.quota * 100) : 0}%` }} /></div><span className="hint">{t('한도와 사용량은 브라우저가 알려준 전체 출처 저장소의 추정치예요.', "Usage and quota are the browser's estimate for this origin.")}</span></div>
-      <div className="storage-note"><strong>{t('이 브라우저에 보관', 'Stored in this browser')}</strong><span>{t('음성 메모 데이터와 암호화 저장을 선택한 API 키는 보관함에 저장돼요. 브라우저 데이터를 지우거나 다른 기기로 옮기면 보이지 않을 수 있어요. 완성한 정리 노트는 .md로 내려받아 두세요.', 'Voice memo data and keys set to encrypted storage are saved in the vault. Clearing browser data or changing devices can make them unavailable. Download finished notes as .md.')}</span></div>
+    <details className="storage-note"><summary>{t('이 브라우저에 보관', 'Stored in this browser')}</summary><span>{t('음성 메모 데이터와 암호화 저장을 선택한 API 키는 보관함에 저장돼요. 브라우저 데이터를 지우거나 다른 기기로 옮기면 보이지 않을 수 있어요. 완성한 정리 노트는 .md로 내려받아 두세요.', 'Voice memo data and keys set to encrypted storage are saved in the vault. Clearing browser data or changing devices can make them unavailable. Download finished notes as .md.')}</span></details>
     </section>
   </div>;
 }

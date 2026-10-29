@@ -20,11 +20,11 @@ Source: https://github.com/lucide-icons/lucide
 Complete inventory, embedded attribution and exact license filenames:
 /licenses/runtime-JS-NOTICES.txt
 
-React19.2.1, ReactDOM19.2.1, scheduler0.27.0, markdown-it15.0.2,
+React19.2.1, ReactDOM19.2.1, scheduler0.27.0, markdown-it15.0.3,
 linkify-it6.1.0, mdurl2.1.0, punycode.js2.3.1, uc.micro3.0.0 and
 simple-yenc1.0.4: MIT; entities8.1.0: BSD-2-Clause.
 @swc/helpers0.5.23 and @eshaz/web-worker1.2.2: Apache-2.0.
-DOMPurify3.4.16: MoM selects the Apache-2.0 alternative offered by its
+DOMPurify3.4.17: MoM selects the Apache-2.0 alternative offered by its
 MPL-2.0 OR Apache-2.0 license. Both complete texts are retained; this does not
 select both branches. Preserve Cure53/contributors' original attribution.
 Generated Vite7.3.3/Rollup preload/CommonJS helpers and publisher-embedded

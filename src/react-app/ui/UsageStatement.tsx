@@ -98,10 +98,10 @@ export default function UsageStatement({ project, language, sttOnly = false, det
   const t = (ko: string, en: string) => copy(language, ko, en); const statement = aggregateProjectUsage(project);
   const stages = sttOnly ? [statement.stt] : [statement.stt, statement.minutes];
   const costs = sttOnly ? statement.stt.costs : statement.combined;
-  const summary = `${stages.map(stage => `${stageName(stage.kind, language)} ${stage.attemptCount}`).join(' · ')} · ${costs.completeTotal ? `${count(costs.completeTotal.amount)} ${costs.completeTotal.currency} · ${costKind(costs.completeTotal.kind, language)}` : t('비용 합계 확인 불가', 'Cost total unavailable')}`;
-  const closed = !detailed && compact && !expanded;
+  const summary = `${stages.map(stage => `${stageName(stage.kind, language)} ${t('요청 기록', 'request records')} ${stage.attemptCount}`).join(' · ')} · ${costs.completeTotal ? `${count(costs.completeTotal.amount)} ${costs.completeTotal.currency} · ${costKind(costs.completeTotal.kind, language)}` : t('비용 합계 확인 불가', 'Cost total unavailable')}`;
+  const closed = !detailed && !expanded;
   return <section className="card stack gap12 usage-statement" aria-label={sttOnly ? t('STT 사용량 명세', 'STT usage statement') : t('사용량 명세', 'Usage statement')}>
-    {!detailed && compact && <div className="compact-work-summary"><span>{summary}</span><button aria-label={closed ? t('사용량·비용 상세 펼치기', 'Show usage and cost details') : t('사용량·비용 상세 접기', 'Hide usage and cost details')} aria-expanded={!closed} aria-controls={bodyId} onClick={() => { if (!closed && body.current?.contains(document.activeElement)) return; setExpanded(closed); }}>{closed ? t('상세', 'Details') : t('접기', 'Hide')}</button></div>}
+    {!detailed && <div className="compact-work-summary"><span>{summary}</span><button aria-label={closed ? t('사용량·비용 상세 펼치기', 'Show usage and cost details') : t('사용량·비용 상세 접기', 'Hide usage and cost details')} aria-expanded={!closed} aria-controls={bodyId} onClick={() => { if (!closed && body.current?.contains(document.activeElement)) return; setExpanded(closed); }}>{closed ? t('상세', 'Details') : t('접기', 'Hide')}</button></div>}
     <div id={bodyId} ref={body} className="compact-work-body stack gap12" hidden={closed} inert={closed}>
     <strong>{t('단계별 사용량 명세', 'Usage by processing stage')}</strong>
     {detailed && compact && <span className="hint">{t('표를 좌우로 움직여 비용 구성까지 확인하세요.', 'Scroll the table sideways to see cost components.')}</span>}
@@ -118,15 +118,10 @@ export default function UsageStatement({ project, language, sttOnly = false, det
 export function STTUsageSummary({ project, language, onDetails }: { project: MeetingProject; language: Language; onDetails: () => void }) {
   const t = (ko: string, en: string) => copy(language, ko, en);
   const stage = aggregateProjectUsage(project).stt;
-  return <section className="card stack gap12 stt-usage-summary" aria-label={t('전사 사용량 요약', 'Transcription usage summary')}>
-    <strong>{t('전사 사용량', 'Transcription usage')}</strong>
-    <span className="hint">{t('보존된 결과 기준 비용', 'Cost from preserved results')}</span>
-    <div className="stack usage-costs"><strong>{stage.costs.completeTotal ? `${count(stage.costs.completeTotal.amount)} ${stage.costs.completeTotal.currency} · ${costKind(stage.costs.completeTotal.kind, language)}` : t('비용 확인 불가', 'Cost unavailable')}</strong>
-      {!stage.costs.completeTotal && stage.costs.components.map(component => <span key={`${component.currency}:${component.kind}`}>{count(component.amount)} {component.currency} · {costKind(component.kind, language)} {t('확인된 부분 소계', 'known partial subtotal')} ({component.resultCount} {t('결과', 'results')})</span>)}
-      {stage.costs.missingResults > 0 && <span className="hint">{stage.costs.missingResults} {t('결과의 비용 확인 불가', 'results have no cost information')}</span>}
-    </div>
-    <dl className="facts"><dt>{t('응답 보존', 'Preserved responses')}</dt><dd>{stage.responseCount}</dd><dt>{t('요청 기록', 'Request records')}</dt><dd>{stage.attemptCount}</dd><dt>{t('실패 / 결과 불명', 'Failed / unknown outcome')}</dt><dd>{stage.states.failed ?? 0} / {stage.states['outcome-unknown'] ?? 0}</dd></dl>
-    <span className="hint">{t('실패·결과 불명에도 비용이 있을 수 있어요. 미확인 값은 0으로 합산하지 않아요.', 'Failed and unknown outcomes may incur charges. Unknown values are not counted as zero.')}</span>
-    <button className="plain accent-text align-start icon-label" aria-label={t('명세·요청 이력 보기 →', 'View statement & request history →')} onClick={onDetails}>{t('명세·요청 이력 보기', 'View statement & request history')}<ArrowRight aria-hidden="true" /></button>
+  const total = stage.costs.completeTotal;
+  const cost = total ? `${count(total.amount)} ${total.currency} · ${costKind(total.kind, language)}` : [t('비용 확인 불가', 'Cost unavailable'), ...stage.costs.components.map(component => `${count(component.amount)} ${component.currency} · ${costKind(component.kind, language)} ${t('확인된 부분 소계', 'known partial subtotal')}`)].join(' · ');
+  return <section className="card compact-work-summary stt-usage-summary" aria-label={t('전사 사용량 요약', 'Transcription usage summary')}>
+    <span className="hint">{t('요청 기록', 'Request records')} {stage.attemptCount} · {cost}</span>
+    <button className="plain accent-text icon-label" aria-label={t('명세·요청 이력 보기 →', 'View statement & request history →')} onClick={onDetails}>{t('명세·요청 이력 보기', 'View statement & request history')}<ArrowRight aria-hidden="true" /></button>
   </section>;
 }

@@ -53,17 +53,21 @@ it('warns after 30 seconds without real events and clears the warning only for a
   const value = preparation({ lastProgressAtMs: now });
   const view = render(<PreparationStatus controller={controller(value)} />);
   act(() => vi.advanceTimersByTime(29000));
-  expect(screen.queryByText(/No new processing update/)).toBeNull();
+  expect(screen.queryByText(/Waiting for a progress update/)).toBeNull();
   act(() => vi.advanceTimersByTime(1000));
-  const warning = screen.getByText(/No new processing update/);
+  const warning = screen.getByText(/Waiting for a progress update/);
   expect(warning.getAttribute('role')).toBe('status');
-  expect(warning.textContent).toContain('does not confirm that work has stopped');
+  expect(warning.textContent).toContain('Waiting for a progress update');
+  const details=screen.getByText('Show details').closest('details')!;
+  expect(details.open).toBe(false);
+  fireEvent.click(screen.getByText('Show details'));
+  expect(screen.getByText(/does not confirm that work has stopped/)).toBeTruthy();
   act(() => vi.advanceTimersByTime(10000));
   expect(warning.textContent).toContain('30 seconds');
   view.rerender(<PreparationStatus controller={controller({ ...value })} />);
-  expect(screen.getByText(/No new processing update/)).toBeTruthy();
+  expect(screen.getByText(/Waiting for a progress update/)).toBeTruthy();
   view.rerender(<PreparationStatus controller={controller({ ...value, lastProgressAtMs: now + 40000, sourceProcessedMs: 61000 })} />);
-  expect(screen.queryByText(/No new processing update/)).toBeNull();
+  expect(screen.queryByText(/Waiting for a progress update/)).toBeNull();
   expect(screen.getByText('Source time processed: 01:01 / 35:00')).toBeTruthy();
 });
 
@@ -82,7 +86,7 @@ it.each(['complete', 'failed', 'stopped'] as const)('stops the display clock aft
   expect(screen.getByText('Elapsed: 01:00')).toBeTruthy();
   act(() => vi.advanceTimersByTime(60000));
   expect(screen.getByText('Elapsed: 01:00')).toBeTruthy();
-  expect(screen.queryByText(/No new processing update/)).toBeNull();
+  expect(screen.queryByText(/Waiting for a progress update/)).toBeNull();
   expect(vi.getTimerCount()).toBe(0);
 });
 
@@ -155,15 +159,21 @@ it('blocks transcription for partial, wrong-source and unretained checkpoints un
   }
 });
 
-it('shows a compact diagnostics trigger beside cancellation and copies only the reviewed snapshot on request', async () => {
+it('keeps diagnostics in collapsed details and copies only the reviewed snapshot on request', async () => {
   const secret = 'PRIVATE_DIAGNOSTIC_SENTINEL', p = project(), write = vi.fn().mockResolvedValue(undefined);
   Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: write } });
   const transport = vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('No network authorized'));
   const value = { ...preparation(), message: secret, fileName: secret, title: secret, jobId: secret, errorCode: secret };
   const c = controller(value, { busy: true, projects: [p], selectedProjectId: p.id, onCancelPreparation: vi.fn() });
   const view = render(<Import controller={c} project={p} />);
+  const details = screen.getByText('Show details').closest('details')!;
+  expect(details.open).toBe(false);
+  expect(screen.getByRole('progressbar')).toBeTruthy();
+  expect(screen.getByText('Encrypted audio chunks saved: 1 / planned 7')).toBeTruthy();
+  expect(details.contains(screen.getByRole('button', { name: 'Show preparation diagnostics' }))).toBe(true);
+  fireEvent.click(screen.getByText('Show details'));
+  expect(details.open).toBe(true);
   const trigger = screen.getByRole('button', { name: 'Show preparation diagnostics' });
-  expect(trigger.closest('.preparation-buttons')).toBe(screen.getByRole('button', { name: 'Cancel preparation' }).parentElement);
   expect(trigger.getAttribute('aria-expanded')).toBe('false');
   expect(screen.queryByRole('button', { name: 'Copy diagnostics' })).toBeNull();
   expect(write).not.toHaveBeenCalled(); expect(transport).not.toHaveBeenCalled();

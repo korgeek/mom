@@ -1,3 +1,4 @@
+import { requestRecord, redactRecordedValue, recordedFailure } from './request-history';
 import type { JobContext, PreparedChunk, RawTranscript, RouterSTTProfile, RouterSTTSelection, SourceSegment, STTProvider, STTRequest, Usage } from "../domain/types";
 import { ProviderError, asObject, authHeaders, nonnegativeNumber, readProviderJson, runPaidRequest } from "../domain/pipeline";
 import type { FetchTransport, RuntimeKeyGetter } from "../domain/pipeline";
@@ -109,6 +110,7 @@ export function createOpenRouterSTTProvider(options: OpenRouterSTTProviderOption
    job.assertActive(); const { profile, format } = validate(request, selection);
    const frozenRequest = freezeMetadata({ modelId: request.modelId, runId: request.runId, chunk: structuredClone(request.chunk), expectedLanguages: [...request.expectedLanguages] });
    let body: string | null = null; let encoded: string | null = null;
+   let sent:unknown, secret:string|null=null;
    try {
     encoded = await encodeAudio(request.audio, job); job.assertActive();
     // Dedicated STT schema: https://openrouter.ai/docs/guides/overview/multimodal/stt
@@ -120,14 +122,14 @@ export function createOpenRouterSTTProvider(options: OpenRouterSTTProviderOption
     return await runPaidRequest("openrouter", job, async (signal, dispatched) => {
      const active = () => { job.assertActive(); if (signal.aborted) throw new ProviderError("timeout"); };
      active(); const headers = await authHeaders(options.getKey, job); active(); headers.set("Content-Type", "application/json");
-     const start = now(); dispatched();
+     const start = now(); secret=headers.get("Authorization")?.slice(7)??null; sent=requestRecord({url:"https://openrouter.ai/api/v1/audio/transcriptions",body:body!},secret); dispatched();
      const response = await fetch("https://openrouter.ai/api/v1/audio/transcriptions", { method: "POST", headers, body, signal, redirect: "error", credentials: "omit", cache: "no-store" }); active();
-     body = null; const parsed = await readProviderJson(response, now()); active();
-     return normalize(parsed, response.headers, frozenRequest, selection, now() - start);
+     body = null; const parsed = redactRecordedValue(await readProviderJson(response, now(), true),secret) as Record<string,unknown>; active();
+     return {...normalize(parsed, response.headers, frozenRequest, selection, now() - start),request:sent};
     }, options);
    } catch (error) {
-    job.assertActive(); if (error instanceof ProviderError) throw error; throw new ProviderError("network");
-   } finally { body = null; encoded = null; }
+    job.assertActive(); if (error instanceof ProviderError) throw recordedFailure(error,sent,secret); throw recordedFailure(new ProviderError("network"),sent,secret);
+   } finally { body = null; encoded = null; secret=null; }
   },
  };
 }

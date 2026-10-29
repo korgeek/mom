@@ -6,8 +6,10 @@ import type { AudioOptions, MeetingProject, CheckpointWrite, DeletionConfirmatio
 import { originStorageEstimate } from "./storage-management";
 import type { SourceReader } from "../media/source";
 import type { ScreenState } from './screen-state';
-import { createHeader, randomId, unwrapHeader, validatePassphrase } from "./crypto";
-import { clearVaultDatabase, openVaultDatabase, readHeader, readResetOwnerId, VaultCoordinator, writeInitialHeader } from "./store";
+import { createHeader, randomId, unwrapHeader, validatePassphrase, validateAuthenticationCandidate, VaultAuthenticationError } from "./crypto";
+import { validateNewPassphrase } from './passphrase-policy';
+import { clearVaultDatabase, openVaultDatabase, readHeader, readResetOwnerId, updateVaultAuthPolicy, VaultCoordinator, writeInitialHeader } from "./store";
+export class VaultAttemptError extends Error { constructor(readonly failures: number, readonly pendingDeletion: boolean, readonly deleted = false) { super('Vault authentication failed'); } }
 export type VaultState = "locked" | "unlocking" | "unlocked" | "locking" | "lock-save-failed";
 export type VaultLockOptions = Readonly<{ idleMinutes: 5 | 15 | 30; lockOnHide: boolean }>;
 type ReleaseOwnership = () => void | Promise<void>;
@@ -18,6 +20,7 @@ export type VaultSessionOptions = Readonly<{
     databaseName?: string;
     indexedDB?: IDBFactory;
     onState?: (state: VaultState) => void;
+    onAuthPolicy?: (failures: number, pendingDeletion: boolean, vaultId: string) => void;
     // Capture before clear/teardown; returned snapshots must be the latest completed work.
     capturePending?: () => readonly CheckpointWrite[];
     onSensitiveClear?: () => void;
@@ -38,7 +41,7 @@ export interface VaultSession {
     discardPendingAndLock(): Promise<void>;
     // Destructive: callers must obtain explicit final confirmation before invoking.
     // Clears only this database's vault stores; no passphrase or provider key is needed.
-    reset(): Promise<void>;
+    reset(expectedDeletionVaultId?: string): Promise<void>;
     changePassphrase(current: string, next: string, confirmation: string): Promise<void>;
     saveProviderKey(providerId: string, key: string, persistence?: "encrypted" | "session"): Promise<void>;
     getProviderKey(providerId: string): Promise<string | null>;
@@ -103,6 +106,7 @@ export function createVaultSession(options: VaultSessionOptions = {}): VaultSess
     let releaseOwnership: ReleaseOwnership | null = null;
     let releaseDatabaseOwnership: ReleaseOwnership | null = null;
     let vaultId: string | null = null;
+    let deletionTarget: string | null = null;
     let pending: readonly CheckpointWrite[] = [];
     const sessionKeys = new Map<string, string>();
     let registrationTail: Promise<unknown> = Promise.resolve();
@@ -120,6 +124,7 @@ export function createVaultSession(options: VaultSessionOptions = {}): VaultSess
     let disposeRequested = false;
     let storageBusy = false;
     let passphraseRevision = 0, passphraseChanges = 0;
+    let screenVerificationBusy = false;
     let idleMs = options.idleMs ?? 15 * 60_000;
     let lockOnHide = options.screenLockManaged !== true;
     let pageIsHidden = false;
@@ -170,7 +175,7 @@ export function createVaultSession(options: VaultSessionOptions = {}): VaultSess
     const activate = async (secret: string, confirmation?: string) => {
         if (state !== "locked" || disposed || disposeRequested || resetPromise)
             throw new Error("Vault cannot be unlocked in its current state");
-        validatePassphrase(secret);
+        if (confirmation !== undefined) validateNewPassphrase(secret); else validateAuthenticationCandidate(secret);
         if (confirmation !== undefined && confirmation !== secret)
             throw new Error("Passphrase confirmation does not match");
         if (!factory)
@@ -216,8 +221,19 @@ export function createVaultSession(options: VaultSessionOptions = {}): VaultSess
                 openingGuard();
             }
             else {
-                key = await unwrapHeader(secret, header!);
-                openingGuard();
+                let policy = await updateVaultAuthPolicy(db, vaultId!, 'read', openingGuard);
+                options.onAuthPolicy?.(policy.failures, policy.pendingDeletion, vaultId!);
+                if (policy.pendingDeletion) throw new VaultAttemptError(5, true);
+                try { key = await unwrapHeader(secret, header!); openingGuard(); }
+                catch (error) {
+                    openingGuard();
+                    if (!(error instanceof VaultAuthenticationError)) throw error;
+                    policy = await updateVaultAuthPolicy(db, vaultId!, 'failure', openingGuard);
+                    options.onAuthPolicy?.(policy.failures, policy.pendingDeletion, vaultId!);
+                    throw new VaultAttemptError(policy.failures, policy.pendingDeletion);
+                }
+                policy = await updateVaultAuthPolicy(db, vaultId!, 'success', openingGuard);
+                options.onAuthPolicy?.(policy.failures, policy.pendingDeletion, vaultId!);
             }
             coordinator = new VaultCoordinator(db, header!, key, assertUnlocked, assertPrivate);
             await coordinator.recover();
@@ -232,6 +248,13 @@ export function createVaultSession(options: VaultSessionOptions = {}): VaultSess
             db?.close();
             sessionKeys.clear();
             pending = [];
+            if (error instanceof VaultAttemptError && error.pendingDeletion) {
+                // Retain both locks until reset begins: a fresh successor vault
+                // must never be cleared by an older authentication attempt.
+                deletionTarget = vaultId; state = 'locked';
+                try { await session.reset(deletionTarget!); throw new VaultAttemptError(5, false, true); }
+                catch (resetError) { if (resetError instanceof VaultAttemptError) throw resetError; throw error; }
+            }
             await releaseLocks();
             vaultId = null;
             update("locked");
@@ -373,8 +396,11 @@ export function createVaultSession(options: VaultSessionOptions = {}): VaultSess
             await coordinator!.drain();
             await release();
         },
-        reset() {
+        reset(expectedDeletionVaultId) {
             if (resetPromise) return resetPromise;
+            if (deletionTarget && expectedDeletionVaultId && deletionTarget !== expectedDeletionVaultId) return Promise.reject(new Error('Vault deletion target changed'));
+            const deletionId = deletionTarget ?? expectedDeletionVaultId;
+            if (deletionId) deletionTarget = deletionId;
             if (disposed || disposeRequested || !["locked", "unlocked", "lock-save-failed"].includes(state))
                 return Promise.reject(new Error("Vault cannot reset in its current state"));
             if (!factory) return Promise.reject(new Error("Encrypted browser storage support is required"));
@@ -436,9 +462,10 @@ export function createVaultSession(options: VaultSessionOptions = {}): VaultSess
                     coordinator?.release();
                     coordinator = null;
                     guard();
-                    await clearVaultDatabase(db, guard);
+                    await clearVaultDatabase(db, guard, deletionId ?? undefined);
                     resetBoundaryFailed = false;
                     await release(true);
+                    deletionTarget = null;
                 }
                 catch (error) {
                     if (!resetBoundaryFailed) {
@@ -459,11 +486,33 @@ export function createVaultSession(options: VaultSessionOptions = {}): VaultSess
             finally { passphraseRevision++; passphraseChanges--; }
         },
         async verifyScreenPassphrase(secret) {
+            if (screenVerificationBusy) throw new Error('Screen verification is already in progress');
             assertUnlocked();
+            screenVerificationBusy = true;
             const owner = coordinator!, ownership = releaseOwnership, revision = passphraseRevision, job = createJobContext();
             const guard = () => { assertUnlocked(); job.assertActive(); if (coordinator !== owner || releaseOwnership !== ownership || revision !== passphraseRevision || passphraseChanges) throw new Error('Screen verification no longer current'); };
-            try { guard(); await owner.verifyPassphrase(secret, job); guard(); }
-            finally { secret = ''; }
+            try {
+                guard(); let policy = await owner.authPolicy('read', guard, job.signal); guard();
+                options.onAuthPolicy?.(policy.failures, policy.pendingDeletion, vaultId!);
+                if (policy.pendingDeletion) throw new VaultAttemptError(5, true);
+                try { await owner.verifyPassphrase(secret, job); guard(); }
+                catch (error) {
+                    guard(); if (!(error instanceof VaultAuthenticationError)) throw error;
+                    policy = await owner.authPolicy('failure', guard, job.signal); guard();
+                    options.onAuthPolicy?.(policy.failures, policy.pendingDeletion, vaultId!);
+                    throw new VaultAttemptError(policy.failures, policy.pendingDeletion);
+                }
+                policy = await owner.authPolicy('success', guard, job.signal); guard(); options.onAuthPolicy?.(policy.failures, policy.pendingDeletion, vaultId!);
+            }
+            catch (error) {
+                if (error instanceof VaultAttemptError && error.pendingDeletion) {
+                    deletionTarget = vaultId;
+                    try { await session.reset(deletionTarget!); throw new VaultAttemptError(5, false, true); }
+                    catch (resetError) { if (resetError instanceof VaultAttemptError) throw resetError; throw error; }
+                }
+                throw error;
+            }
+            finally { secret = ''; screenVerificationBusy = false; }
         },
         async saveProviderKey(providerId, key, persistence = "encrypted") {
             assertUnlocked();

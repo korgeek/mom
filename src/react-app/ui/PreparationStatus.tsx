@@ -50,7 +50,7 @@ export function PreparationDiagnosticControl({ controller: c }: { controller: Ap
   </div>;
 }
 
-export default function PreparationStatus({ controller: c }: { controller: AppController }) {
+export default function PreparationStatus({ controller: c, diagnostics = false }: { controller: AppController; diagnostics?: boolean }) {
   const preparation = c.preparation;
   const revealed = canExposePreparation(c);
   const active = revealed && !!preparation && !['complete', 'failed', 'stopped'].includes(preparation.stage);
@@ -101,16 +101,23 @@ export default function PreparationStatus({ controller: c }: { controller: AppCo
   const determinate = known(progressTime) && known(progressDuration) && progressDuration > 0;
   return <div className="stack preparation-status" role="region" aria-label={t('로컬 음성 준비', 'Local audio preparation')}>
     <strong role="status">{status}</strong>
-    <span className="hint">{t('처리 위치: 이 기기 · 외부 AI 요청 없음', 'Processing location: this device · no external AI requests')}</span>
     {phase && <span className="hint mono">{t(phase[0], phase[1])} {time(preparation.phaseProcessedMs)} / {time(preparation.phaseDurationMs)}</span>}
-    <span className="hint mono">{t('분할·압축한 원본 시간:', 'Source time processed:')} {time(preparation.sourceProcessedMs)} / {knownDuration ? time(preparation.durationMs) : unknown}</span>
+    {!phase && <span className="hint mono">{t('분할·압축한 원본 시간:', 'Source time processed:')} {time(preparation.sourceProcessedMs)} / {knownDuration ? time(preparation.durationMs) : unknown}</span>}
     {active && <progress aria-label={phase ? t(phase[0], phase[1]) : t('로컬 음성 처리 시간', 'Local source time processed')} max={known(progressDuration) && progressDuration > 0 ? progressDuration : undefined} value={determinate ? progressTime! : undefined} />}
-    <div className="preparation-summary hint"><span>{t('암호화 저장된 음성 청크:', 'Encrypted audio chunks saved:')} {preparation.completed}{preparation.total === null ? ` · ${t('계획 청크 수 확인 중', 'Planned count unknown')}` : ` / ${t('계획', 'planned')} ${preparation.total}`}</span><span className="mono">{t('청크 용량:', 'Chunk size:')} {preparation.savedEncodedBytes == null ? t('확인 중', 'Unknown') : formatBytes(preparation.savedEncodedBytes)}</span></div>
-    {known(preparation.savedThroughMs) && <span className="hint mono">{t('연속으로 저장된 원본 구간:', 'Contiguous source audio saved:')} {time(preparation.savedThroughMs)} / {knownDuration ? time(preparation.durationMs) : unknown}</span>}
-    <div className="preparation-summary hint mono"><span>{t('경과시간:', 'Elapsed:')} {elapsed}</span><span>{t('마지막 실제 진행:', 'Last real progress:')} {lastProgress}</span></div>
+    <span className="hint">{t('암호화 저장된 음성 청크:', 'Encrypted audio chunks saved:')} {preparation.completed}{preparation.total === null ? ` · ${t('계획 청크 수 확인 중', 'Planned count unknown')}` : ` / ${t('계획', 'planned')} ${preparation.total}`}</span>
     {returned && <span className="hint" role="status">{t('화면 복귀 후 새 처리 이벤트를 기다리고 있어요.', 'Waiting for a new processing event after returning to this page.')}</span>}
-    {stalled && <span className="warning" role="status">{t('30초 이상 새 처리 정보가 없어요. 느리게 처리 중이거나 브라우저에서 일시 중단됐을 수 있으며, 작업이 멈췄다고 단정할 수는 없어요.', 'No new processing update for at least 30 seconds. Processing may be slow or paused by the browser; this does not confirm that work has stopped.')}</span>}
-    {(returned || stalled) && <span className="hint">{t('기다리는 동안 MoM을 화면에 열어 두세요. 다른 앱 사용이나 화면 꺼짐으로 모바일 브라우저가 작업을 중단할 수 있어요. 백그라운드 완료는 보장되지 않아요.', 'Keep MoM in the foreground while waiting. Mobile browsers may suspend work when another app is open or the screen is off. Background completion is not guaranteed.')}</span>}
+    {stalled && <span className="warning" role="status">{t('진행 정보 갱신 대기 · 30초 이상','Waiting for a progress update · over 30 seconds')}</span>}
+    {(returned || stalled) && <span className="hint">{t('진행을 기다리는 동안 이 화면을 열어 두세요.','Keep this page open while waiting.')}</span>}
     {preparation.stage === 'stopped' && <span className="hint">{t('디코딩·압축을 처음부터 다시 계산해요. 저장된 청크는 유지돼요.', 'Decoding and compression restart from the beginning. Saved chunks are kept.')}</span>}
+    <details className="hint usage-stage-details"><summary>{t('자세히 보기', 'Show details')}</summary><div className="stack gap10">
+      {stalled && <span>{t('30초 이상 새 처리 정보가 없어요. 느리게 처리 중이거나 브라우저에서 일시 중단됐을 수 있으며, 작업이 멈췄다고 단정할 수는 없어요.', 'No new processing update for at least 30 seconds. Processing may be slow or paused by the browser; this does not confirm that work has stopped.')}</span>}
+      {(returned || stalled) && <span>{t('기다리는 동안 MoM을 화면에 열어 두세요. 다른 앱 사용이나 화면 꺼짐으로 모바일 브라우저가 작업을 중단할 수 있어요. 백그라운드 완료는 보장되지 않아요.', 'Keep MoM in the foreground while waiting. Mobile browsers may suspend work when another app is open or the screen is off. Background completion is not guaranteed.')}</span>}
+      <span>{t('처리 위치: 이 기기 · 외부 AI 요청 없음', 'Processing location: this device · no external AI requests')}</span>
+      {phase && <span className="mono">{t('분할·압축한 원본 시간:', 'Source time processed:')} {time(preparation.sourceProcessedMs)} / {knownDuration ? time(preparation.durationMs) : unknown}</span>}
+      <span className="mono">{t('청크 용량:', 'Chunk size:')} {preparation.savedEncodedBytes == null ? unknown : formatBytes(preparation.savedEncodedBytes)}</span>
+      {known(preparation.savedThroughMs) && <span className="mono">{t('연속으로 저장된 원본 구간:', 'Contiguous source audio saved:')} {time(preparation.savedThroughMs)} / {knownDuration ? time(preparation.durationMs) : unknown}</span>}
+      <div className="preparation-summary mono"><span>{t('경과시간:', 'Elapsed:')} {elapsed}</span><span>{t('마지막 실제 진행:', 'Last real progress:')} {lastProgress}</span></div>
+      {diagnostics && <PreparationDiagnosticControl controller={c} />}
+    </div></details>
   </div>;
 }

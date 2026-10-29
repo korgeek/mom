@@ -32,7 +32,7 @@ export type TranscriptionExecution = Readonly<{
 }>;
 
 export type RawTranscript = Readonly<{
-	id: string; chunkId: string; runId: string; response: unknown; text: string;
+	id: string; chunkId: string; runId: string; response: unknown; request?: unknown; text: string;
 	segments: readonly SourceSegment[]; timing: "word" | "segment" | "chunk"; speakerScope: "none" | "chunk";
 	// Actual provider adapters always fill this; null is for legacy/import/test data.
 	execution: TranscriptionExecution | null;
@@ -67,7 +67,7 @@ export type STTBatch = Readonly<{
 export type MinutesSection = "summary" | "topics" | "decisions" | "actions" | "open" | "refs";
 export type MinutesSettings = Readonly<{
 	outputLanguage: string; sections: readonly MinutesSection[]; instructions: string; modelId: string;
-	registrationId?: string; outputTokens?: number;
+	registrationId?: string; outputTokens?: number; reasoningEffort?: string;
 	// Absence preserves the exact legacy explicit language, including custom values.
 	outputLanguageMode?: "app" | "explicit";
 }>;
@@ -147,7 +147,7 @@ export type Usage = Readonly<{
 export type MinutesRun = Readonly<{
 	id: string; transcriptVersionId: string; settings: MinutesSettings; generatedMarkdown: string; usage: Usage;
 	requestedModel: string; returnedModel: string | null; actualProvider: string | null;
-	modelSnapshot?: ModelExecutionSnapshot; response?: unknown; requestedEndpoint?: string;
+	modelSnapshot?: ModelExecutionSnapshot; response?: unknown; request?: unknown; requestedEndpoint?: string;
 }>;
 export type MinutesRevision = Readonly<{
 	id: string; runId: string; parentId: string | null; markdown: string;
@@ -210,6 +210,9 @@ export type MeetingProject = Readonly<{
 	minutesComparisons?: readonly MinutesComparison[];
 	sttBatches?: readonly STTBatch[];
 	processingArchives?: readonly ProcessingArchive[];
+	failedProviderResponses?: readonly Readonly<{
+		runId: string; request?: unknown; response?: unknown; failureCode?: string; status?: number | null;
+	}>[];
 	// Absence is legacy/unknown until the vault verifies owned manifests.
 	retainedAudio?: RetainedAudio;
 	sttRegistrationId?: string;

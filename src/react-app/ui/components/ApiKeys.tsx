@@ -15,6 +15,14 @@ export default function ApiKeys({ controller }: { controller: AppController }) {
 
 function CredentialManager({ controller: c }: { controller: AppController }) {
   const t = (ko: string, en: string) => copy(c.preferences.uiLanguage, ko, en);
+  const checkStates = {
+    missing: { label: t('키 필요', 'Key required'), tone: 'setup' },
+    unchecked: { label: t('확인 전', 'Not checked'), tone: 'neutral' },
+    checking: { label: t('확인 중', 'Checking'), tone: 'running' },
+    verified: { label: t('인증 확인', 'Authenticated'), tone: 'success' },
+    failed: { label: t('확인 실패', 'Check failed'), tone: 'failed' },
+    unsupported: { label: t('확인 불가', 'Unavailable'), tone: 'setup' },
+  };
   const [editing, setEditing] = useState<ApiCredential | null>(null), [deleting, setDeleting] = useState<ApiCredential | null>(null);
   const [working, setWorking] = useState(false), [error, setError] = useState(''), [notice, setNotice] = useState('');
   const credentials = c.modelRegistrations?.credentials ?? [], busy = !!c.busy || working;
@@ -31,10 +39,14 @@ function CredentialManager({ controller: c }: { controller: AppController }) {
   return <section className="card api-keys stack gap16" aria-label={t('API 키 관리', 'API key management')}>
     <strong>{t('API 키', 'API keys')}</strong>
     {!!credentials.length && <ul className="api-key-list" aria-label={t('저장된 API 키', 'Saved API keys')}>
-      {credentials.map(key => <li className="api-key-row" key={key.id}><div className="stack"><strong>{key.name}</strong><span className="hint">{providerLabel(key.origin)}</span>{!c.credentialKeyReady?.includes(key.id) && <span className="hint">{t('키 입력 필요', 'Key required')}</span>}<span role="status" className="hint">{c.apiCredentialChecks?.[key.id]?.message || (c.apiCredentialChecks?.[key.id]?.state==='checking'?t('인증 확인 중…','Checking authentication…'):t('인증 확인 전','Authentication not checked'))}</span><button type="button" className="align-start" disabled={busy||!c.onCheckApiCredential||!c.credentialKeyReady?.includes(key.id)} onClick={()=>void c.onCheckApiCredential?.(key.id).catch(()=>{})}>{t('연결 확인','Check connection')}</button></div><details className="api-key-actions"><summary aria-label={t(`${key.name} 관리`, `Manage ${key.name}`)}><Ellipsis aria-hidden="true" /></summary><div className="stack">
+      {credentials.map(key => {
+        const ready = c.credentialKeyReady?.includes(key.id), check = c.apiCredentialChecks?.[key.id];
+        const status = checkStates[!ready ? 'missing' : check?.state ?? 'unchecked'];
+        const chip = <span role="status" className={`model-status model-status--${status.tone}`}>{status.label}</span>;
+        return <li className="api-key-row" key={key.id}><div className="stack"><strong>{key.name}</strong><span className="hint">{providerLabel(key.origin)}</span><div>{ready && check?.message ? <details><summary aria-label={`${status.label} ${t('상세 보기', 'details')}`}>{chip}</summary><p className="hint">{check.message}</p></details> : chip}</div><button type="button" className="align-start" disabled={busy||!c.onCheckApiCredential||!ready} onClick={()=>void c.onCheckApiCredential?.(key.id).catch(()=>{})}>{t('연결 확인','Check connection')}</button></div><details className="api-key-actions"><summary aria-label={t(`${key.name} 관리`, `Manage ${key.name}`)}><Ellipsis aria-hidden="true" /></summary><div className="stack">
         <button type="button" disabled={busy || !c.onSaveApiCredential} onClick={event => { const menu = event.currentTarget.closest('details'); menu?.removeAttribute('open'); menu?.querySelector('summary')?.focus(); select(key, 'edit'); }}>{t('키 수정', 'Edit key')}</button>
         <button type="button" disabled={busy || !c.onDeleteApiCredential} onClick={event => { const menu = event.currentTarget.closest('details'); menu?.removeAttribute('open'); menu?.querySelector('summary')?.focus(); select(key, 'delete'); }}>{t('키 삭제', 'Delete key')}</button>
-      </div></details></li>)}
+      </div></details></li>})}
     </ul>}
     {!credentials.length && <span className="hint">{t('저장된 API 키가 없어요.', 'No saved API keys.')}</span>}
     <button type="button" disabled={busy || !c.onSaveApiCredential} onClick={() => select({ id: crypto.randomUUID(), name: '', origin: '', keyStorage: 'encrypted', version: 0 }, 'edit')}>{t('API 키 추가', 'Add API key')}</button>
@@ -76,7 +88,7 @@ export function CredentialForm({ initial, saved, controller: c, onClose, onSaved
       {saved && <span className="hint">{t('키 교체·보관 방식·전송 정책 변경은 이 키를 사용하는 모든 모델에 적용돼요. 기존 테스트와 전송 확인은 다시 필요해요.', 'Changes to the key, storage or transmission policy apply to every model using it. Tests and transmission consent must be reviewed again.')}</span>}
       {router && <span className="hint">{t('표준 보관을 허용하면 제공사가 음성을 보관할 수 있어요. 데이터 수집 거부는 유지해요. 앱에서 ZDR을 해제해도 OpenRouter 계정·가드레일에서 강제한 ZDR은 해제되지 않아요. 저장 후 전사 화면에서 전송을 다시 확인하세요.', 'Allowing standard retention can let the provider retain audio. Data collection remains denied. Turning off ZDR here cannot override ZDR enforced by your OpenRouter account or guardrails. After saving, review transmission again in Transcription.')} <a href="https://openrouter.ai/settings/privacy" target="_blank" rel="noreferrer">{t('OpenRouter 계정 보관 정책', 'OpenRouter account retention settings')}</a></span>}
       {!valid && <span className="hint">{!name.trim() ? t('키 이름을 입력하세요.', 'Enter a key name.') : !provider ? t('제공사를 선택하세요.', 'Choose a provider.') : t('서버 주소에 HTTPS 주소 또는 localhost·127.0.0.1의 HTTP 주소를 경로 없이 입력하세요.', 'Enter an HTTPS server address, or a localhost/127.0.0.1 HTTP address, without a path.')}</span>}
-      <div className="actions wrap"><button type="button" className="primary" disabled={!valid || !policyReady || !saved && !hasKey || !c.onSaveApiCredential} onClick={() => void save()}>{t('키 저장', 'Save key')}</button><button type="button" onClick={() => { if (input.current) input.current.value = ''; onClose(); }}>{t('취소', 'Cancel')}</button></div>
+      <div className="actions wrap"><button type="button" onClick={() => { if (input.current) input.current.value = ''; onClose(); }}>{t('취소', 'Cancel')}</button><button type="button" className="primary" disabled={!valid || !policyReady || !saved && !hasKey || !c.onSaveApiCredential} onClick={() => void save()}>{t('키 저장', 'Save key')}</button></div>
     </fieldset>{error && <span role="alert" className="error">{error}</span>}
   </SettingsDialog>;
 }

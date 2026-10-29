@@ -1,3 +1,6 @@
+import { openRouterLLMIssues } from './openrouter-llm-options';
+import { routerSTTOptions, routerSTTOptionIssue } from './openrouter-stt-options';
+import { openAIReasoningIssue } from './openai-models';
 import { buildMinutesMessages } from '../minutes/prompt';
 import type { MinutesSection, ModelRegistryMetadata } from '../domain/types';
 import { asObject } from '../domain/pipeline';
@@ -9,6 +12,7 @@ export type RegistrationTestInput = {
     languages: readonly string[];
     glossary: readonly string[];
     context: string;
+    hintsProvided?: boolean;
     encodedAudio?: {
         data: string;
         format: string;
@@ -60,8 +64,10 @@ export type ModelRegistration = Readonly<{
         formats?: readonly ('mp3' | 'wav')[];
         responseFormat?: 'json' | 'verbose_json' | 'diarized_json';
         languageMode?: 'none' | 'single' | 'multiple';
-        termMode?: 'none' | 'prompt' | 'keywords';
-        timestamps?: 'none' | 'segment' | 'word';
+        termMode?: 'none' | 'prompt' | 'keywords' | 'prompt-and-keywords';
+        temperature?: number;
+        stream?: boolean;
+        timestamps?: 'none' | 'segment' | 'word' | 'segment-and-word';
         maxBytes?: number;
         maxSeconds?: number;
         routerRequireZdr?: boolean;
@@ -169,8 +175,10 @@ export function validateRegistration(value: unknown): ModelRegistration {
         if (r.stt !== undefined && !asObject(r.stt))
             invalid();
         const s = asObject(r.stt) ?? {};
-        fields(s, ['responseFormat', 'languageMode', 'termMode', 'timestamps', 'maxBytes', 'maxSeconds', 'routerRequireZdr', 'formats']);
-        const termMode = choice(s.termMode, ['none', 'prompt', 'keywords'] as const, 'none');
+        fields(s, ['responseFormat', 'languageMode', 'termMode', 'timestamps', 'maxBytes', 'maxSeconds', 'routerRequireZdr', 'formats', 'temperature', 'stream']);
+        const legacyPrompt = adapter === 'openai' && ['whisper-1', 'gpt-4o-transcribe', 'gpt-4o-mini-transcribe', 'gpt-4o-mini-transcribe-2025-12-15'].includes(result.modelId);
+        if (s.stream !== undefined && typeof s.stream !== 'boolean') invalid();
+        const termMode = choice(s.termMode, ['none', 'prompt', 'keywords', 'prompt-and-keywords'] as const, legacyPrompt ? 'prompt' : 'none');
         const router = adapter === 'openrouter';
         if (s.formats !== undefined && (!Array.isArray(s.formats) || !s.formats.length || s.formats.some(f => f !== 'mp3' && f !== 'wav'))) invalid();
         if (router && (termMode !== 'none' || s.languageMode === 'multiple' || s.responseFormat === 'diarized_json'))
@@ -178,10 +186,10 @@ export function validateRegistration(value: unknown): ModelRegistration {
         if (s.routerRequireZdr !== undefined && typeof s.routerRequireZdr !== 'boolean')
             invalid();
         const responseFormat = choice(s.responseFormat, ['json', 'verbose_json', 'diarized_json'] as const, 'json');
-        const timestamps = choice(s.timestamps, ['none', 'segment', 'word'] as const, 'none');
+        const timestamps = choice(s.timestamps, ['none', 'segment', 'word', 'segment-and-word'] as const, 'none');
         if (timestamps !== 'none' && responseFormat !== 'verbose_json')
             invalid();
-        return { ...result, stt: defined({ formats: s.formats === undefined ? ['mp3', 'wav'] as const : [...new Set(s.formats as ('mp3' | 'wav')[])], responseFormat, languageMode: choice(s.languageMode, ['none', 'single', 'multiple'] as const, 'none'), termMode, timestamps, maxBytes: number(s.maxBytes, 1, 1024 * 1024 * 1024, true), maxSeconds: number(s.maxSeconds, 0.01, 86400), ...(router ? { routerRequireZdr: s.routerRequireZdr !== false } : {}) }), ...(r.lastTest ? { lastTest: validateTestResult(r.lastTest) } : {}) };
+        return { ...result, stt: defined({ stream: s.stream as boolean | undefined, temperature: number(s.temperature, 0, 1), formats: s.formats === undefined ? ['mp3', 'wav'] as const : [...new Set(s.formats as ('mp3' | 'wav')[])], responseFormat, languageMode: choice(s.languageMode, ['none', 'single', 'multiple'] as const, 'none'), termMode, timestamps, maxBytes: number(s.maxBytes, 1, 1024 * 1024 * 1024, true), maxSeconds: number(s.maxSeconds, 0.01, 86400), ...(router ? { routerRequireZdr: s.routerRequireZdr !== false } : {}) }), ...(r.lastTest ? { lastTest: validateTestResult(r.lastTest) } : {}) };
     }
     if (r.llm !== undefined && !asObject(r.llm))
         invalid();
@@ -234,15 +242,36 @@ export function normalizeRegistrations(value: unknown): NormalizedModelRegistrat
 export function registrationEndpoint(r: ModelRegistration): string { if (r.endpointUrl) return registrationBaseUrl(r.endpointUrl); const base = registrationBaseUrl(r.baseUrl), path = r.stage === 'stt' ? '/audio/transcriptions' : '/chat/completions'; return base.endsWith(path) ? base : base + path; }
 export function registrationSignature(r: ModelRegistration): string { const settings = Object.fromEntries(Object.entries(validateRegistration(r)).filter(([key]) => key !== 'name' && key !== 'lastTest')); return JSON.stringify(settings); }
 export function registrationInputSummary(input: RegistrationTestInput): string {
-    return input.stage === 'stt' ? JSON.stringify({ stage: input.stage, bytes: input.file.size, type: input.file.type, languages: input.languages, glossary: input.glossary, context: input.context }) : JSON.stringify(input);
+    return input.stage === 'stt' ? JSON.stringify({ stage: input.stage, bytes: input.file.size, type: input.file.type, languages: input.languages, glossary: input.glossary, context: input.context, ...(input.hintsProvided !== undefined ? {hintsProvided: input.hintsProvided} : {}) }) : JSON.stringify(input);
+}
+// Provider-specific input rules; supported language subsets remain provider-validated.
+export function validateSTTRequestInput(model: ModelRegistration, input: Pick<Extract<RegistrationTestInput, {stage:'stt'}>, 'languages' | 'glossary'>): void {
+    if (model.adapter !== 'openai' || model.modelId !== 'gpt-transcribe') return;
+    if (['keywords', 'prompt-and-keywords'].includes(model.stt?.termMode ?? 'none') && input.glossary.some(term => /[<>\r\n]/u.test(term))) throw new Error('Invalid GPT Transcribe keyword');
+    if (model.stt?.languageMode === 'multiple' && input.languages.some(language => !/^(?:[a-z]{2,3}|zh-(?:cn|tw|hk))$/u.test(language))) throw new Error('Invalid GPT Transcribe language code');
+}
+// Known provider contracts; custom endpoints retain their declared options.
+export function sttCapabilities(model: ModelRegistration) {
+    type S = NonNullable<ModelRegistration['stt']>;
+    type Capabilities = { formats: NonNullable<S['responseFormat']>[]; languages: NonNullable<S['languageMode']>[]; terms: NonNullable<S['termMode']>[] };
+    const all: Capabilities = { formats: ['json', 'verbose_json', 'diarized_json'], languages: ['none', 'single', 'multiple'], terms: ['none', 'prompt', 'keywords', 'prompt-and-keywords'] };
+    if (model.adapter === 'openrouter') return { formats: ['openai/gpt-transcribe', 'openai/gpt-4o-transcribe', 'microsoft/mai-transcribe-1.5'].includes(model.modelId) ? ['json'] : ['json', 'verbose_json'], languages: ['none', 'single'], terms: ['none'] } satisfies Capabilities;
+    if (model.adapter !== 'openai') return all;
+    if (model.modelId === 'gpt-transcribe') return { formats: ['json'], languages: ['none', 'multiple'], terms: all.terms } satisfies Capabilities;
+    if (model.modelId === 'gpt-4o-transcribe-diarize') return { formats: ['json', 'diarized_json'], languages: ['none', 'single'], terms: ['none'] } satisfies Capabilities;
+    if (['whisper-1', 'gpt-4o-transcribe', 'gpt-4o-mini-transcribe', 'gpt-4o-mini-transcribe-2025-12-15'].includes(model.modelId)) return { formats: model.modelId === 'whisper-1' ? ['json', 'verbose_json'] : ['json'], languages: ['none', 'single'], terms: ['none', 'prompt'] } satisfies Capabilities;
+    return all;
 }
 // Reviewed request mappings; compatible servers still require their own capability settings.
 export function sttInputSupport(model: ModelRegistration) {
     const nativePrompt = model.adapter === 'openai' && ['whisper-1', 'gpt-4o-transcribe', 'gpt-4o-mini-transcribe', 'gpt-4o-mini-transcribe-2025-12-15'].includes(model.modelId);
-    const azure = model.adapter === 'openrouter' && model.modelId === 'microsoft/mai-transcribe-2';
-    const phrases = asObject(asObject(asObject(asObject(model.requestParameters?.provider)?.options)?.azure)?.phraseList)?.phrases;
-    const termMode = model.adapter === 'openai' && model.modelId === 'gpt-4o-transcribe-diarize' ? 'none' as const : azure ? 'azure-phrases' as const : nativePrompt ? 'prompt' as const : model.stt?.termMode ?? 'none';
-    return { languageMode: model.stt?.languageMode ?? 'none', termMode, context: termMode === 'prompt', defaultTerms: azure && Array.isArray(phrases) ? phrases.filter((v): v is string => typeof v === 'string') : [] };
+    const info = model.adapter === 'openrouter' ? routerSTTOptions(model.modelId) : null;
+    const provider = asObject(asObject(model.requestParameters?.provider)?.options), configured = info ? asObject(provider?.[info.provider]) : null;
+    const phrases = asObject(configured?.phraseList)?.phrases;
+    const terms = info?.vocabulary === 'azure-phrases' ? phrases : undefined;
+    const enabled = info?.vocabulary === 'azure-phrases' || info?.vocabulary === 'groq-prompt' && configured?.prompt !== undefined;
+    const termMode = model.adapter === 'openai' && model.modelId === 'gpt-4o-transcribe-diarize' ? 'none' as const : enabled && info ? info.vocabulary : model.stt?.termMode ?? (nativePrompt ? 'prompt' : 'none');
+    return { languageMode: model.stt?.languageMode ?? 'none', termMode, context: termMode === 'prompt' || termMode === 'prompt-and-keywords' || termMode === 'groq-prompt', defaultTerms: Array.isArray(terms) ? terms.filter((v): v is string => typeof v === 'string') : [], defaultContext: info?.vocabulary === 'groq-prompt' && typeof configured?.prompt === 'string' ? configured.prompt : '' };
 }
 export function defaultRegistrationOutputTokens(model: ModelRegistration): number | undefined {
     return model.llm?.maxTokens === undefined ? undefined : Math.min(4096, model.llm.maxTokens, model.catalogEvidence?.limits.maxOutputTokens ?? Infinity);
@@ -257,6 +286,10 @@ export function buildRegistrationRequest(value: ModelRegistration, input: Regist
     if (outputTokens !== undefined && (r.stage !== 'llm' || r.llm?.maxTokens === undefined || outputTokens > Math.min(r.llm.maxTokens, r.catalogEvidence?.limits.maxOutputTokens ?? Infinity))) invalid();
     if (input !== 'preview' && input.stage !== r.stage)
         invalid();
+    if (input !== 'preview') {
+        if (registrationReadiness(r).some(issue => issue.startsWith('stt-model-') || issue === 'stt-provider-options' || issue.startsWith('llm-model-'))) invalid();
+        if (input.stage === 'stt') validateSTTRequestInput(r, input);
+    }
     const url = registrationEndpoint(r);
     const auth = r.auth === 'bearer' ? 'Authorization: Bearer {{api_key}}\n' : '';
     if (r.stage === 'stt') {
@@ -264,7 +297,8 @@ export function buildRegistrationRequest(value: ModelRegistration, input: Regist
         const form = new FormData();
         form.set('model', r.modelId);
         form.set('response_format', s.responseFormat!);
-        const fields: string[] = ['model: {{model}}', 'file: {{audio}}', `response_format: ${s.responseFormat}`];
+        if (s.stream) form.set('stream', 'true');
+        const fields: string[] = ['model: {{model}}', 'file: {{audio}}', `response_format: ${s.responseFormat}`, ...(s.stream ? ['stream: true'] : [])];
         const data = input !== 'preview' && input.stage === 'stt' ? input : null;
         if (data)
             form.set('file', data.file, data.file.name);
@@ -277,32 +311,42 @@ export function buildRegistrationRequest(value: ModelRegistration, input: Regist
             fields.push('languages[]: {{languages}}');
             data?.languages.forEach(v => form.append('languages[]', v));
         }
-        if (support.termMode === 'prompt') {
+        if (support.termMode === 'prompt' || support.termMode === 'prompt-and-keywords') {
             fields.push('prompt: {{glossary_and_context}}');
             if (data) {
-                const prompt = [data.glossary.join(', '), data.context].filter(Boolean).join('\n');
+                const prompt = [support.termMode === 'prompt' ? data.glossary.join(', ') : '', data.context].filter(Boolean).join('\n');
                 if (prompt)
                     form.set('prompt', prompt);
             }
         }
-        if (support.termMode === 'keywords') {
+        if (support.termMode === 'keywords' || support.termMode === 'prompt-and-keywords') {
             fields.push('keywords[]: {{glossary}}');
             data?.glossary.forEach(v => form.append('keywords[]', v));
         }
-        if (s.timestamps !== 'none') {
-            fields.push(`timestamp_granularities[]: ${s.timestamps}`);
-            form.append('timestamp_granularities[]', s.timestamps!);
+        const timestamps = s.timestamps === 'segment-and-word' ? ['segment', 'word'] : s.timestamps === 'none' ? [] : [s.timestamps!];
+        for (const value of timestamps) {
+            fields.push(`timestamp_granularities[]: ${value}`);
+            form.append('timestamp_granularities[]', value);
         }
         if (r.adapter === 'openrouter') {
             const provider: Record<string, unknown> = { ...asObject(r.requestParameters?.provider), data_collection: 'deny', zdr: r.routerPolicy?.requireZdr !== false };
-            if (support.termMode === 'azure-phrases' && data) {
+            if (support.termMode === 'azure-phrases' && data && data.hintsProvided !== false) {
                 const options = asObject(provider.options), azure = asObject(options?.azure);
                 provider.options = { ...options, azure: { ...azure, phraseList: { ...asObject(azure?.phraseList), phrases: data.glossary } } };
             }
-            const body = { ...r.requestParameters, model: input === 'preview' ? '{{model}}' : r.modelId, input_audio: data?.encodedAudio ?? { data: '{{audio_base64}}', format: '{{audio_format}}' }, response_format: s.responseFormat, ...(s.languageMode === 'single' ? { language: data?.languages[0] ?? '{{language}}' } : {}), ...(s.timestamps !== 'none' ? { timestamp_granularities: [s.timestamps] } : {}), provider };
+            if (support.termMode === 'groq-prompt' && data && data.hintsProvided !== false) {
+                const options = asObject(provider.options), info = routerSTTOptions(r.modelId)!;
+                const settings = asObject(options?.[info.provider]);
+                const mapped = { prompt: [data.glossary.join(', '), data.context].filter(Boolean).join('\n') };
+                provider.options = { ...options, [info.provider]: { ...settings, ...mapped } };
+            }
+            const optionIssue = routerSTTOptionIssue(r.modelId, { provider });
+            if (optionIssue && data) throw new Error(`Invalid ${optionIssue}`);
+            const body = { ...r.requestParameters, ...(s.temperature !== undefined ? { temperature: s.temperature } : {}), model: input === 'preview' ? '{{model}}' : r.modelId, input_audio: data?.encodedAudio ?? { data: '{{audio_base64}}', format: '{{audio_format}}' }, response_format: s.responseFormat, ...(s.languageMode === 'single' ? { language: data?.languages[0] ?? '{{language}}' } : {}), ...(timestamps.length ? { timestamp_granularities: timestamps } : {}), provider };
             const previewBody = { ...body, model: '{{model}}', input_audio: { data: '{{audio_base64}}', format: '{{audio_format}}' }, ...(s.languageMode === 'single' ? { language: '{{language}}' } : {}) };
             return { url, body: JSON.stringify(body), contentType: 'application/json', preview: `POST ${url}\n${auth}Content-Type: application/json\n${JSON.stringify(previewBody, null, 2)}\n\nresponse.text / response.segments / response.words / response.usage` };
         }
+        if (s.temperature !== undefined) { form.set('temperature', String(s.temperature)); fields.push(`temperature: ${s.temperature}`); }
         for (const [key, value] of Object.entries(r.requestParameters ?? {})) { form.set(key, typeof value === 'string' ? value : JSON.stringify(value)); fields.push(`${key}: ${JSON.stringify(value)}`); }
         return { url, body: form, contentType: null, preview: `POST ${url}\n${auth}multipart/form-data (boundary: browser)\n${fields.join('\n')}\n\nresponse.text / response.segments / response.words / response.usage` };
     }
@@ -314,7 +358,7 @@ export function buildRegistrationRequest(value: ModelRegistration, input: Regist
     const budget = number(outputTokens ?? defaultRegistrationOutputTokens(r), 1, 1000000, true);
     const options = { ...(budget !== undefined ? { [l.tokenField!]: budget } : {}), ...(l.temperature !== undefined ? { temperature: l.temperature } : {}), ...(l.topP !== undefined ? { top_p: l.topP } : {}) };
     const endpointTag=r.routerEndpointTag??r.catalogEvidence?.route.endpointTag;
-    const body = JSON.stringify({ ...r.requestParameters, model: r.modelId, messages: requestMessages, stream: false, ...options, ...(r.adapter === 'openrouter' ? {provider: { ...asObject(r.requestParameters?.provider), data_collection: 'deny', zdr: r.routerPolicy?.requireZdr !== false, allow_fallbacks: false, ...(endpointTag ? {only: [endpointTag]} : {}) }} : {}) });
+    const body = JSON.stringify({ ...r.requestParameters, model: r.modelId, messages: requestMessages, stream: false, ...options, ...(r.adapter === 'openrouter' ? {provider: { ...asObject(r.requestParameters?.provider), data_collection: 'deny', zdr: r.routerPolicy?.requireZdr !== false, require_parameters: true, allow_fallbacks: false, ...(endpointTag ? {only: [endpointTag]} : {}) }} : {}) });
     const previewBody = JSON.stringify({ ...JSON.parse(body), model: '{{model}}', messages: [{ role: 'system', content: '{{minutes_instructions}}' }, { role: 'user', content: '{{selected_transcript_and_settings}}' }] }, null, 2);
     return { url, body, contentType: 'application/json', preview: `POST ${url}\n${auth}Content-Type: application/json\n${previewBody}\n\nresponse.choices[0].message.content\nresponse.choices[0].finish_reason / response.usage / response.model / response.id` };
 }
@@ -364,7 +408,18 @@ export function registrationReadiness(value: ModelRegistration): readonly string
     if (endpoint.hostname === '[::1]') issues.push('ipv6-csp');
     if (r.auth === 'bearer' && r.credentialOrigin !== endpoint.origin) issues.push('credential-origin');
     if (r.adapter === 'openrouter' && !r.routerPolicy?.acknowledged) issues.push('router-disclosure');
+    if (r.stage === 'stt') {
+        const capabilities = sttCapabilities(r), s = r.stt!;
+        if (!capabilities.formats.includes(s.responseFormat!)) issues.push('stt-model-format');
+        if (!capabilities.languages.includes(s.languageMode!)) issues.push('stt-model-language');
+        if (!capabilities.terms.includes(s.termMode!)) issues.push('stt-model-terms');
+        if (r.adapter === 'openrouter' && routerSTTOptionIssue(r.modelId, r.requestParameters)) issues.push('stt-provider-options');
+        if (s.stream && (r.adapter !== 'openai' || r.modelId !== 'gpt-transcribe')) issues.push('stt-model-stream');
+        if (r.adapter === 'openai' && r.modelId === 'gpt-transcribe' && Object.keys(r.requestParameters ?? {}).length) issues.push('stt-model-parameters');
+    }
     if (r.stage === 'stt' && (!r.stt?.maxBytes || !r.stt.formats?.length)) issues.push('stt-limits');
+    if (r.stage === 'llm') issues.push(...openRouterLLMIssues(r).map(issue => `llm-model-${issue}`));
+    if (r.stage === 'llm' && openAIReasoningIssue(r)) issues.push(`llm-model-${openAIReasoningIssue(r)}`);
     if (r.stage === 'llm' && (!r.llm?.contextTokens || !r.llm.maxTokens || r.llm.maxTokens >= r.llm.contextTokens)) issues.push('llm-limits');
     return issues;
 }

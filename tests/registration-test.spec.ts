@@ -102,3 +102,18 @@ it('does not read a saved key or dispatch HTTP IPv6 literal calls blocked by CSP
  const registration={...r,baseUrl:'http://[::1]:8000/v1',credentialOrigin:'http://[::1]:8000'},getKey=vi.fn(()=> 'SYNTHETIC_SECRET'),fetch=vi.fn();
  expect((await runRegistrationTest(registration,input,createJobContext(),{getKey,fetch})).state).toBe('failed');expect(getKey).not.toHaveBeenCalled();expect(fetch).not.toHaveBeenCalled();
 });
+it('runs GPT Transcribe file streaming tests and preserves redacted events',async()=>{
+ const stt=validateRegistration({...r,stage:'stt',modelId:'gpt-transcribe',stt:{maxBytes:25_000_000,maxSeconds:900,responseFormat:'json',languageMode:'multiple',termMode:'prompt-and-keywords',stream:true}});
+ const events='data: {"type":"transcript.text.delta","delta":"SYNTHETIC_SECRET"}\n\ndata: {"type":"transcript.text.done","text":"SYNTHETIC_SECRET hello","languages":[]}\n\n';
+ const fetch=vi.fn(async(_url:RequestInfo|URL,init?:RequestInit)=>{expect((init?.body as FormData).get('stream')).toBe('true');return new Response(events);});
+ const result=await runRegistrationTest(stt,{stage:'stt',file:wav(),languages:['ko'],glossary:['MoM'],context:'meeting'},createJobContext(),{getKey:()=> 'SYNTHETIC_SECRET',fetch});
+ expect(result.state).toBe('success');expect(result.text).toBe('[redacted] hello');expect(result.raw).toContain('transcript.text.done');expect(result.raw).not.toContain('SYNTHETIC_SECRET');expect(fetch).toHaveBeenCalledOnce();
+});
+it('keeps saved Groq context for blank default test inputs and supports explicit clearing',async()=>{
+ const stt=validateRegistration({...r,stage:'stt',modelId:'openai/whisper-large-v3',adapter:'openrouter',baseUrl:'https://openrouter.ai/api/v1',credentialOrigin:'https://openrouter.ai',stt:{languageMode:'none'},requestParameters:{provider:{options:{groq:{prompt:'SAVED CONTEXT'}}}}});
+ const audio={stage:'stt' as const,file:wav(),languages:[],glossary:[],context:''},prompts:string[]=[];
+ const fetch=vi.fn(async(_url:RequestInfo|URL,init?:RequestInit)=>{prompts.push(JSON.parse(init!.body as string).provider.options.groq.prompt);return response({text:'synthetic'});});
+ expect((await runRegistrationTest(stt,audio,createJobContext(),{getKey:()=> 'SYNTHETIC_SECRET',fetch})).state).toBe('success');
+ expect((await runRegistrationTest(stt,{...audio,hintsProvided:true},createJobContext(),{getKey:()=> 'SYNTHETIC_SECRET',fetch})).state).toBe('success');
+ expect(prompts).toEqual(['SAVED CONTEXT','']);
+});

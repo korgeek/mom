@@ -3,6 +3,13 @@ import type { AppController } from '../App';
 import { copy } from './copy';
 import './screen-lock.css';
 
+export function AuthenticationPolicyNotice({ controller: c }: { controller: AppController }) {
+  const t = (ko: string, en: string) => copy(c.preferences.uiLanguage, ko, en);
+  if (c.authDeleted) return <p role="alert" className="warning">{t('암호 확인 5회 실패로 이 브라우저의 로컬 보관함이 삭제됐어요.', 'The local vault in this browser was deleted after 5 failed passphrase attempts.')}</p>;
+  if (c.authDeletionPending) return <div role="alert" className="warning stack"><span>{t('암호 확인 5회 실패로 보관함 삭제가 필요하지만 완료되지 않았어요. 암호 확인은 중지됐어요.', 'After 5 failed passphrase attempts, vault deletion is pending. Passphrase verification is blocked.')}</span><button disabled={!c.onResetVault || c.resettingVault} onClick={c.onResetVault}>{t('보관함 삭제 다시 시도', 'Retry vault deletion')}</button>{c.resetVaultError && <span>{c.resetVaultError}</span>}</div>;
+  return <><span className="hint">{t('3회 실패 시 경고 · 5회 실패 시 로컬 보관함 삭제', 'Warning after 3 failures · local vault deleted after 5')}</span><details className="protection-details"><summary>{t('삭제 정책 자세히', 'Deletion policy details')}</summary><p className="hint">{t('암호가 맞아도 암호화 헤더가 손상되면 실패로 판정될 수 있어요. 5회 실패로 삭제되면 복구할 수 없어요. 저장소 직접 변경이나 백업 복원, 오프라인 암호 추측은 이 제한으로 막을 수 없어요.', 'A damaged encryption header can cause failures even with the correct passphrase. A vault deleted after 5 failures cannot be recovered. This limit cannot prevent direct storage changes, backup restoration, or offline guessing.')}</p></details>{(c.authFailures ?? 0) >= 3 && <p role="alert" className="warning">{c.authFailures === 3 ? t('암호 확인 3회 실패. 2회 더 실패하면 이 브라우저의 로컬 보관함이 삭제돼요.', '3 failed passphrase attempts. The local vault in this browser will be deleted after 2 more failures.') : t('암호 확인 4회 실패. 한 번 더 실패하면 이 브라우저의 로컬 보관함이 삭제돼요.', '4 failed passphrase attempts. One more failure will delete the local vault in this browser.')}</p>}</>;
+}
+
 export function WorkPolicySettings({ controller: c }: { controller: AppController }) {
   const t = (ko: string, en: string) => copy(c.preferences.uiLanguage, ko, en);
   const selected = c.preferences.lockWorkPolicy ?? 'standard';
@@ -40,10 +47,11 @@ export function ScreenGate({ controller: c, children }: { controller: AppControl
     <div className="brand-mark vault-mark" aria-hidden="true">M</div><strong className="centered">Minutes of Meeting</strong>
     <h1 id="screen-lock-heading">{t('화면이 잠겼어요', 'Screen locked')}</h1>
     <p>{c.session === 'locking' || c.session === 'unlocking' ? t('완료된 내용을 저장하거나 보관함을 여는 중입니다. 잠시 기다려 주세요.', 'Saving completed work or opening the vault. Please wait.') : c.session === 'unlocked' ? t('진행 중인 작업은 계속됩니다. 암호를 입력해 음성 메모로 돌아가세요.', 'Work in progress continues. Enter your passphrase to return to your voice memos.') : t('저장된 음성 메모가 준비되어 있습니다. 암호를 입력해 돌아가세요.', 'Your saved voice memos are ready. Enter your passphrase to return.')}</p>
-    <form onSubmit={event => { event.preventDefault(); if (working || !secret || !c.onScreenUnlock) return; const value = secret; setSecret(''); c.onScreenUnlock(value); }}>
-      <label>{t('암호', 'Passphrase')}<input autoFocus name="screen-passphrase" type="password" autoComplete="current-password" value={secret} disabled={working} onChange={event => setSecret(event.target.value)} /></label>
+    <AuthenticationPolicyNotice controller={c} />
+    <form onSubmit={event => { event.preventDefault(); if (working || c.authDeletionPending || !secret || !c.onScreenUnlock) return; const value = secret; setSecret(''); c.onScreenUnlock(value); }}>
+      <label>{t('암호', 'Passphrase')}<input autoFocus name="screen-passphrase" type="password" autoComplete="current-password" value={secret} disabled={working || c.authDeletionPending} onChange={event => setSecret(event.target.value)} /></label>
       {c.screenUnlockError && <span className="error" role="alert">{t('암호를 확인할 수 없어요. 다시 입력하세요.', 'The passphrase could not be verified. Try again.')}</span>}
-      <button type="submit" className="primary" disabled={working || !secret || !c.onScreenUnlock}>{working ? t('처리 중…', 'Working…') : t('화면 잠금 해제', 'Unlock screen')}</button>
+      <button type="submit" className="primary" disabled={working || c.authDeletionPending || !secret || !c.onScreenUnlock}>{working ? t('처리 중…', 'Working…') : t('화면 잠금 해제', 'Unlock screen')}</button>
     </form>
     <details className="protection-details"><summary>{t('화면 잠금의 보호 범위', 'Screen lock protection')}</summary><p className="hint">{c.session === 'unlocked' ? t('작업 중에는 실행에 필요한 키와 데이터가 이 탭 메모리에 남아요. 화면 잠금은 메모리 접근을 막지 않아요. 모든 작업 저장 후 키 참조를 해제해요.', 'Keys and data needed for active work remain in this tab’s memory. Screen locking does not block memory access. Key references are released after all work is saved.') : t('완료된 내용과 화면 복원 정보는 암호화 저장하며, 전체 잠금이 끝나면 보관함 키 참조를 해제해요. 완전한 메모리 소거는 보장하지 않아요.', 'Completed work and screen state are saved encrypted. Full locking releases vault key references; complete memory zeroization is not guaranteed.')}</p></details>
     {c.session === 'unlocked' && <HardLockAction controller={c} />}

@@ -46,7 +46,17 @@ MoM은 브라우저에서 음성을 준비하고, 사용자가 선택한 외부 
 
 | 변경 주제 | 구현·검증·배포 근거 |
 | --- | --- |
+| 로컬 보관함·암호 정책·삭제 경계 보안 점검 | [보안 감사 및 현재 한계](superpowers/evidence/2026-10-29-security-release/security-audit.md) |
 | 보관 정책 거절·명시적 정책 검토·새 전송 동의 | [전사 정책 복구](superpowers/evidence/2026-10-19-stt-policy-recovery/README.md) |
+| 메모 진행 단계 진입·상세 접힘·요청/응답 JSON | [진행 상태 우선 UI](superpowers/evidence/2026-10-29-progressive-details/README.md) |
+| OpenRouter 모델별 전사 옵션·메모별 추론 강도 | [OpenRouter 옵션 확인](superpowers/evidence/2026-10-29-openrouter-options/README.md) |
+| OpenAI/OpenRouter 전사 설정과 실패 요청 상세 | [STT 표준화·오류 기록](superpowers/evidence/2026-10-29-stt-standardization/README.md) |
+| API 설정 전 모델 숨김·전사 입력 편집과 가독성 | [모델 준비 상태·전사 입력](superpowers/evidence/2026-10-29-stt-input-readiness/README.md) |
+| 모델 설정·테스트 상태 배지와 GPT-6.1 프리셋 | [모델 상태·최신 프리셋](superpowers/evidence/2026-10-29-model-status-latest/README.md) |
+| API 키 인증 상태 칩·상세 펼침 | [API 상태 칩](superpowers/evidence/2026-10-29-api-key-chips/README.md) |
+| 처리 기록·설정·음성 메모 공통 본문 폭 | [컨테이너 폭 통일](superpowers/evidence/2026-10-29-shared-container-width/README.md) |
+| 실행 버튼을 보조 버튼 뒤·오른쪽에 배치 | [주 실행 버튼 순서](superpowers/evidence/2026-10-29-primary-actions-right/README.md) |
+| 최신 OpenAI 파일 전사·Terra/Luna·추론 강도 | [OpenAI 파일 옵션](superpowers/evidence/2026-10-29-openai-file-options/README.md) |
 | 저장소 목록의 얇은 행·우측 삭제 버튼 | [저장소 목록](superpowers/evidence/2026-10-19-storage-rows/README.md) |
 | 예정된 겹침 처리·선택 전사·정리 입력 | [겹침과 회의록](superpowers/evidence/2026-10-19-overlap-minutes/README.md) |
 | 공통 접기 설명·정리 출력 한도 | [접기 설명](superpowers/evidence/2026-10-19-shared-disclosures/README.md), [출력 한도](superpowers/evidence/2026-10-19-notes-output-limits/README.md) |

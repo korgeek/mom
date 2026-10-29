@@ -2,7 +2,7 @@
 // Public catalog and synthetic UI fixtures only; no credentials or provider calls.
 import { webcrypto } from 'node:crypto';
 import { afterEach, beforeAll, describe, expect, it } from 'vitest';
-import { cleanup, render, screen, within } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { defaultPreferences, type AppController } from '../src/react-app/App';
 import type { MeetingProject } from '../src/react-app/domain/types';
 import { comparisonConsentToken, freezeMinutesComparison, previewComparison } from '../src/react-app/minutes/compare';
@@ -72,8 +72,8 @@ describe('catalog modality projection and consent', () => {
   expect(result.modalities).toEqual({ input: [], output: [] });
   render(<Minutes controller={controller({ minutesSelection: result })} project={project()} />);
   const card = screen.getByRole('region', { name: 'Model details' });
-  expect(field(card, 'Catalog input modalities').textContent).toBe('Unavailable');
-  expect(field(card, 'Catalog output modalities').textContent).toBe('Unavailable');
+  expect(within(card).queryByText('Catalog input modalities')).toBeNull();
+  expect(within(card).queryByText('Catalog output modalities')).toBeNull();
  });
  it('binds catalog conflict availability even when modality arrays and existing consent fields stay identical', () => {
   const selected = choice();
@@ -110,8 +110,9 @@ describe('single and comparison model details', () => {
   const card = screen.getByRole('region', { name: language === 'en' ? 'Model details' : '모델 상세' });
   expect(field(card, language === 'en' ? 'Catalog input modalities' : '카탈로그 입력 형식').textContent).toBe('text, image, audio, video, file');
   expect(field(card, language === 'en' ? 'Catalog output modalities' : '카탈로그 출력 형식').textContent).toBe('text, image');
-  expect(field(card, language === 'en' ? 'Duration' : '소요 시간').textContent).toBe(language === 'en' ? 'Measured after execution' : '실행 후 실측');
-  expect(within(card).getByText(language === 'en' ? 'Catalog-advertised modalities do not guarantee runtime support at the selected endpoint. MoM sends only text for notes.' : '카탈로그에 표시된 형식은 선택 엔드포인트의 실제 지원을 보장하지 않아요. MoM 정리 노트 요청은 텍스트만 보내요.')).toBeTruthy();
+  const details=card.closest('details')!;expect(details.open).toBe(false);fireEvent.click(details.querySelector('summary')!);expect(details.open).toBe(true);
+  expect(within(card).queryByText(language === 'en' ? 'Duration' : '소요 시간')).toBeNull();
+  expect(within(card).getByText(language === 'en' ? 'Catalog modalities do not guarantee support on the selected route. Notes requests send only text.' : '카탈로그 형식은 선택한 경로의 실제 지원을 보장하지 않아요. 정리 요청은 텍스트만 보내요.')).toBeTruthy();
  });
  it('shows each member’s actual catalog modalities in the A/B cards', () => {
   const p = project(); const a = choice(); const b = choice('fixture/b', ['text', 'audio'], ['text', 'audio']);
@@ -122,14 +123,15 @@ describe('single and comparison model details', () => {
   expect(field(cards[0], 'Catalog input modalities').textContent).toBe('text, image, audio, video, file');
   expect(field(cards[1], 'Catalog input modalities').textContent).toBe('text, audio');
   expect(field(cards[1], 'Catalog output modalities').textContent).toBe('text, audio');
-  for (const card of cards) expect(field(card, 'Duration').textContent).toBe('Measured after execution');
+  const details=cards[0].closest('details')!;expect(details.open).toBe(false);fireEvent.click(details.querySelector('summary')!);expect(details.open).toBe(true);
+  for (const card of cards) expect(within(card).queryByText('Duration')).toBeNull();
  });
  it.each(['empty', 'legacy'] as const)('labels unknown modality dimensions unavailable (%s preview)', kind => {
   const selected = choice(); const result = kind === 'empty' ? preview({ ...selected, model: { ...selected.model, inputModalities: [], outputModalities: [] } }) : preview(selected);
   const legacy = { ...result, modalities: undefined };
   render(<Minutes controller={controller({ minutesSelection: kind === 'legacy' ? legacy : result })} project={project()} />);
   const card = screen.getByRole('region', { name: 'Model details' });
-  expect(field(card, 'Catalog input modalities').textContent).toBe('Unavailable');
-  expect(field(card, 'Catalog output modalities').textContent).toBe('Unavailable');
+  expect(within(card).queryByText('Catalog input modalities')).toBeNull();
+  expect(within(card).queryByText('Catalog output modalities')).toBeNull();
  });
 });

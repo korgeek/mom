@@ -35,14 +35,15 @@ function Field({ label, value, language, depth }: { label: string; value: unknow
   </details>;
 }
 
-export default function JsonResponse({ value, language }: { value: unknown; language: Language }) {
+export default function JsonResponse({ value, language, title }: { value: unknown; language: Language; title?: string }) {
   const [showRaw, setShowRaw] = useState(false);
   const t = (ko: string, en: string) => copy(language, ko, en);
-  return <section className="json-response" aria-label={t('원본 응답', 'Original response')}>
-    <div className="json-response-header"><div><strong>{t('원본 응답', 'Original response')}</strong><span className="hint">{t('읽기 전용', 'Read only')}</span></div>
+  const label = title ?? t('원본 응답', 'Original response');
+  return <section className="json-response" aria-label={label}>
+    <div className="json-response-header"><div><strong>{label}</strong><span className="hint">{t('읽기 전용', 'Read only')}</span></div>
       <button aria-pressed={showRaw} onClick={() => setShowRaw(raw => !raw)}>{showRaw ? t('구조로 돌아가기', 'Back to structured view') : t('원본 JSON 보기', 'View original JSON')}</button>
     </div>
-    {showRaw ? <pre className="json-response-raw" tabIndex={0} aria-label={t('원본 응답 JSON', 'Original response JSON')}>{JSON.stringify(value, null, 2) ?? t('미제공', 'Unavailable')}</pre> :
+    {showRaw ? <pre className="json-response-raw" tabIndex={0} aria-label={`${label} JSON`}>{JSON.stringify(value, null, 2) ?? t('미제공', 'Unavailable')}</pre> :
       <div className="json-response-data">{isContainer(value) ? <Fields value={value} language={language} depth={0} /> : <Scalar value={value} language={language} />}</div>}
   </section>;
 }

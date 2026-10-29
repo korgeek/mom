@@ -8,6 +8,8 @@ import { createVaultSession, type Ownership, type VaultSessionOptions } from '..
 import { openVaultDatabase } from '../src/react-app/vault/store';
 import { cancelJobs } from '../src/react-app/domain/jobs';
 import { createLocalMediaWorker } from '../src/react-app/media/worker';
+import { createModelPreset } from '../src/react-app/providers/model-profiles';
+import { sttActionToken } from '../src/react-app/transcript/batches';
 
 const passphrase = 'synthetic frontend reset passphrase';
 const active: MeetingController[] = [];
@@ -61,10 +63,13 @@ describe('connected passwordless vault reset', () => {
   it('clears actual encrypted meetings/audio/keys, previews and model preferences before a fresh vault', async () => {
     const f = await opened(), id = await f.core.createMeeting();
     await f.core.updateMeeting(id, { title: 'SYNTHETIC_RESET_TITLE' }); await f.core.importFile(id, wav());
-    await f.core.saveKey('openai', 'SYNTHETIC_ENCRYPTED_RESET_KEY', 'encrypted');
-    await f.core.saveKey('openrouter', 'SYNTHETIC_SESSION_RESET_KEY', 'session');
-    const saved = f.core.getSnapshot().modelManagement!.rows.find(row => row.route.modelId === 'gpt-4o-mini-transcribe')!;
-    await f.core.setModelDefault('stt', saved.key); await f.core.setModelAlias(saved.key, 'SYNTHETIC_RESET_ALIAS');
+    const saved = { ...createModelPreset('openai-gpt-transcribe'), name:'SYNTHETIC_RESET_ALIAS', enabled:true };
+    const sessionModel = { ...createModelPreset('router-gpt-transcribe'), name:'SYNTHETIC_SESSION_MODEL', keyStorage:'session' as const };
+    await f.core.getSnapshot().onSaveRegistration!(saved, {action:'replace',value:'SYNTHETIC_ENCRYPTED_RESET_KEY'});
+    await f.core.getSnapshot().onSaveRegistration!(sessionModel, {action:'replace',value:'SYNTHETIC_SESSION_RESET_KEY'});
+    await f.core.getSnapshot().onSetRegistrationDefault!('stt', saved.id);
+    expect(f.core.getSnapshot().registrationKeyReady).toEqual(expect.arrayContaining([saved.id,sessionModel.id]));
+    expect(f.core.getSnapshot().modelRegistrations?.defaults?.stt).toBe(saved.id);
     expect((await counts(f)).every(n => n > 0)).toBe(true);
     expect(typeof f.core.resetVault).toBe('function'); await f.core.resetVault();
     const state = f.core.getSnapshot();
@@ -74,7 +79,10 @@ describe('connected passwordless vault reset', () => {
     expect(await counts(f)).toEqual([0, 0, 0]);
     await f.core.createVault('different synthetic fresh passphrase');
     expect(f.core.getSnapshot().projects).toEqual([]);
-    expect(f.core.getSnapshot().modelManagement!.rows.some(row => row.alias === 'SYNTHETIC_RESET_ALIAS')).toBe(false);
+    expect(f.core.getSnapshot().modelRegistrations?.entries).toEqual([]);
+    expect(f.core.getSnapshot().modelRegistrations?.credentials).toEqual([]);
+    expect(f.core.getSnapshot().modelRegistrations?.defaults).toEqual({stt:null,llm:null});
+    expect(f.core.getSnapshot().registrationKeyReady).toEqual([]);
     expect(f.core.getSnapshot().connections.every(connection => connection.status === 'none')).toBe(true);
   });
   it('stays pending behind a real transaction and exposes new-vault only after commit', async () => {
@@ -125,9 +133,17 @@ describe('connected passwordless vault reset', () => {
     const entered = deferred(); let release!: () => void;
     const response = new Promise<Response>(done => { release = () => done(new Response(JSON.stringify({ text: 'SYNTHETIC_LATE_RESET_SPEECH', usage: { type: 'duration', seconds: 1 } }))); });
     const f = await opened({ fetch: async url => { expect(String(url)).toContain('/audio/transcriptions'); entered.resolve(); return response; } });
-    const id = await f.core.createMeeting(); await f.core.importFile(id, wav()); await f.core.saveKey('openai', 'SYNTHETIC_RESET_INFLIGHT_KEY', 'encrypted'); await f.core.prepareAudio(id);
+    const id = await f.core.createMeeting(); await f.core.importFile(id, wav()); await f.core.prepareAudio(id);
+    const model = { ...createModelPreset('openai-gpt-transcribe'), enabled:true };
+    await f.core.getSnapshot().onSaveRegistration!(model, {action:'replace',value:'SYNTHETIC_RESET_INFLIGHT_KEY'});
+    await f.core.getSnapshot().onSetRegistrationDefault!('stt', model.id);
+    f.core.getSnapshot().onSTTModel?.(model.id);
+    await vi.waitFor(() => { expect(f.core.getSnapshot().sttModelId).toBe(model.id); expect(f.core.getSnapshot().busy).toBe(false); });
     const pause = vi.fn(); f.core.getSnapshot().onSourcePreviewPlay?.({ pause } as unknown as HTMLAudioElement);
-    const running = f.core.startSTT(id, { modelId: 'gpt-transcribe', acknowledged: true }); void running.catch(() => {}); await entered.promise;
+    const project=f.core.getSnapshot().projects.find(project=>project.id===id)!;
+    const consentToken=sttActionToken(f.core.getSnapshot().sttConsentToken,project,{purpose:'initial',chunkIds:project.preparedChunks.map(chunk=>chunk.id),modelId:model.id});
+    const running = f.core.startSTT(id, { modelId:model.id, acknowledged:true, consentToken });
+    await Promise.race([entered.promise, running.then(()=>{ throw new Error('Synthetic request unexpectedly completed'); }, error=>{ throw error; })]);
     try {
       expect(typeof f.core.resetVault).toBe('function'); await f.core.resetVault(); expect(pause).toHaveBeenCalled();
       await f.core.createVault('different synthetic fresh passphrase'); release(); await expect(running).rejects.toMatchObject({ name: 'AbortError' });
@@ -135,7 +151,7 @@ describe('connected passwordless vault reset', () => {
       await f.core.lock(); await f.core.unlock('different synthetic fresh passphrase'); expect(f.core.getSnapshot().projects).toEqual([]);
     } finally { release(); await running.catch(() => {}); }
   });
-  it('does not let late original-vault restoration lock a newly created vault', async () => {
+  it('rejects reset during restoration and permits it only after restoration completes', async () => {
     const entered = deferred(), release = deferred(); let held = false;
     const f = await opened({ sessionFactory: hooks => {
       const actual = createVaultSession(hooks);
@@ -152,10 +168,13 @@ describe('connected passwordless vault reset', () => {
     const id = await f.core.createMeeting(); await f.core.importFile(id, wav()); await f.core.lock(); held = true;
     const restoring = f.core.unlock(passphrase); void restoring.catch(() => {}); await entered.promise;
     try {
-      await f.core.resetVault(); held = false; await f.core.createVault('different synthetic fresh passphrase'); release.resolve();
-      const outcome = await restoring.then(() => null, error => error);
+      const before = await counts(f);
+      await expect(f.core.resetVault()).rejects.toMatchObject({code:'permission'}); expect(await counts(f)).toEqual(before);
+      held = false; release.resolve(); await restoring;
+      expect(f.core.getSnapshot().session).toBe('unlocked'); expect(f.core.getSnapshot().projects.map(project=>project.id)).toEqual([id]);
+      await f.core.resetVault(); expect(await counts(f)).toEqual([0,0,0]);
+      await f.core.createVault('different synthetic fresh passphrase');
       expect(f.core.getSnapshot().session).toBe('unlocked'); expect(f.core.getSnapshot().projects).toEqual([]);
-      expect(outcome).toMatchObject({ name: 'AbortError' });
     } finally { held = false; release.resolve(); await restoring.catch(() => {}); }
   });
 });

@@ -25,28 +25,28 @@ Copyright (c) Meta Platforms, Inc. and affiliates.
 License: runtime-scheduler-0.27.0-LICENSE.txt
 Source: https://github.com/react/react/tree/v19.2.1/packages/scheduler
 
-DOMPurify 3.4.16 -- publisher declares (MPL-2.0 OR Apache-2.0)
+DOMPurify 3.4.17 -- publisher declares (MPL-2.0 OR Apache-2.0)
 MoM selects the Apache-2.0 alternative for this distribution.
-Selected license: runtime-dompurify-3.4.16-Apache-2.0-LICENSE.txt
-Alternative full text retained: runtime-dompurify-3.4.16-MPL-2.0-LICENSE.txt
-Source: https://github.com/cure53/DOMPurify/tree/3.4.16
+Selected license: runtime-dompurify-3.4.17-Apache-2.0-LICENSE.txt
+Alternative full text retained: runtime-dompurify-3.4.17-MPL-2.0-LICENSE.txt
+Source: https://github.com/cure53/DOMPurify/tree/3.4.17
 The published source attribution is preserved verbatim:
-/*! @license DOMPurify 3.4.16 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/3.4.16/LICENSE */
+/*! @license DOMPurify 3.4.17 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/3.4.17/LICENSE */
 
 The DOMPurify distribution contains Babel helper code and this notice:
 /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/babel/babel/blob/main/packages/babel-helpers/LICENSE */
 Full MIT license, including Sebastian McKenzie / contributors and Facebook:
 runtime-babel-helpers-MIT-LICENSE.txt
 The text was copied from installed @babel/helpers 7.29.2 and checked in full
-against the official v7.29.7 license linked below (identical after whitespace
+against the official v7.29.10 license linked below (identical after whitespace
 normalization). DOMPurify's versioned upstream build lock records helpers
-7.29.7; no standalone @babel/helpers package import occurs in MoM's runtime.
-Source: https://github.com/babel/babel/blob/v7.29.7/packages/babel-helpers/LICENSE
-Build provenance: https://github.com/cure53/DOMPurify/blob/3.4.16/package-lock.json
+7.29.10; no standalone @babel/helpers package import occurs in MoM's runtime.
+Source: https://github.com/babel/babel/blob/v7.29.10/packages/babel-helpers/LICENSE
+Build provenance: https://github.com/cure53/DOMPurify/blob/3.4.17/package-lock.json
 
-markdown-it 15.0.2 -- MIT
-License: runtime-markdown-it-15.0.2-LICENSE.txt
-Source: https://github.com/markdown-it/markdown-it/tree/15.0.2
+markdown-it 15.0.3 -- MIT
+License: runtime-markdown-it-15.0.3-LICENSE.txt
+Source: https://github.com/markdown-it/markdown-it/tree/15.0.3
 
 entities 8.1.0 -- BSD-2-Clause
 License: runtime-entities-8.1.0-LICENSE.txt

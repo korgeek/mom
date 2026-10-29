@@ -11,10 +11,10 @@ import { defaultPreferences } from "./App";
 import type { AppController, AppPreferences, AppScreen, SettingsTab, UIConnection, UIHistoryItem, UIPreparation } from "./App";
 import { cancelJobs, createJobContext, snapshotProject, transitionRunState } from "./domain/jobs";
 import type { AudioOptions, CheckpointWrite, JobContext, MeetingProject, MinutesComparison, MinutesSettings, RunRecord, STTBatchPurpose, TranscriptVersion, ModelRegistry, ModelRegistryRoute, DeletionPlan, RetainedAudio, StorageInventory, RouterSTTPreference, RouterSTTSelection } from "./domain/types";
-import { ProviderError, asObject, authHeaders, readOnlyJson, runTranscriptionQueue, type ProviderFailureCode } from "./domain/pipeline";
-import { createVaultSession } from "./vault/session";
+import { ProviderError, asObject, authHeaders, readOnlyJson, runTranscriptionQueue } from "./domain/pipeline";
+import { createVaultSession, VaultAttemptError } from "./vault/session";
 import type { VaultSession, VaultSessionOptions, VaultState } from "./vault/session";
-import { openVaultDatabase, readHeader } from "./vault/store";
+import { openVaultDatabase, readHeader, readVaultAuthPolicy } from "./vault/store";
 import { inspectAudio } from "./media/inspect";
 import { createAudioPreparer, planChunkRanges } from "./media/prepare";
 import { namedSourceReader, type MediaInput } from "./media/io";
@@ -43,6 +43,7 @@ import type { TranscriptEdit } from "./transcript/versions";
 import { acknowledgePartialTranscript, createMinutesGenerator, minutesInputSignature, reviseMinutes } from "./minutes/generate";
 import { buildMinutesMessages } from "./minutes/prompt";
 import { resolveMinutesSettings, validateMinutesBudget } from "./minutes/preferences";
+import { supportsMinutesReasoning, withMinutesReasoning } from './minutes/reasoning';
 import { previewMinutesSelection, previewRegisteredMinutesSelection, selectionConsentSnapshot } from "./minutes/selection";
 import type { MinutesSelectionPreview } from "./minutes/selection";
 import { comparisonConsentToken, comparisonMemberState, freezeMinutesComparison, previewComparison, minutesChoiceSnapshot } from "./minutes/compare";
@@ -57,11 +58,6 @@ import type { RecordingAction } from './ui/RecordingControls';
 import { preparedAudioReady, retainedChunks, retainedSource, retainedInitialChunkIds } from './ui/copy';
 export type ControllerProject = MeetingProject & Readonly<{
     minutesEndpointTag?: string | null;
-    failedProviderResponses?: readonly Readonly<{
-        runId: string;
-        response: unknown;
-        failureCode?: ProviderFailureCode;
-    }>[];
 }>;
 export type GenerationConsent = Readonly<{
     acknowledged: true;
@@ -365,7 +361,7 @@ export function createMeetingController(options: ControllerOptions = {}): Meetin
         const project = state.projects.find(project => project.id === id) as ControllerProject | undefined;
         const run = [...(project?.runs ?? [])].reverse().find(run => run.intent?.kind === 'stt' && run.intent.modelSnapshot?.id === model.id && registrationSignature(run.intent.modelSnapshot) === registrationSignature(model));
         const failure = project?.failedProviderResponses?.find(item => item.runId === run?.id);
-        const response = asObject(failure?.response);
+        const rawResponse = asObject(failure?.response), response = asObject(rawResponse?.error) ?? rawResponse;
         return run?.state === 'failed' && (failure?.failureCode === 'data-policy' || response?.code === 404 && asObject(response.metadata)?.failed_routing_step === 'Filter by Data Policy');
     }
     function sttUnavailableReason(): string | undefined {
@@ -511,6 +507,7 @@ export function createMeetingController(options: ControllerOptions = {}): Meetin
     };
     const stateMap = (vaultState: VaultState): AppController["session"] => vaultState === "lock-save-failed" ? "save-failed" : vaultState;
     const session = (options.sessionFactory ?? createVaultSession)({ databaseName, indexedDB: factory, screenLockManaged: true,
+        onAuthPolicy: (failures, pendingDeletion, vaultId) => update({ authFailures: failures, authDeletionPending: pendingDeletion, authDeletionVaultId: pendingDeletion ? vaultId : null }),
         capturePending: () => { const writes = [...pending.values()]; pending.clear(); return writes; },
         onState: (next) => { if (next !== "unlocked") void cutRecording(true).catch(() => {}); update({ session: stateMap(next) }); },
         onSensitiveClear: () => { releaseSourcePreview(); activePreparation = null; idle.stop(); screenRevision++; uiDrafts = {}; workReturnScreen = null; registrationAbort?.abort(); registrationAbort=null; metadataRevision++; void cutRecording(true).catch(() => {}); storageRevision++; availability.clear(); if (state.resettingVault) pending.clear(); clearPlayback(); comparisonCandidate = null; flushSync(() => update({ ...emptyComparison, uiDrafts: {}, selectionLists: null, modelRegistrations: null, registrationKeyReady: [], credentialKeyReady: [], apiCredentialChecks: {}, registrationTest: null, keySaveAttempts: {}, projects: [], selectedProjectId: null, historyProjectId:null, preparationEditor:null, preparationResetPlan:null, storageInventory: null, audioDeletionPlan: null, storageWorking: false, storageError: null, storageNotice: null, modelRegistry: null, modelManagement: null, modelCatalog: null, routerSTTSelection: null, minutesRoutes: [], minutesRouteKey: null, comparisonBRouteKey: null, sourcePreviewUrl: null, playback: null, history: [], chunkStates: [], preparation: null, minutesEndpoints: [], minutesEndpointTag: null, minutesConsentToken: null, minutesSelection: null, minutesInstructionsSaving: false, meetingEditsSaving: false, connections: [{ provider: "openai", status: "none" }, { provider: "openrouter", status: "none" }], busy: false, minutesGenerating: false, error: null, notice: null })); },
@@ -760,7 +757,7 @@ export function createMeetingController(options: ControllerOptions = {}): Meetin
         try { if (transcript && settings) messages = buildMinutesMessages(transcript, settings); } catch { /* Preview remains available for known catalog fields. */ }
         const preview = p ? previewMinutesSelection({ model, endpoint, messages, outputTokens, reasoningReserveTokens }) : null;
         let token: string | null = null;
-        if (p && settings && transcript && model && endpoint && routerChoice(model.id, endpoint.tag)) {
+        if (p && settings && settings.reasoningEffort === undefined && transcript && model && endpoint && routerChoice(model.id, endpoint.tag)) {
             try {
                 const input = await minutesInputSignature(transcript, settings);
                 job.assertActive();
@@ -974,12 +971,13 @@ export function createMeetingController(options: ControllerOptions = {}): Meetin
             secret = "";
             // A successful activation ends a prior failed reset attempt. Future lock
             // failures must retain ordinary save recovery, not stale reset-only UI.
-            update({ resettingVault: false, resetVaultError: null });
+            update({ resettingVault: false, resetVaultError: null, ...(creating ? {authDeleted:false,authFailures:0,authDeletionPending:false} : {}) });
             await restore(creating);
             if (state.screenAccess === 'locked' && session.state === 'unlocked') await core.lock();
         }
-        catch {
+        catch (error) {
             secret = "";
+            if (error instanceof VaultAttemptError && error.deleted) { update({ session: 'new', screenAccess: 'open', authDeleted: true, authDeletionPending: false, authFailures: 5, error: null }); return; }
             // A response from the discarded vault cannot lock or annotate its successor.
             if (revision !== resetRevision)
                 throw new DOMException('Activation no longer current', 'AbortError');
@@ -1113,7 +1111,8 @@ export function createMeetingController(options: ControllerOptions = {}): Meetin
     async function generateAndCheckpoint(id: string, transcript: TranscriptVersion, settings: MinutesSettings, selection: MinutesChoice, outputTokens: number, reasoningReserveTokens: number, job: JobContext, acknowledgement?: PartialAcknowledgement, comparison?: Readonly<{ record: MinutesComparison; member: 0 | 1; consentToken: string }>): Promise<void> {
         const registered='registration' in selection?freezeExecutionModel(selection.registration):null;
         const legacy='model' in selection?selection:null;
-        const executionModel=registered?freezeExecutionModel({...registered,llm:{...registered.llm,maxTokens:outputTokens}}):null;
+        if (!supportsMinutesReasoning(registered, settings.reasoningEffort)) throw new ProviderError('invalid-input');
+        const executionModel=registered?freezeExecutionModel({...withMinutesReasoning(registered, settings.reasoningEffort),llm:{...registered.llm,maxTokens:outputTokens}}):null;
         const provider = registered?createRegisteredMinutesProvider({model:executionModel!,getKey:()=>registeredKey(registered,job),fetch:options.fetch,minutesMessages:comparison?.record.messages}):createOpenRouterProvider({ getKey: () => session.getProviderKey("openrouter"), fetch: options.fetch, selection:legacy!, buildMessages: comparison ? () => comparison.record.messages : buildMinutesMessages, maxOutputTokens: outputTokens, reasoningReserveTokens });
         const requestedModel=registered?.modelId??legacy!.model.id;
         const requestedEndpoint=registered?registrationEndpoint(registered):legacy!.endpoint.tag;
@@ -1142,7 +1141,8 @@ export function createMeetingController(options: ControllerOptions = {}): Meetin
                 const current = getProject(id);
                 const failed = transitionRunState(record, error instanceof ProviderError && error.outcomeUnknown ? "outcome-unknown" : "failed");
                 const response = error instanceof ProviderError ? error.readSensitiveResponse() : undefined;
-                const failureProject: ControllerProject = { ...current, runs: current.runs.map(item => item.id === failed.id ? failed : item), ...(response === undefined ? {} : { failedProviderResponses: [...(current.failedProviderResponses ?? []), { runId: failed.id, response }] }) };
+                const sentRequest = error instanceof ProviderError ? error.readSensitiveRequest() : undefined;
+                const failureProject: ControllerProject = { ...current, runs: current.runs.map(item => item.id === failed.id ? failed : item), failedProviderResponses: [...(current.failedProviderResponses ?? []), { runId: failed.id, ...(sentRequest === undefined ? {} : { request: sentRequest }), ...(response === undefined ? {} : { response }), ...(error instanceof ProviderError ? { failureCode: error.code, status: error.httpStatus } : {}) }] };
                 const snapshot = snapshotProject(failureProject);
                 if (error instanceof ProviderError) error.clearSensitiveResponse();
                 await saveProject(snapshot, job); job.assertActive();
@@ -1449,9 +1449,10 @@ export function createMeetingController(options: ControllerOptions = {}): Meetin
                     throw new ProviderError("storage");
                 const db = await openVaultDatabase(factory, databaseName);
                 const header = await readHeader(db);
+                const policy = header ? await readVaultAuthPolicy(db, header.vaultId) : null;
                 db.close();
                 if (!disposed && revision === resetRevision && !resetOperation)
-                    update({ session: header ? "locked" : "new" });
+                    update({ session: header ? "locked" : "new", authFailures: policy?.failures ?? 0, authDeletionPending: policy?.pendingDeletion ?? false, authDeletionVaultId: policy?.pendingDeletion ? policy.vaultId : null });
             }
             catch {
                 update({ error: safeFailure(new ProviderError("storage"), state.preferences.uiLanguage) });
@@ -1507,8 +1508,10 @@ export function createMeetingController(options: ControllerOptions = {}): Meetin
                 try { if (file && state.selectedProjectId) { preview = urls.create(file); previews.set(state.selectedProjectId, preview); } } catch { /* Preview remains optional; retained audio is unchanged. */ }
                 update({ screenAccess: 'open', screenUnlockError: false, sourcePreviewUrl: preview });
                 idle.start(state.preferences.autoLockSeconds === undefined ? 60 : state.preferences.autoLockSeconds);
-            } catch {
+            } catch (error) {
                 secret = '';
+                if (error instanceof VaultAttemptError && error.deleted) { update({ session: 'new', screenAccess: 'open', authDeleted: true, authDeletionPending: false, authFailures: 5 }); return; }
+                if (error instanceof VaultAttemptError && error.pendingDeletion) { update({ screenAccess: 'locked', screenUnlockError: false }); throw error; }
                 if (revision === screenRevision && session.state === 'unlocked') update({ screenAccess: 'locked', screenUnlockError: true });
                 queueScreenFinalization(); throw new ProviderError('permission');
             }
@@ -1534,16 +1537,18 @@ export function createMeetingController(options: ControllerOptions = {}): Meetin
             if (disposed || state.resettingVault || !['locked', 'unlocked', 'save-failed'].includes(state.session))
                 return Promise.reject(new ProviderError('busy'));
             const language = state.preferences.uiLanguage;
+            const automaticDeletion = state.authDeletionPending === true;
+            if (automaticDeletion && !state.authDeletionVaultId) return Promise.reject(new ProviderError('storage'));
             resetRevision++;
             void cutRecording(true).catch(() => {});
             update({ resettingVault: true, resetVaultError: null, busy: true, error: null, notice: null });
             // Session reset owns fencing, cleanup, native ownership and the definitive atomic outcome.
             // A locked non-owner must not cancel another owner's work here.
-            const operation = session.reset().then(() => {
+            const operation = session.reset(automaticDeletion ? state.authDeletionVaultId ?? undefined : undefined).then(() => {
                 pending.clear(); activeOperation = null; saveBlocked = false; cancelling = false;
                 metadataRevision++; comparisonRevision++; minutesLanguageRevision++;
                 state = Object.freeze({ ...initialSnapshot(), session: 'new', modelRegistry: null, modelManagement: null, modelCatalog: null,
-                    minutesRoutes: [], minutesRouteKey: null, comparisonBRouteKey: null, resettingVault: false, resetVaultError: null });
+                    minutesRoutes: [], minutesRouteKey: null, comparisonBRouteKey: null, resettingVault: false, resetVaultError: null, ...(automaticDeletion ? { authDeleted: true, authFailures: 5, authDeletionPending: false } : {}) });
                 emit();
             }, () => {
                 const message = language === 'en'
@@ -1878,8 +1883,9 @@ export function createMeetingController(options: ControllerOptions = {}): Meetin
                 if (result.failure) {
                     const failedRun = [...p.runs].reverse().find((run) => run.intent?.kind === "stt" && selected.includes(run.intent.chunkId ?? "") && run.state !== "saved");
                     const response = result.failure.readSensitiveResponse();
-                    if (failedRun && response !== undefined) {
-                        const next = snapshotProject({ ...p, failedProviderResponses: [...((p as ControllerProject).failedProviderResponses ?? []), { runId: failedRun.id, response, failureCode: result.failure.code }] } as ControllerProject);
+                    const sentRequest = result.failure.readSensitiveRequest();
+                    if (failedRun) {
+                        const next = snapshotProject({ ...p, failedProviderResponses: [...(p.failedProviderResponses ?? []), { runId: failedRun.id, ...(sentRequest === undefined ? {} : { request: sentRequest }), ...(response === undefined ? {} : { response }), failureCode: result.failure.code, status: result.failure.httpStatus }] });
                         result.failure.clearSensitiveResponse();
                         p = await saveProject(next, job);
                     }

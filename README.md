@@ -47,6 +47,8 @@ The frontend uses React, TypeScript and Vite; Web Crypto, IndexedDB and Web Lock
 
 Retained audio, transcripts, notes, sensitive metadata and saved provider keys are encrypted in the browser. Encrypted key persistence is the default; session-only keys are available. Enter credentials through the app UI. Original files, plaintext exports and data received by providers are outside this local protection.
 
+New vaults require a passphrase of at least 15 characters; existing vaults retain their previous passphrase compatibility. The app warns after three failed authentication attempts and deletes the local vault after five; deletion is irreversible, and a damaged vault header can also cause authentication failures. This local limit does not prevent offline guesses against a copied vault. See [Security and encryption](docs/security-and-encryption.md#passphrase-rules-and-loss) for the rules and limits.
+
 **Standard** screen locking removes sensitive content from the interface, stops playback and blocks new work while already authorized work can finish. Key/data references are released after the final save. **Strict** locking interrupts work at screen-lock/hidden-page boundaries and retains completed saved work. A failed final save retains the references needed for recovery behind the lock gate; it is not reported as a completed key release.
 
 See [Security and encryption](docs/security-and-encryption.md) for encryption/KDF parameters, ownership between tabs, late responses, save failures and recovery limits. Browser/OS memory zeroization is not guaranteed. Losing the vault passphrase cannot be repaired by resetting the vault; reset deletes local data. Markdown export is not a full vault backup or device transfer.
